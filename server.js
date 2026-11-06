@@ -541,6 +541,9 @@ function handleClientMessage(msg, ws) {
         if (data.category) {
           charCategory = data.category;
           if (data.gender) gender = data.gender;
+        } else if (data.gender) {
+          charCategory = 'human';
+          gender = data.gender;
         } else if (theme === 'cats') {
           charCategory = 'cat';
         } else if (theme === 'humans') {

@@ -28,7 +28,7 @@
   let playlist = [];
   let currentTrack = null;
   let isPlaying = false;
-  let dancers = []; // Array of Dancer instances
+  let dancers = []; window.__DJ_DANCERS__ = dancers; // Array of Dancer instances
   let topGifters = [];
   let particles = [];
   let lasers = [];
@@ -129,6 +129,15 @@
       img.onerror = checkDone;
       spriteCache.human_female.push(img);
     }
+    // Populate aliases so any legacy or tier lookup maps to chibi PNGs
+    ['regular', 'top1', 'top2', 'top3'].forEach(tier => {
+      ['style1', 'style2', 'style3'].forEach(style => {
+        spriteCache[`human_male_${tier}_${style}`] = spriteCache.human_male;
+        spriteCache[`human_female_${tier}_${style}`] = spriteCache.human_female;
+      });
+      spriteCache[`human_male_${tier}`] = spriteCache.human_male;
+      spriteCache[`human_female_${tier}`] = spriteCache.human_female;
+    });
 
     // Speaker texture
     const spk = new Image();
@@ -552,6 +561,16 @@
       this.vipRank = data.vipRank || 0; // 0 = crowd, 1 = Top 1, 2 = Top 2, 3 = Top 3
     }
 
+    getFrames() {
+      if (this.charCategory === 'human') {
+        const list = (this.gender === 'female' ? spriteCache.human_female : spriteCache.human_male);
+        if (list && list.length > 0) return list;
+      }
+      const catList = spriteCache[`char${this.charType}`] || spriteCache.char1;
+      if (catList && catList.length > 0) return catList;
+      return (spriteCache.human_male && spriteCache.human_male.length > 0) ? spriteCache.human_male : (spriteCache.char1 || []);
+    }
+
     getUniformTier() {
       if (this.vipRank === 1) return 'top1';
       if (this.vipRank === 2) return 'top2';
@@ -633,14 +652,7 @@
         this.scale = 0.85 + (this.y - 0.52) * 0.45; // Perspective scaling for crowd
       }
 
-      let frames;
-      if (this.charCategory === 'human') {
-        const tier = this.getUniformTier();
-        const styleKey = `style${this.danceStyle || 1}`;
-        frames = spriteCache[`human_${this.gender}_${tier}_${styleKey}`] || spriteCache[`human_${this.gender}_${tier}`];
-      } else {
-        frames = spriteCache[`char${this.charType}`];
-      }
+      const frames = this.getFrames();
       const totalFrames = frames && frames.length > 0 ? frames.length : 14;
 
       if (beatEngine.danceEnergy < 0.18 || !beatEngine.isBassActive) {
@@ -698,14 +710,7 @@
 
     render(ctx, now) {
       const isHuman = (this.charCategory === 'human');
-      let frames;
-      if (isHuman) {
-        const tier = this.getUniformTier();
-        const styleKey = `style${this.danceStyle || 1}`;
-        frames = spriteCache[`human_${this.gender}_${tier}_${styleKey}`] || spriteCache[`human_${this.gender}_${tier}`];
-      } else {
-        frames = spriteCache[`char${this.charType}`];
-      }
+      const frames = this.getFrames();
       if (!frames || frames.length === 0) return;
 
       const curNow = now || performance.now();
