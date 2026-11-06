@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>DJ Club TikTok Live - 9:16 Stream Overlay</title>
+  <link rel="stylesheet" href="/css/overlay.css">
+</head>
+<body>
+  <div class="stream-container">
+    <!-- HTML5 2D Canvas Game Stage -->
+    <canvas id="stage-canvas"></canvas>
+
+    <!-- Audio Unlock / Start Overlay for Browsers -->
+    <div id="audio-unlock-overlay" class="audio-unlock-banner" style="display: none;">
+      <span style="font-size: 18px;">🔊</span>
+      <span>BẤM VÀO ĐÂY ĐỂ BẬT ÂM THANH & BẮT NHỊP BASS</span>
+    </div>
+
+    <!-- Fullscreen Strobe / Rave Light Flash FX -->
+    <div id="strobe-fx" class="strobe-overlay"></div>
+
+    <!-- HUD Overlay Layer -->
+    <div class="hud-layer">
+      <!-- TOP HEADER -->
+      <div class="top-header">
+        <div class="brand-badge">
+          <div class="brand-title">
+            <span class="brand-dot"></span>
+            <span>DJ CLUB LIVE</span>
+          </div>
+          <div class="brand-stats">
+            <div class="stat-item">
+              <span class="stat-icon">👥</span>
+              <span id="crowd-count">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">❤️</span>
+              <span id="likes-count">0</span>
+            </div>
+            <div class="stat-item" style="color: #00f0ff;">
+              <span>TIKTOK 9:16</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOW PLAYING TRACK CARD -->
+        <div class="now-playing-card">
+          <div class="dj-disc-icon"></div>
+          <div class="track-info">
+            <div id="now-playing-label" class="track-label">DJ VŨ TRƯỜNG • ĐANG PHÁT</div>
+            <div class="track-title-wrapper">
+              <span id="now-playing-title" class="track-title">Đang kết nối danh sách nhạc DJ...</span>
+            </div>
+            <div class="bass-meter-row">
+              <span class="bass-label">BASS:</span>
+              <div class="bass-bar-track">
+                <div id="bass-bar-fill" class="bass-bar-fill"></div>
+              </div>
+              <span id="bass-mode-text" class="bass-mode-text">💤 CHILL (NHÚN NHẸ)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP-RIGHT VIP LEADERBOARD -->
+      <div class="vip-leaderboard">
+        <div class="vip-header">👑 TOP ĐẠI GIA</div>
+        <div id="vip-list" class="vip-list">
+          <div class="vip-item rank-1"><span class="vip-rank">🥇</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+          <div class="vip-item rank-2"><span class="vip-rank">🥈</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+          <div class="vip-item rank-3"><span class="vip-rank">🥉</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+          <div class="vip-item rank-4"><span class="vip-rank">4</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+          <div class="vip-item rank-5"><span class="vip-rank">5</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+        </div>
+      </div>
+
+      <!-- CENTER GIFT ALERT BANNER SLOT -->
+      <div id="gift-alert-slot" class="gift-alert-container"></div>
+
+      <!-- BOTTOM AREA: LIVE CHAT & COMMAND HINTS -->
+      <div class="bottom-area">
+        <!-- Live Chat Feed -->
+        <div id="chat-feed" class="live-chat-feed"></div>
+
+        <!-- Streamer / Viewer Hint Bar -->
+        <div class="interaction-hint-bar">
+          <div class="hint-pill">
+            <span class="hint-badge">CHAT 1</span>
+            <span>Vào sàn nhảy</span>
+          </div>
+          <div class="hint-pill">
+            <span class="hint-badge">!SONG 5</span>
+            <span>Chọn bài</span>
+          </div>
+          <div class="hint-pill">
+            <span class="hint-badge">GIFT 🌹</span>
+            <span>Phun lửa & Quẩy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio SFX, Human Sprites and Main Overlay Script -->
+  <script src="/js/sfx.js?v=vudao3_sunglasses_v3"></script>
+  <script src="/js/human_sprites.js?v=vudao3_sunglasses_v3"></script>
+  <script src="/js/overlay.js?v=vudao3_sunglasses_v3"></script>
+</body>
+</html>

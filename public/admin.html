@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Điều Khiển DJ Club - TikTok Live Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <!-- NAVBAR -->
+    <header class="admin-navbar">
+      <div class="brand-section">
+        <span class="brand-logo">🎛️</span>
+        <div class="brand-text">
+          <h1>DJ CLUB CONTROL CENTER</h1>
+          <p>Bảng điều khiển tương tác trực tiếp & mô phỏng TikTok Live 9:16</p>
+        </div>
+      </div>
+      <div class="nav-links">
+        <button id="btn-copy-obs-url" class="btn btn-secondary">
+          📋 Sao chép Link Overlay (OBS)
+        </button>
+        <a href="/" target="_blank" class="btn-overlay-link">
+          📺 Mở Màn Hình Overlay (9:16)
+        </a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+      <!-- LEFT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- CARD 1: TIKTOK LIVE CONNECTOR -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>📡</span>
+              <span>KẾT NỐI TIKTOK LIVE</span>
+            </div>
+            <span id="tiktok-status-badge" class="status-badge disconnected">⚪ Chưa kết nối</span>
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+            Nhập TikTok username của bạn khi đang phát trực tiếp để tự động nhận quà, bình luận và lệnh từ người xem:
+          </div>
+
+          <div class="input-row">
+            <input type="text" id="tiktok-username-input" class="form-control" placeholder="Ví dụ: your_tiktok_username">
+            <button id="btn-connect-tiktok" class="btn btn-primary">⚡ Kết nối Live</button>
+            <button id="btn-disconnect-tiktok" class="btn btn-danger" style="display: none;">Ngắt kết nối</button>
+          </div>
+
+          <div style="font-size: 12px; color: #a0aec0; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
+            💡 <strong>Mẹo:</strong> Nếu chưa live hoặc muốn chuẩn bị trước trên OBS, bạn hoàn toàn có thể dùng <strong>Bảng Giả Lập Test</strong> ở cột bên phải để thử nghiệm tất cả quà và hiệu ứng mà không cần mở Live TikTok!
+          </div>
+        </div>
+
+        <!-- CARD 2: DJ MUSIC CONTROL ROOM -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎵</span>
+              <span>PHÒNG ĐIỀU KHIỂN ÂM NHẠC DJ (68 BÀI)</span>
+            </div>
+          </div>
+
+          <!-- Player Controls -->
+          <div class="music-controls">
+            <button id="btn-prev" class="btn btn-secondary" title="Bài trước">⏮</button>
+            <button id="btn-play-pause" class="btn btn-primary" title="Phát / Tạm dừng">⏸ Tạm dừng</button>
+            <button id="btn-next" class="btn btn-secondary" title="Bài kế tiếp">⏭</button>
+            <div id="now-playing-admin-text" class="now-playing-title-admin">Đang tải danh sách bài hát...</div>
+            <div class="volume-slider-group">
+              <span>🔊</span>
+              <input type="range" id="volume-slider" min="0" max="100" value="80" style="width: 90px; accent-color: var(--neon-cyan);">
+            </div>
+          </div>
+
+          <!-- DJ SFX Soundboard -->
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Hiệu Ứng Âm Thanh DJ Trực Tiếp:
+            </div>
+            <div class="button-grid">
+              <button class="fx-btn" data-sfx="airhorn">📢 Còi Airhorn DJ</button>
+              <button class="fx-btn" data-sfx="scratch">💿 Chà Đĩa Scratch</button>
+              <button class="fx-btn" data-sfx="siren">🚨 Còi Hú Club</button>
+              <button class="fx-btn" data-sfx="bassdrop">💣 Nổ Sub-Bass</button>
+              <button class="fx-btn" data-sfx="cheer">👏 Tiếng Hò Reo</button>
+            </div>
+          </div>
+
+          <!-- Search & Playlist Table -->
+          <div>
+            <div class="input-row" style="margin-bottom: 10px;">
+              <input type="text" id="music-search-input" class="form-control" placeholder="🔍 Tìm kiếm bài hát theo tên hoặc ID (ví dụ: Faded, Nevada, 911...)...">
+            </div>
+            <div class="playlist-container">
+              <table class="playlist-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên Bài Hát</th>
+                    <th style="text-align: right;">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="playlist-body">
+                  <!-- Populated dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- CARD 3: STAGE SPECIAL EFFECTS -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>✨</span>
+              <span>ĐIỀU KHIỂN HIỆU ỨNG SÂN KHẤU (STAGE FX)</span>
+            </div>
+          </div>
+
+          <div class="button-grid">
+            <button class="fx-btn" data-effect="flame">🔥 Phun Lửa DJ</button>
+            <button class="fx-btn" data-effect="smoke">💨 Phun Khói CO2</button>
+            <button class="fx-btn" data-effect="fireworks">🎆 Bắn Pháo Hoa</button>
+            <button class="fx-btn" data-effect="confetti">🎉 Mưa Kim Tuyến</button>
+            <button class="fx-btn rave-btn" data-effect="rave">⚡ QUẨY HẾT MÌNH (ALL FX)</button>
+          </div>
+        </div>
+
+        <!-- CARD 4: GIFT & CHAT SIMULATOR -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎁</span>
+              <span>BẢNG GIẢ LẬP TEST (QUÀ & TƯƠNG TÁC TIKTOK)</span>
+            </div>
+          </div>
+
+          <!-- Fast Gift Clickers -->
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Gửi Quà Nhanh (Test phản hồi trên Overlay):
+            </div>
+            <div class="button-grid">
+              <button class="gift-btn" data-sim-gift="Hoa hồng" data-coins="1">
+                <span class="gift-icon">🌹</span>
+                <span class="gift-name">Hoa Hồng</span>
+                <span class="gift-coins">1 Xu</span>
+              </button>
+              <button class="gift-btn" data-sim-gift="Trái tim" data-coins="5">
+                <span class="gift-icon">💖</span>
+                <span class="gift-name">Trái Tim</span>
+                <span class="gift-coins">5 Xu</span>
+              </button>
+              <button class="gift-btn" data-sim-gift="Bánh rán" data-coins="30">
+                <span class="gift-icon">🍩</span>
+                <span class="gift-name">Bánh Rán</span>
+                <span class="gift-coins">30 Xu</span>
+              </button>
+              <button class="gift-btn" data-sim-gift="Pháo hoa" data-coins="100">
+                <span class="gift-icon">🎆</span>
+                <span class="gift-name">Pháo Hoa</span>
+                <span class="gift-coins">100 Xu</span>
+              </button>
+              <button class="gift-btn" data-sim-gift="Súng tiền" data-coins="500">
+                <span class="gift-icon">🔫</span>
+                <span class="gift-name">Súng Bắn Tiền</span>
+                <span class="gift-coins">500 Xu</span>
+              </button>
+              <button class="gift-btn" data-sim-gift="Sư tử DJ" data-coins="29999" style="border-color: #ffe600;">
+                <span class="gift-icon">🦁</span>
+                <span class="gift-name">Sư Tử VIP</span>
+                <span class="gift-coins">29,999 Xu</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Gift Form -->
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Tùy Chỉnh Quà Gửi:
+            </div>
+            <div class="input-row">
+              <input type="text" id="sim-gift-user" class="form-control" placeholder="Tên người gửi" value="Đại_Gia_888">
+              <input type="text" id="sim-gift-name" class="form-control" placeholder="Tên món quà" value="Siêu Xe DJ">
+              <input type="number" id="sim-gift-coins" class="form-control" style="max-width: 100px;" placeholder="Số xu" value="1000">
+              <button id="btn-send-custom-gift" class="btn btn-primary">Gửi Quà</button>
+            </div>
+          </div>
+
+          <!-- Custom Chat Message -->
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Giả Lập Bình Luận & Lệnh Chat:
+            </div>
+            <div class="input-row" style="margin-bottom: 8px;">
+              <input type="text" id="sim-chat-user" class="form-control" style="max-width: 160px;" placeholder="Tên người chat" value="Quẩy_Thủ_99">
+              <input type="text" id="sim-chat-comment" class="form-control" placeholder="Nội dung chat hoặc lệnh (ví dụ: !join, !song 5, !fire)..." value="1">
+              <button id="btn-send-custom-chat" class="btn btn-secondary">Gửi Chat</button>
+            </div>
+            <!-- Quick command chips -->
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="1">Chat "1" (Vào sàn)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!nam">!nam (Vũ công Nam)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!nu">!nu (Vũ công Nữ)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!meo">!meo (Đổi Mèo)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 1">!dance 1 (Rave Que Sáng)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 2">!dance 2 (Shuffle Giậm Chân)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 3">!dance 3 (Hands Up Nhảy Bật)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!skip">!skip (Đổi bài)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!fire">!fire (Phun lửa)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!rave">!rave (Quẩy tung nóc)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 5: CHẾ ĐỘ SPRITE VŨ CÔNG (CHARACTER THEME) -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎭</span>
+              <span>CHẾ ĐỘ SPRITE VŨ CÔNG (CHARACTER THEME)</span>
+            </div>
+            <span id="char-theme-badge" class="status-badge" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid #38bdf8;">
+              🧑‍🎤 Người (Nam & Nữ)
+            </span>
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+            Chuyển đổi tức thì bộ sprite hiển thị trên màn hình livestream: Phong cách Người (Nam/Nữ 4 cấp đồng phục Thường, Top 3, 2, 1) hoặc Phong cách Mèo nguyên bản:
+          </div>
+
+          <!-- 3 Mode Buttons -->
+          <div class="char-theme-grid">
+            <button class="theme-card-btn active" data-char-theme="humans">
+              <span class="theme-icon">🧑‍🎤💃</span>
+              <span class="theme-title">Người (Humans)</span>
+              <span class="theme-desc">Nam & Nữ, 4 cấp đồng phục VIP</span>
+            </button>
+            <button class="theme-card-btn" data-char-theme="cats">
+              <span class="theme-icon">🐱🕺</span>
+              <span class="theme-title">Mèo (Cats)</span>
+              <span class="theme-desc">Bộ 3 vũ điệu mèo gốc</span>
+            </button>
+            <button class="theme-card-btn" data-char-theme="all">
+              <span class="theme-icon">🌟🎉</span>
+              <span class="theme-title">Hỗn Hợp (Mixed)</span>
+              <span class="theme-desc">Cả Người & Mèo cùng quẩy</span>
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 14px; align-items: center;">
+            <a href="/preview_sprites.html" target="_blank" class="btn btn-secondary" style="text-decoration: none; font-size: 12px;">
+              👁️ Mở Bộ Sưu Tập Preview Hoạt Ảnh 14 Frame
+            </a>
+          </div>
+        </div>
+
+        <!-- CARD 6: DANCE FLOOR & CROWD MANAGEMENT -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>👥</span>
+              <span>QUẢN LÝ SÀN NHẢY & ĐÁM ĐÔNG</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <button class="btn btn-secondary" data-spawn-crowd="10" data-gender="male">➕ Thêm 10 Nam 👦</button>
+            <button class="btn btn-secondary" data-spawn-crowd="10" data-gender="female">➕ Thêm 10 Nữ 👧</button>
+            <button class="btn btn-secondary" data-spawn-crowd="10" data-category="cat">➕ Thêm 10 Mèo 🐱</button>
+            <button class="btn btn-secondary" data-spawn-crowd="25">➕ Thêm 25 Ngẫu Nhiên</button>
+            <button id="btn-clear-floor" class="btn btn-danger">🧹 Xóa Hết Vũ Công</button>
+            <button id="btn-reset-vip" class="btn btn-danger">👑 Đặt Lại BXH Đại Gia</button>
+          </div>
+
+          <!-- Quick Dance Controls for Crowd -->
+          <div style="margin-top: 12px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 12px; font-weight: 700; color: #ffd700; margin-bottom: 8px;">🎭 ĐIỀU KHIỂN VŨ ĐẠO TOÀN SÀN:</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <button id="btn-shuffle-dances" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px;">🔀 Đổi Vũ Đạo Ngẫu Nhiên Toàn Sàn</button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="1" style="font-size: 12px; padding: 5px 12px;">⚡ Toàn Sàn: Vũ Đạo 1 (Rave Wave)</button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="2" style="font-size: 12px; padding: 5px 12px;">👟 Toàn Sàn: Vũ Đạo 2 (Shuffle)</button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="3" style="font-size: 12px; padding: 5px 12px;">🚀 Toàn Sàn: Vũ Đạo 3 (Hands Up)</button>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div style="margin-top: 10px;">
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Chế độ nền trong suốt (Transparent Background)</div>
+                <div class="toggle-sub">Thích hợp khi lồng overlay lên webcam của streamer trong OBS Studio</div>
+              </div>
+              <input type="checkbox" id="chk-transparent-bg" style="width: 20px; height: 20px; accent-color: var(--neon-cyan);">
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 6: OBS STREAM SETUP GUIDE -->
+        <div class="admin-card" style="background: rgba(10, 15, 35, 0.6); border: 1px dashed var(--neon-cyan);">
+          <div class="card-header">
+            <div class="card-title" style="color: var(--neon-cyan);">
+              <span>🎥</span>
+              <span>HƯỚNG DẪN CÀI ĐẶT OBS STUDIO / TIKTOK LIVE STUDIO</span>
+            </div>
+          </div>
+          <ol style="font-size: 13px; color: var(--text-muted); line-height: 1.7; padding-left: 20px;">
+            <li>Mở <strong>OBS Studio</strong> hoặc <strong>TikTok LIVE Studio</strong>.</li>
+            <li>Thêm nguồn <strong>Trình duyệt (Browser Source)</strong> mới.</li>
+            <li>Dán đường dẫn URL: <code style="color: var(--neon-yellow); background: #111; padding: 2px 6px; border-radius: 4px;">http://localhost:3000/</code></li>
+            <li>Đặt chiều rộng: <strong style="color: #fff;">1080</strong>, chiều cao: <strong style="color: #fff;">1920</strong> (chuẩn tỉ lệ 9:16 TikTok).</li>
+            <li>Tích chọn <em>"Điều khiển âm thanh qua OBS" (Control audio via OBS)</em> nếu muốn chỉnh âm lượng bài hát trực tiếp trên OBS Mixer.</li>
+            <li>Mở tab này (<code>http://localhost:3000/admin.html</code>) trên màn hình phụ hoặc điện thoại để điều khiển live!</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/sfx.js?v=vudao3_sunglasses_v3"></script>
+  <script src="/js/admin.js?v=vudao3_sunglasses_v3"></script>
+</body>
+</html>
