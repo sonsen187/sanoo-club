@@ -62,21 +62,28 @@
 
   // Preload character frame sequences
   function preloadAssets(callback) {
-    // Generate human character sprite cache (112 frames: Male & Female x 4 Tiers x 14 frames)
-    if (window.HumanSpriteSystem) {
-      HumanSpriteSystem.generateSpriteCache(spriteCache);
-    }
-
-    let toLoad = 14 + 13 + 14 + 14 + 14 + 1; // 41 frames + speaker
+    let toLoad = 14 + 13 + 14 + 14 + 14 + 1; // 70 assets total
     let loaded = 0;
+    let finished = false;
 
     function checkDone() {
       loaded++;
-      if (loaded >= toLoad) {
+      if (loaded >= toLoad && !finished) {
+        finished = true;
         assetsLoaded = true;
         if (callback) callback();
       }
     }
+
+    // Safety timeout: if any asset stalls or takes > 2.5s, continue anyway!
+    setTimeout(() => {
+      if (!finished) {
+        finished = true;
+        assetsLoaded = true;
+        console.log(`Asset preloading reached fallback timeout (${loaded}/${toLoad} loaded)`);
+        if (callback) callback();
+      }
+    }, 2500);
 
     // Char 1: 14 frames
     for (let i = 1; i <= 14; i++) {
@@ -103,6 +110,24 @@
       img.onload = checkDone;
       img.onerror = checkDone;
       spriteCache.char3.push(img);
+    }
+
+    // Human Male Chibi: 14 frames PNG
+    for (let i = 1; i <= 14; i++) {
+      const img = new Image();
+      img.src = `/assets/characters/human_male/${i}.png?v=chibi1`;
+      img.onload = checkDone;
+      img.onerror = checkDone;
+      spriteCache.human_male.push(img);
+    }
+
+    // Human Female Chibi: 14 frames PNG
+    for (let i = 1; i <= 14; i++) {
+      const img = new Image();
+      img.src = `/assets/characters/human_female/${i}.png?v=chibi1`;
+      img.onload = checkDone;
+      img.onerror = checkDone;
+      spriteCache.human_female.push(img);
     }
 
     // Speaker texture
@@ -3130,12 +3155,25 @@
     }
   });
 
-  // Initialization
+  // Immediate REST fallback for instant music start
+  fetch('/api/status')
+    .then(r => r.json())
+    .then(data => {
+      if (data.currentTrack && !currentTrack) {
+        playlist = data.playlist || [];
+        updateTrackUI(data.currentTrack);
+        playTrack(data.currentTrack);
+      }
+    })
+    .catch(e => console.warn('REST status fallback:', e));
+
+  // Initialization: Start graphics & network immediately without blocking
+  initLasers();
+  setupWebSocket();
+  requestAnimationFrame(renderLoop);
+
   preloadAssets(() => {
     console.log('All character sprites and stage assets loaded!');
-    initLasers();
-    setupWebSocket();
-    requestAnimationFrame(renderLoop);
   });
 
 })();
