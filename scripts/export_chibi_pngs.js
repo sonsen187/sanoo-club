@@ -17,6 +17,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && req.url === '/js/human_sprites.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, '../public/js/human_sprites.js'), 'utf8'));
+    return;
+  }
+
   if (req.method === 'POST' && req.url === '/save-frame') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -74,7 +80,6 @@ function cleanupAndExit(code = 0) {
 server.listen(PORT, () => {
   console.log(`Export server listening on port ${PORT}...`);
 
-  // Path to Microsoft Edge or Chrome
   const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
   const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
   const bin = fs.existsSync(edgePath) ? edgePath : chromePath;
@@ -92,7 +97,6 @@ server.listen(PORT, () => {
     cleanupAndExit(1);
   });
 
-  // Safety timeout after 20 seconds
   setTimeout(() => {
     console.warn('Timed out waiting for browser completion. Cleaning up...');
     cleanupAndExit(savedCount === expectedCount ? 0 : 1);

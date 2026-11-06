@@ -139,6 +139,15 @@
       spriteCache[`human_female_${tier}`] = spriteCache.human_female;
     });
 
+    // Generate dynamic 3-style high-definition Cool DJ Sprite Cache if engine is loaded
+    if (typeof HumanSpriteSystem !== 'undefined' && HumanSpriteSystem.generateSpriteCache) {
+      try {
+        HumanSpriteSystem.generateSpriteCache(spriteCache);
+      } catch (err) {
+        console.warn('Error generating dynamic human sprite cache:', err);
+      }
+    }
+
     // Speaker texture
     const spk = new Image();
     spk.src = '/assets/textures/speaker.png';
@@ -563,7 +572,20 @@
 
     getFrames() {
       if (this.charCategory === 'human') {
-        const list = (this.gender === 'female' ? spriteCache.human_female : spriteCache.human_male);
+        const gender = this.gender === 'female' ? 'female' : 'male';
+        const tier = this.getUniformTier();
+        const styleKey = 'style' + (this.danceStyle || 1);
+
+        // 1. Exact tier + dance style match (Dynamic high-def cache)
+        if (spriteCache[`human_${gender}_${tier}_${styleKey}`] && spriteCache[`human_${gender}_${tier}_${styleKey}`].length > 0) {
+          return spriteCache[`human_${gender}_${tier}_${styleKey}`];
+        }
+        // 2. Tier fallback
+        if (spriteCache[`human_${gender}_${tier}`] && spriteCache[`human_${gender}_${tier}`].length > 0) {
+          return spriteCache[`human_${gender}_${tier}`];
+        }
+        // 3. Static PNG array fallback
+        const list = (gender === 'female' ? spriteCache.human_female : spriteCache.human_male);
         if (list && list.length > 0) return list;
       }
       const catList = spriteCache[`char${this.charType}`] || spriteCache.char1;
