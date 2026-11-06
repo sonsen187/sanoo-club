@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chibi Human Sprite Generator</title>
+</head>
+<body>
+  <canvas id="cvs" width="320" height="240"></canvas>
+  <script>
+    const W = 320;
+    const H = 240;
+    const canvas = document.getElementById('cvs');
+    const ctx = canvas.getContext('2d');
+
+    // Helper: Sparkle star
+    function drawStar(ctx, x, y, r, color, glow) {
+      ctx.save();
+      ctx.fillStyle = color || '#ffffff';
+      if (glow) {
+        ctx.shadowColor = glow;
+        ctx.shadowBlur = r * 1.5;
+      }
+      ctx.beginPath();
+      ctx.moveTo(x, y - r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.quadraticCurveTo(x, y, x, y + r);
+      ctx.quadraticCurveTo(x, y, x - r, y);
+      ctx.quadraticCurveTo(x, y, x, y - r);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Helper: Glowstick
+    function drawGlowstick(ctx, x, y, angle, color, glowColor, len = 44) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // Handle
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-2.5, -4, 5, 12);
+
+      // Glowing tube
+      const grad = ctx.createLinearGradient(0, -4, 0, -4 - len);
+      grad.addColorStop(0, color);
+      grad.addColorStop(0.6, '#ffffff');
+      grad.addColorStop(1, color);
+
+      ctx.fillStyle = grad;
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.roundRect(-4, -4 - len, 8, len, 4);
+      ctx.fill();
+
+      // Core bright light
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 6;
+      ctx.fillRect(-1.5, -2 - len, 3, len - 4);
+
+      // Tip sparkle
+      drawStar(ctx, 0, -4 - len, 6, '#ffffff', color);
+
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // CHIBI MALE RENDERER
+    // =========================================================================
+    function renderMaleFrame(ctx, frameIdx, totalFrames = 14) {
+      ctx.clearRect(0, 0, W, H);
+      const t = frameIdx / totalFrames;
+      const isLeft = frameIdx < (totalFrames / 2);
+      const phase = isLeft ? (frameIdx / (totalFrames / 2)) : ((frameIdx - totalFrames / 2) / (totalFrames / 2));
+      const swaySign = isLeft ? -1 : 1;
+      const sinPhase = Math.sin(phase * Math.PI);
+
+      // Kinematics parameters
+      const hipX = 160 + swaySign * sinPhase * 16;
+      const bodyTilt = swaySign * sinPhase * 0.14;
+      const bounceY = -Math.sin(phase * Math.PI * 2) * 6; // gentle bounce
+      const squashY = 1.0 + Math.sin(phase * Math.PI * 2) * 0.04;
+      const squashX = 1.0 - Math.sin(phase * Math.PI * 2) * 0.04;
+
+      // Contact shadow
+      ctx.save();
+      ctx.beginPath();
+      const shadowW = 54 + sinPhase * 6;
+      ctx.ellipse(hipX, 226, shadowW, 11, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(hipX, 150 + bounceY);
+      ctx.rotate(bodyTilt);
+      ctx.scale(squashX, squashY);
+
+      // 1. LEGS & SNEAKERS (2-bone kinematics)
+      const legL_X = -14, legR_X = 14;
+      const hipY = 20;
+
+      // Foot positions based on weight shift
+      let lFootY = 62, rFootY = 62;
+      let lFootX = -20, rFootX = 20;
+      let lFootAngle = 0, rFootAngle = 0;
+
+      if (isLeft) {
+        // Left foot planted, right foot lifts on beat peak
+        lFootY = 62;
+        rFootY = 62 - sinPhase * 10;
+        rFootAngle = sinPhase * 0.25;
+      } else {
+        // Right foot planted, left foot lifts
+        rFootY = 62;
+        lFootY = 62 - sinPhase * 10;
+        lFootAngle = -sinPhase * 0.25;
+      }
+
+      // Draw Pants & Legs
+      const pantsColor = '#1e293b';
+      const pantsShadow = '#0f172a';
+      const neonCyan = '#00f0ff';
+
+      // Left Leg
+      ctx.beginPath();
+      ctx.moveTo(legL_X, hipY);
+      ctx.quadraticCurveTo(legL_X - 6, (hipY + lFootY) / 2, lFootX, lFootY - 6);
+      ctx.lineWidth = 15;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = pantsColor;
+      ctx.stroke();
+
+      // Right Leg
+      ctx.beginPath();
+      ctx.moveTo(legR_X, hipY);
+      ctx.quadraticCurveTo(legR_X + 6, (hipY + rFootY) / 2, rFootX, rFootY - 6);
+      ctx.lineWidth = 15;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = pantsColor;
+      ctx.stroke();
+
+      // Neon stripes along pants
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = neonCyan;
+      ctx.beginPath();
+      ctx.moveTo(legL_X - 5, hipY + 4);
+      ctx.lineTo(lFootX - 4, lFootY - 6);
+      ctx.moveTo(legR_X + 5, hipY + 4);
+      ctx.lineTo(rFootX + 4, rFootY - 6);
+      ctx.stroke();
+
+      // Sneakers
+      [
+        { x: lFootX, y: lFootY, ang: lFootAngle, isL: true },
+        { x: rFootX, y: rFootY, ang: rFootAngle, isL: false }
+      ].forEach(f => {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.ang);
+
+        // Sneaker body
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.roundRect(-13, -11, 26, 13, [5, 5, 3, 3]);
+        ctx.fill();
+
+        // Neon Glowing Soles
+        ctx.fillStyle = neonCyan;
+        ctx.shadowColor = neonCyan;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(-13, 1, 26, 4);
+
+        // Sneaker laces & cap
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 0;
+        ctx.fillRect(f.isL ? -13 : 7, -9, 6, 7);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(-8, -9, 16, 5);
+
+        ctx.restore();
+      });
+
+      // 2. TORSO & BOMBER JACKET
+      // Jacket base
+      ctx.beginPath();
+      ctx.moveTo(-22, -18);
+      ctx.lineTo(22, -18);
+      ctx.lineTo(18, 22);
+      ctx.lineTo(-18, 22);
+      ctx.closePath();
+      ctx.fillStyle = '#18181b';
+      ctx.fill();
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Inner T-Shirt with Equalizer bars
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(-9, -16, 18, 30);
+      const eqColors = ['#00f0ff', '#00ff88', '#ffe600', '#ff007f'];
+      for (let b = 0; b < 4; b++) {
+        const barH = 4 + Math.abs(Math.sin((frameIdx + b) * 0.8)) * 14;
+        ctx.fillStyle = eqColors[b];
+        ctx.fillRect(-7 + b * 4, 12 - barH, 2.8, barH);
+      }
+
+      // Neon trim on jacket collar & hem
+      ctx.fillStyle = neonCyan;
+      ctx.fillRect(-18, 20, 36, 3);
+      ctx.fillStyle = '#ec4899';
+      ctx.fillRect(-22, -18, 6, 36);
+      ctx.fillRect(16, -18, 6, 36);
+
+      // 3. HEAD & CHIBI ANIME FACE
+      const headCenterY = -52;
+      const headTilt = -bodyTilt * 0.6; // head balances tilt
+
+      ctx.save();
+      ctx.translate(0, headCenterY);
+      ctx.rotate(headTilt);
+
+      // Neck
+      ctx.fillStyle = '#e2b391';
+      ctx.fillRect(-6, 20, 12, 10);
+
+      // Chubby Head shape
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 38, 34, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffe3cb';
+      ctx.fill();
+      ctx.strokeStyle = '#e2b391';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Soft Rosy Cheeks
+      ctx.fillStyle = 'rgba(255, 120, 120, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(-22, 6, 7, 4.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(22, 6, 7, 4.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Chibi Anime Eyes
+      [-16, 16].forEach((ex, idx) => {
+        const isEyeLeft = idx === 0;
+
+        // Upper eyeliner
+        ctx.beginPath();
+        ctx.moveTo(ex - 8, -6);
+        ctx.quadraticCurveTo(ex, -12, ex + 8, -6);
+        ctx.strokeStyle = '#1e1b4b';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Iris
+        ctx.beginPath();
+        ctx.ellipse(ex, -2, 6.5, 8.5, 0, 0, Math.PI * 2);
+        const eyeGrad = ctx.createLinearGradient(ex, -10, ex, 6);
+        eyeGrad.addColorStop(0, '#0f172a');
+        eyeGrad.addColorStop(0.4, '#1e40af');
+        eyeGrad.addColorStop(1, '#06b6d4');
+        ctx.fillStyle = eyeGrad;
+        ctx.fill();
+
+        // Pupil & cyan rim
+        ctx.beginPath();
+        ctx.arc(ex, -1, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#09090b';
+        ctx.fill();
+
+        // Sparkling Catchlights
+        ctx.beginPath();
+        ctx.arc(ex - 2, -5, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(ex + 2.5, 1.5, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cute Eyebrows
+        ctx.beginPath();
+        ctx.moveTo(ex - 7, -15);
+        ctx.lineTo(ex + 7, -14);
+        ctx.strokeStyle = '#1e1b4b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // Joyful Chibi Mouth
+      ctx.beginPath();
+      ctx.arc(0, 11, 6, 0.15, Math.PI - 0.15);
+      ctx.fillStyle = '#be123c';
+      ctx.fill();
+      ctx.strokeStyle = '#881337';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Tongue
+      ctx.beginPath();
+      ctx.arc(0, 14, 4, Math.PI, Math.PI * 2);
+      ctx.fillStyle = '#fb7185';
+      ctx.fill();
+
+      // Cool Spiky Anime Hair (with movement lag)
+      const hairLag = -bodyTilt * 14;
+      ctx.fillStyle = '#1e1b4b';
+      ctx.beginPath();
+      ctx.moveTo(-36, -6);
+      ctx.quadraticCurveTo(-42 + hairLag, -30, -26 + hairLag, -48);
+      ctx.quadraticCurveTo(-14 + hairLag, -56, 0 + hairLag, -54);
+      ctx.quadraticCurveTo(18 + hairLag, -56, 32 + hairLag, -44);
+      ctx.quadraticCurveTo(44 + hairLag, -26, 36, -6);
+      // Bangs
+      ctx.lineTo(26, -14);
+      ctx.lineTo(16 + hairLag * 0.4, -22);
+      ctx.lineTo(8, -12);
+      ctx.lineTo(0 + hairLag * 0.4, -24);
+      ctx.lineTo(-8, -12);
+      ctx.lineTo(-16 + hairLag * 0.4, -22);
+      ctx.lineTo(-26, -14);
+      ctx.closePath();
+      ctx.fill();
+
+      // Hair Highlights (Neon Cyan Streaks)
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-18 + hairLag, -44);
+      ctx.lineTo(-4 + hairLag, -50);
+      ctx.lineTo(10 + hairLag, -46);
+      ctx.stroke();
+
+      // DJ Headphones resting around neck
+      ctx.save();
+      ctx.translate(0, 22);
+      // Headphone band
+      ctx.strokeStyle = '#09090b';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, -6, 26, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+
+      // Ear Cups
+      [-26, 26].forEach((hx, idx) => {
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath();
+        ctx.roundRect(hx - 7, -14, 14, 20, 5);
+        ctx.fill();
+        ctx.fillStyle = neonCyan;
+        ctx.shadowColor = neonCyan;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(hx, -4, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+      ctx.restore();
+
+      ctx.restore(); // end head
+
+      // 4. ARMS & GLOWSTICKS (2-bone kinematics, CONSTANT LENGTH = 44px total)
+      const shoulderL = { x: -22, y: -12 };
+      const shoulderR = { x: 22, y: -12 };
+      const L1 = 22, L2 = 22; // upper arm, forearm
+
+      let armAngleL, armAngleR;
+      let handAngleL, handAngleR;
+      let stickAngleL, stickAngleR;
+
+      if (isLeft) {
+        // Left arm waves HIGH, right arm grooves low
+        armAngleL = -Math.PI * 0.5 - sinPhase * 0.9;
+        handAngleL = armAngleL - 0.3;
+        stickAngleL = armAngleL - 0.4;
+
+        armAngleR = Math.PI * 0.25 - sinPhase * 0.2;
+        handAngleR = armAngleR + 0.4;
+        stickAngleR = armAngleR + 0.5;
+      } else {
+        // Right arm waves HIGH, left arm grooves low
+        armAngleR = -Math.PI * 0.5 + sinPhase * 0.9;
+        handAngleR = armAngleR + 0.3;
+        stickAngleR = armAngleR + 0.4;
+
+        armAngleL = Math.PI * 0.75 + sinPhase * 0.2;
+        handAngleL = armAngleL - 0.4;
+        stickAngleL = armAngleL - 0.5;
+      }
+
+      // Left Arm Forward Kinematics
+      const elbowL = {
+        x: shoulderL.x + Math.cos(armAngleL) * L1,
+        y: shoulderL.y + Math.sin(armAngleL) * L1
+      };
+      const handL = {
+        x: elbowL.x + Math.cos(handAngleL) * L2,
+        y: elbowL.y + Math.sin(handAngleL) * L2
+      };
+
+      // Right Arm Forward Kinematics
+      const elbowR = {
+        x: shoulderR.x + Math.cos(armAngleR) * L1,
+        y: shoulderR.y + Math.sin(armAngleR) * L1
+      };
+      const handR = {
+        x: elbowR.x + Math.cos(handAngleR) * L2,
+        y: elbowR.y + Math.sin(handAngleR) * L2
+      };
+
+      // Draw Left Arm & Glove
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#18181b';
+      ctx.beginPath();
+      ctx.moveTo(shoulderL.x, shoulderL.y);
+      ctx.lineTo(elbowL.x, elbowL.y);
+      ctx.lineTo(handL.x, handL.y);
+      ctx.stroke();
+
+      // Left Hand
+      ctx.fillStyle = '#ffe3cb';
+      ctx.beginPath();
+      ctx.arc(handL.x, handL.y, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      // Fingerless glove
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(handL.x - 4, handL.y - 4, 8, 5);
+
+      // Left Glowstick
+      drawGlowstick(ctx, handL.x, handL.y, stickAngleL + Math.PI / 2, '#00f0ff', 'rgba(0, 240, 255, 0.9)', 42);
+
+      // Draw Right Arm & Glove
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#18181b';
+      ctx.beginPath();
+      ctx.moveTo(shoulderR.x, shoulderR.y);
+      ctx.lineTo(elbowR.x, elbowR.y);
+      ctx.lineTo(handR.x, handR.y);
+      ctx.stroke();
+
+      // Right Hand
+      ctx.fillStyle = '#ffe3cb';
+      ctx.beginPath();
+      ctx.arc(handR.x, handR.y, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(handR.x - 4, handR.y - 4, 8, 5);
+
+      // Right Glowstick
+      drawGlowstick(ctx, handR.x, handR.y, stickAngleR + Math.PI / 2, '#ec4899', 'rgba(236, 72, 153, 0.9)', 42);
+
+      ctx.restore(); // end character transform
+    }
+
+    // =========================================================================
+    // CHIBI FEMALE RENDERER
+    // =========================================================================
+    function renderFemaleFrame(ctx, frameIdx, totalFrames = 14) {
+      ctx.clearRect(0, 0, W, H);
+      const t = frameIdx / totalFrames;
+      const isLeft = frameIdx < (totalFrames / 2);
+      const phase = isLeft ? (frameIdx / (totalFrames / 2)) : ((frameIdx - totalFrames / 2) / (totalFrames / 2));
+      const swaySign = isLeft ? -1 : 1;
+      const sinPhase = Math.sin(phase * Math.PI);
+
+      // Kinematics parameters
+      const hipX = 160 + swaySign * sinPhase * 18;
+      const bodyTilt = swaySign * sinPhase * 0.15;
+      const bounceY = -Math.sin(phase * Math.PI * 2) * 6;
+      const squashY = 1.0 + Math.sin(phase * Math.PI * 2) * 0.04;
+      const squashX = 1.0 - Math.sin(phase * Math.PI * 2) * 0.04;
+
+      // Contact shadow
+      ctx.save();
+      ctx.beginPath();
+      const shadowW = 50 + sinPhase * 6;
+      ctx.ellipse(hipX, 226, shadowW, 10, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(hipX, 150 + bounceY);
+      ctx.rotate(bodyTilt);
+      ctx.scale(squashX, squashY);
+
+      // 1. LEGS & PLATFORM BOOTS
+      const legL_X = -11, legR_X = 11;
+      const hipY = 22;
+
+      let lFootY = 62, rFootY = 62;
+      let lFootX = -18, rFootX = 18;
+      let lFootAngle = 0, rFootAngle = 0;
+
+      if (isLeft) {
+        lFootY = 62;
+        rFootY = 62 - sinPhase * 10;
+        rFootAngle = sinPhase * 0.25;
+      } else {
+        rFootY = 62;
+        lFootY = 62 - sinPhase * 10;
+        lFootAngle = -sinPhase * 0.25;
+      }
+
+      // Bare thighs
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#fff0e6';
+      ctx.beginPath();
+      ctx.moveTo(legL_X, hipY);
+      ctx.lineTo((legL_X + lFootX) / 2, hipY + 18);
+      ctx.moveTo(legR_X, hipY);
+      ctx.lineTo((legR_X + rFootX) / 2, hipY + 18);
+      ctx.stroke();
+
+      // Thigh-High Stockings
+      const sockColor = '#18181b';
+      const neonPink = '#ec4899';
+      ctx.lineWidth = 13;
+      ctx.strokeStyle = sockColor;
+      ctx.beginPath();
+      ctx.moveTo((legL_X + lFootX) / 2, hipY + 14);
+      ctx.lineTo(lFootX, lFootY - 5);
+      ctx.moveTo((legR_X + rFootX) / 2, hipY + 14);
+      ctx.lineTo(rFootX, rFootY - 5);
+      ctx.stroke();
+
+      // Neon Top Border on Stockings
+      ctx.fillStyle = neonPink;
+      ctx.fillRect((legL_X + lFootX) / 2 - 7, hipY + 13, 14, 3);
+      ctx.fillRect((legR_X + rFootX) / 2 - 7, hipY + 13, 14, 3);
+
+      // Platform Boots
+      [
+        { x: lFootX, y: lFootY, ang: lFootAngle, isL: true },
+        { x: rFootX, y: rFootY, ang: rFootAngle, isL: false }
+      ].forEach(f => {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.ang);
+
+        // Boot body
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath();
+        ctx.roundRect(-11, -12, 22, 14, [5, 6, 3, 3]);
+        ctx.fill();
+
+        // Neon Glowing Soles
+        ctx.fillStyle = neonPink;
+        ctx.shadowColor = neonPink;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(-11, 2, 22, 4);
+
+        // Chunky heel
+        ctx.fillStyle = '#09090b';
+        ctx.shadowBlur = 0;
+        ctx.fillRect(f.isL ? -10 : 3, 4, 7, 4);
+
+        ctx.restore();
+      });
+
+      // 2. TORSO, CROP TOP & PLEATED SKIRT
+      // Bare midriff
+      ctx.fillStyle = '#fff0e6';
+      ctx.fillRect(-12, -2, 24, 16);
+
+      // Crop Top
+      ctx.beginPath();
+      ctx.moveTo(-18, -18);
+      ctx.lineTo(18, -18);
+      ctx.lineTo(14, 0);
+      ctx.lineTo(-14, 0);
+      ctx.closePath();
+      ctx.fillStyle = neonPink;
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Pleated Mini Skirt
+      ctx.fillStyle = '#18181b';
+      ctx.beginPath();
+      ctx.moveTo(-16, 12);
+      ctx.lineTo(16, 12);
+      ctx.lineTo(24, 25);
+      ctx.lineTo(-24, 25);
+      ctx.closePath();
+      ctx.fill();
+      // Skirt neon hem
+      ctx.fillStyle = neonPink;
+      ctx.fillRect(-24, 23, 48, 3);
+
+      // 3. HEAD, NEKO HEADSET & FLAMBOYANT TWIN-TAILS
+      const headCenterY = -52;
+      const headTilt = -bodyTilt * 0.65;
+
+      ctx.save();
+      ctx.translate(0, headCenterY);
+      ctx.rotate(headTilt);
+
+      // Twin-tails lag and swing behind head
+      const hairLag = -bodyTilt * 24;
+      const twinWave = Math.sin(phase * Math.PI * 2) * 10;
+
+      // Left Twin-tail
+      ctx.fillStyle = '#c026d3';
+      ctx.beginPath();
+      ctx.moveTo(-24, -20);
+      ctx.quadraticCurveTo(-55 + hairLag - twinWave, 0, -42 + hairLag * 1.4, 52);
+      ctx.quadraticCurveTo(-34, 18, -16, -10);
+      ctx.fill();
+
+      // Right Twin-tail
+      ctx.beginPath();
+      ctx.moveTo(24, -20);
+      ctx.quadraticCurveTo(55 + hairLag - twinWave, 0, 42 + hairLag * 1.4, 52);
+      ctx.quadraticCurveTo(34, 18, 16, -10);
+      ctx.fill();
+
+      // Neck
+      ctx.fillStyle = '#e8b99d';
+      ctx.fillRect(-5, 20, 10, 9);
+
+      // Sweet Chibi Face
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 36, 33, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff0e6';
+      ctx.fill();
+      ctx.strokeStyle = '#e8b99d';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Pink Blush Cheeks
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.42)';
+      ctx.beginPath();
+      ctx.ellipse(-20, 6, 7.5, 4.8, 0, 0, Math.PI * 2);
+      ctx.ellipse(20, 6, 7.5, 4.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Enormous Sparkling Anime Eyes
+      [-15, 15].forEach((ex, idx) => {
+        // Eyelash line with cat wing
+        ctx.beginPath();
+        ctx.moveTo(ex - 8, -6);
+        ctx.quadraticCurveTo(ex, -13, ex + 8, -6);
+        if (idx === 1) ctx.lineTo(ex + 10, -9); // wing
+        else ctx.lineTo(ex - 10, -9);
+        ctx.strokeStyle = '#1e1b4b';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Iris
+        ctx.beginPath();
+        ctx.ellipse(ex, -2, 7, 9, 0, 0, Math.PI * 2);
+        const eyeGrad = ctx.createLinearGradient(ex, -11, ex, 7);
+        eyeGrad.addColorStop(0, '#701a75');
+        eyeGrad.addColorStop(0.5, '#c026d3');
+        eyeGrad.addColorStop(1, '#f472b6');
+        ctx.fillStyle = eyeGrad;
+        ctx.fill();
+
+        // Deep Pupil
+        ctx.beginPath();
+        ctx.arc(ex, -1, 3.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#2e1065';
+        ctx.fill();
+
+        // Catchlights (Sparkles)
+        ctx.beginPath();
+        ctx.arc(ex - 2.5, -5.5, 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(ex + 2.8, 1.8, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cute thin eyebrows
+        ctx.beginPath();
+        ctx.moveTo(ex - 7, -16);
+        ctx.quadraticCurveTo(ex, -18, ex + 7, -15);
+        ctx.strokeStyle = '#a21caf';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      });
+
+      // Beaming Anime Smile
+      ctx.beginPath();
+      ctx.arc(0, 10, 5.5, 0.1, Math.PI - 0.1);
+      ctx.fillStyle = '#e11d48';
+      ctx.fill();
+      ctx.strokeStyle = '#9f1239';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Front Bangs
+      ctx.fillStyle = '#c026d3';
+      ctx.beginPath();
+      ctx.moveTo(-35, -8);
+      ctx.quadraticCurveTo(-26, -42, 0, -44);
+      ctx.quadraticCurveTo(26, -42, 35, -8);
+      ctx.lineTo(26, -14);
+      ctx.lineTo(16, -20);
+      ctx.lineTo(8, -10);
+      ctx.lineTo(0, -22);
+      ctx.lineTo(-8, -10);
+      ctx.lineTo(-16, -20);
+      ctx.lineTo(-26, -14);
+      ctx.closePath();
+      ctx.fill();
+
+      // Neko Cat-Ear Headband
+      ctx.save();
+      ctx.translate(0, -32);
+      ctx.strokeStyle = '#18181b';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, 32, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+
+      // Glowing Neko Ears
+      [-24, 24].forEach((nx, idx) => {
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath();
+        ctx.moveTo(nx - 8, 4);
+        ctx.lineTo(nx, -18);
+        ctx.lineTo(nx + 8, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = neonPink;
+        ctx.shadowColor = neonPink;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(nx - 4, 2);
+        ctx.lineTo(nx, -12);
+        ctx.lineTo(nx + 4, 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+      ctx.restore();
+
+      ctx.restore(); // end head
+
+      // 4. ARMS & GLOWSTICKS (2-bone kinematics, CONSTANT LENGTH = 42px total)
+      const shoulderL = { x: -18, y: -12 };
+      const shoulderR = { x: 18, y: -12 };
+      const L1 = 21, L2 = 21;
+
+      let armAngleL, armAngleR;
+      let handAngleL, handAngleR;
+      let stickAngleL, stickAngleR;
+
+      if (isLeft) {
+        armAngleL = -Math.PI * 0.5 - sinPhase * 0.9;
+        handAngleL = armAngleL - 0.3;
+        stickAngleL = armAngleL - 0.4;
+
+        armAngleR = Math.PI * 0.25 - sinPhase * 0.2;
+        handAngleR = armAngleR + 0.4;
+        stickAngleR = armAngleR + 0.5;
+      } else {
+        armAngleR = -Math.PI * 0.5 + sinPhase * 0.9;
+        handAngleR = armAngleR + 0.3;
+        stickAngleR = armAngleR + 0.4;
+
+        armAngleL = Math.PI * 0.75 + sinPhase * 0.2;
+        handAngleL = armAngleL - 0.4;
+        stickAngleL = armAngleL - 0.5;
+      }
+
+      // Left Arm Forward Kinematics
+      const elbowL = {
+        x: shoulderL.x + Math.cos(armAngleL) * L1,
+        y: shoulderL.y + Math.sin(armAngleL) * L1
+      };
+      const handL = {
+        x: elbowL.x + Math.cos(handAngleL) * L2,
+        y: elbowL.y + Math.sin(handAngleL) * L2
+      };
+
+      // Right Arm Forward Kinematics
+      const elbowR = {
+        x: shoulderR.x + Math.cos(armAngleR) * L1,
+        y: shoulderR.y + Math.sin(armAngleR) * L1
+      };
+      const handR = {
+        x: elbowR.x + Math.cos(handAngleR) * L2,
+        y: elbowR.y + Math.sin(handAngleR) * L2
+      };
+
+      // Draw Left Arm & Glove
+      ctx.lineWidth = 8.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#fff0e6';
+      ctx.beginPath();
+      ctx.moveTo(shoulderL.x, shoulderL.y);
+      ctx.lineTo(elbowL.x, elbowL.y);
+      ctx.lineTo(handL.x, handL.y);
+      ctx.stroke();
+
+      // Left Hand
+      ctx.fillStyle = '#fff0e6';
+      ctx.beginPath();
+      ctx.arc(handL.x, handL.y, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = neonPink;
+      ctx.fillRect(handL.x - 3.5, handL.y - 3.5, 7, 4);
+
+      // Left Glowstick
+      drawGlowstick(ctx, handL.x, handL.y, stickAngleL + Math.PI / 2, '#ff007f', 'rgba(255, 0, 127, 0.95)', 40);
+
+      // Draw Right Arm & Glove
+      ctx.lineWidth = 8.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#fff0e6';
+      ctx.beginPath();
+      ctx.moveTo(shoulderR.x, shoulderR.y);
+      ctx.lineTo(elbowR.x, elbowR.y);
+      ctx.lineTo(handR.x, handR.y);
+      ctx.stroke();
+
+      // Right Hand
+      ctx.fillStyle = '#fff0e6';
+      ctx.beginPath();
+      ctx.arc(handR.x, handR.y, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = neonPink;
+      ctx.fillRect(handR.x - 3.5, handR.y - 3.5, 7, 4);
+
+      // Right Glowstick
+      drawGlowstick(ctx, handR.x, handR.y, stickAngleR + Math.PI / 2, '#ffe600', 'rgba(255, 230, 0, 0.95)', 40);
+
+      ctx.restore(); // end female character transform
+    }
+
+    // =========================================================================
+    // EXPORT ENGINE (Called by headless script or browser)
+    // =========================================================================
+    async function exportAll() {
+      console.log('Starting Chibi Frame Rendering...');
+      const totalFrames = 14;
+
+      for (let f = 0; f < totalFrames; f++) {
+        renderMaleFrame(ctx, f, totalFrames);
+        const dataUrl = canvas.toDataURL('image/png');
+        await fetch('/save-frame', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ character: 'human_male', frame: f + 1, dataUrl })
+        });
+        console.log(`Exported human_male/${f + 1}.png`);
+      }
+
+      for (let f = 0; f < totalFrames; f++) {
+        renderFemaleFrame(ctx, f, totalFrames);
+        const dataUrl = canvas.toDataURL('image/png');
+        await fetch('/save-frame', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ character: 'human_female', frame: f + 1, dataUrl })
+        });
+        console.log(`Exported human_female/${f + 1}.png`);
+      }
+
+      console.log('All 28 frames successfully exported!');
+      await fetch('/done', { method: 'POST' });
+    }
+
+    window.onload = () => {
+      exportAll();
+    };
+  </script>
+</body>
+</html>

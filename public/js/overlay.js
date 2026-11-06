@@ -52,6 +52,8 @@
     char1: [],
     char2: [],
     char3: [],
+    human_male: [],
+    human_female: [],
     speaker: null,
     discoLight: null
   };
@@ -65,7 +67,7 @@
       HumanSpriteSystem.generateSpriteCache(spriteCache);
     }
 
-    let toLoad = 14 + 13 + 14 + 1; // 41 frames + speaker
+    let toLoad = 14 + 13 + 14 + 14 + 14 + 1; // 41 frames + speaker
     let loaded = 0;
 
     function checkDone() {
@@ -555,24 +557,7 @@
         const snap = Math.pow(half, 0.65); // Snap rapidly to apex
 
         if (this.charCategory === 'human') {
-          // Human (14 frame): Phân loại keyframe theo vũ đạo cụ thể
-          let keys0, keys1;
-          if (this.danceStyle === 2) {
-            // Style 2: Shuffle Dance & Cutting Shapes (Giậm Chân & Lắc Hông)
-            keys0 = [0, 2, 4, 7];
-            keys1 = [7, 9, 11, 13];
-          } else if (this.danceStyle === 3) {
-            // Style 3: Hands Up In The Air & Party Hype (Hai Tay Giơ Cao & Nhảy Bật)
-            keys0 = [0, 1, 4, 7];
-            keys1 = [7, 8, 11, 13];
-          } else {
-            // Style 1: Rave Wave & Slash (Quơ Que Sáng & Vung Tay)
-            keys0 = [0, 2, 4, 7];
-            keys1 = [7, 9, 11, 13];
-          }
-          const arr = side === 0 ? keys0 : keys1;
-          const kIdx = Math.min(arr.length - 1, Math.floor(snap * arr.length));
-          return arr[kIdx];
+          return Math.floor(danceCycle * totalFrames) % totalFrames;
         } else if (this.charType === 2) {
           // char2 (13 frame): Cắt bớt, chỉ lấy 4 keyframe chính mỗi bên
           const keys0 = [0, 2, 4, 6];
@@ -708,8 +693,8 @@
       const totalYOffset = this.jumpOffset + this.bounceY;
       const screenY = this.y * H - totalYOffset;
       const baseWidth = img.naturalWidth || img.width || (isHuman ? 320 : 300);
-      const baseHeight = img.naturalHeight || img.height || (isHuman ? 360 : 200);
-      const scaleMultiplier = isHuman ? 0.95 : 1.1;
+      const baseHeight = img.naturalHeight || img.height || (isHuman ? 240 : 200);
+      const scaleMultiplier = isHuman ? 1.05 : 1.1;
       const drawWidth = baseWidth * this.scale * scaleMultiplier;
       const drawHeight = baseHeight * this.scale * scaleMultiplier;
 
@@ -833,7 +818,7 @@
         // A. Imperial 5-Peak Gold Crown
         ctx.save();
         const crownBob = Math.sin(curNow * 0.005) * 6;
-        const crownY = isHuman ? (-drawHeight * 0.33 + crownBob) : (-drawHeight * 0.47 + crownBob);
+        const crownY = isHuman ? (-drawHeight * 0.36 + crownBob) : (-drawHeight * 0.47 + crownBob);
         const cW = drawWidth * 0.38;
         const cH = drawHeight * 0.18;
 
@@ -934,7 +919,7 @@
         // - Lóe sáng ngôi sao 4 cánh theo từng cú đập Bass
         // ----------------------------------------------------
         ctx.save();
-        const eyeY = isHuman ? (-drawHeight * 0.195) : (-drawHeight * 0.28);
+        const eyeY = isHuman ? (-drawHeight * 0.10) : (-drawHeight * 0.28);
         const lensW = isHuman ? 20 : 18;
         const lensH = isHuman ? 16 : 14;
         const lensSpacing = isHuman ? 12 : 10; // Khoảng cách giữa 2 mắt kính

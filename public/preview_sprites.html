@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Preview Nhân Vật Người (Human Sprites) - DJ Club</title>
+  <title>Preview Nhân Vật Chibi 2D PNG - DJ Club</title>
   <style>
     body {
       margin: 0;
@@ -42,10 +42,11 @@
     .btn:hover {
       background: #38bdf8;
     }
-    .grid {
+    .grid-preview {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
+      margin-bottom: 32px;
     }
     .card {
       background: #111827;
@@ -55,9 +56,9 @@
       border: 1px solid #1f2937;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
-    .card.top1 { border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.25); }
-    .card.top2 { border-color: #00f0ff; box-shadow: 0 0 20px rgba(0, 240, 255, 0.25); }
-    .card.top3 { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.25); }
+    .card.male { border-color: #00f0ff; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
+    .card.female { border-color: #ec4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.2); }
+    .card.cat { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); }
     .card h3 {
       margin: 0 0 4px 0;
       font-size: 16px;
@@ -71,10 +72,9 @@
       display: inline-block;
       margin-bottom: 12px;
     }
-    .badge.top1 { background: #ffd700; color: #000; }
-    .badge.top2 { background: #00f0ff; color: #000; }
-    .badge.top3 { background: #f59e0b; color: #000; }
-    .badge.reg  { background: #475569; color: #fff; }
+    .badge.male { background: #00f0ff; color: #000; }
+    .badge.female { background: #ec4899; color: #fff; }
+    .badge.cat { background: #f59e0b; color: #000; }
     canvas {
       background: radial-gradient(circle, #1a2238 0%, #0d1222 100%);
       border-radius: 12px;
@@ -82,94 +82,125 @@
       height: auto;
       display: block;
     }
+    .filmstrip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px;
+      background: #0f172a;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      border: 1px solid #1e293b;
+    }
+    .filmstrip-item {
+      flex: 0 0 90px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .filmstrip-item img {
+      width: 90px;
+      height: 68px;
+      object-fit: contain;
+      background: #1e293b;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+    .filmstrip-item.active img {
+      border-color: #00f0ff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
   </style>
 </head>
 <body>
-  <h1>🕺💃 PREVIEW BỘ SPRITE NHÂN VẬT NGƯỜI (HUMAN DANCERS)</h1>
-  <p>Hệ thống hoạt ảnh 14 frame cho Nam & Nữ qua 4 cấp đồng phục: Thường, Top 3, Top 2, Top 1.</p>
+  <h1>🕺💃 PREVIEW BỘ SPRITE NHÂN VẬT CHIBI 2D PNG (CHUẨN PHƯƠNG ÁN 1)</h1>
+  <p>Bộ Sprite Chibi PNG 14 frame cho Nam & Nữ đồng bộ 100% tỉ lệ 1:2.3 với các chú mèo gốc, khử triệt để lỗi co giãn tay chân!</p>
 
   <div class="controls">
     <button id="btn-toggle" class="btn">⏸ Tạm Dừng Hoạt Ảnh</button>
     <label>Tốc độ BPM: <strong id="bpm-val">128</strong></label>
     <input type="range" id="bpm-slider" min="60" max="180" value="128" style="width: 140px; accent-color: #00f0ff;">
-    <label>Frame: <strong id="frame-num">0</strong>/13</label>
-
-    <div style="display: flex; gap: 8px; margin-left: 12px; align-items: center;">
-      <span style="font-weight: 700; color: #ffd700;">Vũ đạo:</span>
-      <button class="btn btn-style active" data-style="style1" style="padding: 6px 12px; font-size: 12px;">⚡ 1: Rave Wave</button>
-      <button class="btn btn-style" data-style="style2" style="padding: 6px 12px; font-size: 12px; background: #334155; color: #fff;">👟 2: Shuffle Dance</button>
-      <button class="btn btn-style" data-style="style3" style="padding: 6px 12px; font-size: 12px; background: #334155; color: #fff;">🚀 3: Hands Up</button>
-    </div>
+    <label>Frame hiện tại: <strong id="frame-num">0</strong>/13</label>
 
     <a href="/admin.html" style="margin-left: auto; color: #00f0ff; text-decoration: none; font-weight: 700;">⚙️ Về Bảng Admin</a>
     <a href="/" target="_blank" style="color: #ffd700; text-decoration: none; font-weight: 700;">📺 Mở Overlay</a>
   </div>
 
-  <h2 style="color: #38bdf8; margin-top: 20px;">👦 VŨ CÔNG NAM (MALE DANCERS)</h2>
-  <div class="grid">
-    <div class="card">
-      <div class="badge reg">Thường (Regular)</div>
-      <h3>Nam Street Dance</h3>
-      <canvas id="c-male-regular" width="320" height="360"></canvas>
+  <h2 style="color: #00f0ff; margin-top: 10px;">🌟 SO SÁNH ĐỒNG BỘ TRÊN SÀN NHẢY (HUMAN CHIBI VS CATS)</h2>
+  <div class="grid-preview">
+    <div class="card male">
+      <div class="badge male">Chibi Nam (Male DJ)</div>
+      <h3>Street Dance Chibi Nam</h3>
+      <canvas id="c-male" width="320" height="240"></canvas>
     </div>
-    <div class="card top3">
-      <div class="badge top3">Top 3 VIP</div>
-      <h3>Nam Cyber Bronze</h3>
-      <canvas id="c-male-top3" width="320" height="360"></canvas>
+    <div class="card female">
+      <div class="badge female">Chibi Nữ (Female Idol)</div>
+      <h3>Rave Idol Chibi Nữ</h3>
+      <canvas id="c-female" width="320" height="240"></canvas>
     </div>
-    <div class="card top2">
-      <div class="badge top2">Top 2 VIP</div>
-      <h3>Nam Cyan Overlord</h3>
-      <canvas id="c-male-top2" width="320" height="360"></canvas>
+    <div class="card cat">
+      <div class="badge cat">Mèo Trắng (Char 1)</div>
+      <h3>Mèo Trắng Rave Gốc</h3>
+      <canvas id="c-cat1" width="320" height="240"></canvas>
     </div>
-    <div class="card top1">
-      <div class="badge top1">Top 1 Đại Gia</div>
-      <h3>Nam Imperial Emperor</h3>
-      <canvas id="c-male-top1" width="320" height="360"></canvas>
-    </div>
-  </div>
-
-  <h2 style="color: #ec4899; margin-top: 32px;">👧 VŨ CÔNG NỮ (FEMALE DANCERS)</h2>
-  <div class="grid">
-    <div class="card">
-      <div class="badge reg">Thường (Regular)</div>
-      <h3>Nữ Idol Rave</h3>
-      <canvas id="c-female-regular" width="320" height="360"></canvas>
-    </div>
-    <div class="card top3">
-      <div class="badge top3">Top 3 VIP</div>
-      <h3>Nữ Bronze Huntress</h3>
-      <canvas id="c-female-top3" width="320" height="360"></canvas>
-    </div>
-    <div class="card top2">
-      <div class="badge top2">Top 2 VIP</div>
-      <h3>Nữ Cyber Diva</h3>
-      <canvas id="c-female-top2" width="320" height="360"></canvas>
-    </div>
-    <div class="card top1">
-      <div class="badge top1">Top 1 Đại Gia</div>
-      <h3>Nữ Imperial Empress</h3>
-      <canvas id="c-female-top1" width="320" height="360"></canvas>
+    <div class="card cat">
+      <div class="badge cat">Mèo Vàng (Char 2)</div>
+      <h3>Mèo Vàng Glowstick Gốc</h3>
+      <canvas id="c-cat2" width="320" height="240"></canvas>
     </div>
   </div>
 
-  <script src="/js/human_sprites.js?v=vudao3_sunglasses_v3"></script>
+  <h3 style="color: #38bdf8;">🎬 FILMSTRIP 14 FRAME: CHIBI NAM (`human_male`)</h3>
+  <div class="filmstrip" id="filmstrip-male"></div>
+
+  <h3 style="color: #ec4899;">🎬 FILMSTRIP 14 FRAME: CHIBI NỮ (`human_female`)</h3>
+  <div class="filmstrip" id="filmstrip-female"></div>
+
   <script>
-    const spriteCache = {};
-    HumanSpriteSystem.generateSpriteCache(spriteCache);
+    const maleFrames = [];
+    const femaleFrames = [];
+    const cat1Frames = [];
+    const cat2Frames = [];
 
-    const keys = [
-      { id: 'c-male-regular', gender: 'male', tier: 'regular' },
-      { id: 'c-male-top3', gender: 'male', tier: 'top3' },
-      { id: 'c-male-top2', gender: 'male', tier: 'top2' },
-      { id: 'c-male-top1', gender: 'male', tier: 'top1' },
-      { id: 'c-female-regular', gender: 'female', tier: 'regular' },
-      { id: 'c-female-top3', gender: 'female', tier: 'top3' },
-      { id: 'c-female-top2', gender: 'female', tier: 'top2' },
-      { id: 'c-female-top1', gender: 'female', tier: 'top1' }
-    ];
+    // Preload
+    for (let i = 1; i <= 14; i++) {
+      const im = new Image();
+      im.src = `/assets/characters/human_male/${i}.png?v=chibi1`;
+      maleFrames.push(im);
 
-    let currentStyle = 'style1';
+      const ifem = new Image();
+      ifem.src = `/assets/characters/human_female/${i}.png?v=chibi1`;
+      femaleFrames.push(ifem);
+
+      const ic1 = new Image();
+      ic1.src = `/assets/characters/char1/${i}.png`;
+      cat1Frames.push(ic1);
+    }
+
+    for (let i = 1; i <= 13; i++) {
+      const ic2 = new Image();
+      ic2.src = `/assets/characters/char2/${i}.png`;
+      cat2Frames.push(ic2);
+    }
+
+    // Populate filmstrips
+    const fsMale = document.getElementById('filmstrip-male');
+    const fsFemale = document.getElementById('filmstrip-female');
+
+    for (let i = 1; i <= 14; i++) {
+      const itemM = document.createElement('div');
+      itemM.className = 'filmstrip-item';
+      itemM.id = `fs-m-${i-1}`;
+      itemM.innerHTML = `<img src="/assets/characters/human_male/${i}.png?v=chibi1"><div>Frame ${i-1}</div>`;
+      fsMale.appendChild(itemM);
+
+      const itemF = document.createElement('div');
+      itemF.className = 'filmstrip-item';
+      itemF.id = `fs-f-${i-1}`;
+      itemF.innerHTML = `<img src="/assets/characters/human_female/${i}.png?v=chibi1"><div>Frame ${i-1}</div>`;
+      fsFemale.appendChild(itemF);
+    }
+
     let bpm = 128;
     let isPlaying = true;
     let startTime = performance.now();
@@ -178,19 +209,6 @@
     const bpmVal = document.getElementById('bpm-val');
     const btnToggle = document.getElementById('btn-toggle');
     const frameNum = document.getElementById('frame-num');
-    const styleBtns = document.querySelectorAll('.btn-style');
-
-    styleBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        styleBtns.forEach(b => {
-          b.style.background = '#334155';
-          b.style.color = '#fff';
-        });
-        btn.style.background = '#00f0ff';
-        btn.style.color = '#080b14';
-        currentStyle = btn.dataset.style;
-      });
-    });
 
     bpmSlider.addEventListener('input', e => {
       bpm = parseInt(e.target.value, 10);
@@ -202,29 +220,46 @@
       btnToggle.textContent = isPlaying ? '⏸ Tạm Dừng Hoạt Ảnh' : '▶ Tiếp Tục Hoạt Ảnh';
     });
 
+    function drawPreview(canvasId, frames, fIdx) {
+      const cvs = document.getElementById(canvasId);
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      const img = frames[fIdx % frames.length];
+      if (img && img.complete && img.naturalWidth > 0) {
+        const dw = img.naturalWidth;
+        const dh = img.naturalHeight;
+        const dx = (cvs.width - dw) / 2;
+        const dy = (cvs.height - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      }
+    }
+
+    let lastFrameIdx = -1;
+
     function loop(now) {
       if (isPlaying) {
-        // 2 beats per cycle (14 frames)
         const beatDuration = 60 / bpm;
         const cycleDuration = beatDuration * 2;
         const elapsed = (now - startTime) / 1000;
         const cycleProgress = (elapsed % cycleDuration) / cycleDuration;
-        const frameIdx = Math.floor(cycleProgress * 14);
+        const fIdx = Math.floor(cycleProgress * 14) % 14;
 
-        frameNum.textContent = frameIdx;
+        frameNum.textContent = fIdx;
 
-        keys.forEach(k => {
-          const cvs = document.getElementById(k.id);
-          if (!cvs) return;
-          const ctx = cvs.getContext('2d');
-          ctx.clearRect(0, 0, cvs.width, cvs.height);
-          const cacheKey = `human_${k.gender}_${k.tier}_${currentStyle}`;
-          const frames = spriteCache[cacheKey] || spriteCache[`human_${k.gender}_${k.tier}`];
-          const cachedFrame = frames ? frames[frameIdx] : null;
-          if (cachedFrame) {
-            ctx.drawImage(cachedFrame, 0, 0);
-          }
-        });
+        drawPreview('c-male', maleFrames, fIdx);
+        drawPreview('c-female', femaleFrames, fIdx);
+        drawPreview('c-cat1', cat1Frames, fIdx);
+        drawPreview('c-cat2', cat2Frames, fIdx);
+
+        if (fIdx !== lastFrameIdx) {
+          lastFrameIdx = fIdx;
+          document.querySelectorAll('.filmstrip-item').forEach(el => el.classList.remove('active'));
+          const activeM = document.getElementById(`fs-m-${fIdx}`);
+          const activeF = document.getElementById(`fs-f-${fIdx}`);
+          if (activeM) activeM.classList.add('active');
+          if (activeF) activeF.classList.add('active');
+        }
       }
       requestAnimationFrame(loop);
     }
