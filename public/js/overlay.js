@@ -604,7 +604,7 @@
       this.score = data.score || 0;
       this.hue = Math.floor(Math.random() * 360);
       this.frameIndex = 0;
-      this.scale = 0.85 + (this.y - 0.52) * 0.45; // Perspective scaling (closer = bigger)
+      this.scale = 0.62 + (this.y - 0.62) * 0.32; // Perspective scaling for crowd (smaller, cute chibi)
       this.isJumping = false;
       this.jumpOffset = 0;
       this.bounceY = 0;
@@ -710,13 +710,13 @@
 
       // Scale prestige based on VIP Rank vs floor perspective
       if (this.vipRank === 1) {
-        this.scale = 1.25 + (this.y - 0.52) * 0.2; // Top 1 stands tallest
+        this.scale = 1.48; // Top 1 is undeniably the biggest! (Champion VIP)
       } else if (this.vipRank === 2) {
-        this.scale = 1.15; // Top 2
+        this.scale = 1.15; // Top 2 Silver
       } else if (this.vipRank === 3) {
-        this.scale = 1.08; // Top 3
+        this.scale = 1.08; // Top 3 Bronze
       } else {
-        this.scale = 0.85 + (this.y - 0.52) * 0.45; // Perspective scaling for crowd
+        this.scale = 0.62 + (this.y - 0.62) * 0.32; // Regular crowd is smaller (~0.65 - 0.73)
       }
 
       const frames = this.getFrames();
@@ -918,7 +918,7 @@
       const textWidth = ctx.measureText(fullText).width;
       const tagWidth = Math.max(textWidth + 30, 110);
       const tagHeight = 36;
-      const tagY = isHuman ? (-drawHeight * 0.38 - 25) : (-drawHeight / 2 - 25);
+      const tagY = isHuman ? (-drawHeight * 0.40 - 20) : (-drawHeight * 0.42 - 16);
 
       // Tag Background
       let tagBg, tagBorder, tagTextCol, tagGlow;
@@ -1295,7 +1295,7 @@
 
   // Draw DJ Booth Platform, Disco Mirror Ball, Superstar Resident DJ, Pioneer Mixer & Vibrating Speakers
   function drawDJStage(now) {
-    const stageY = H * 0.36;
+    const stageY = H * 0.315;
 
     ctx.save();
 
@@ -1830,7 +1830,7 @@
 
   // 2.5D Perspective Dance Floor Grid with Floor Lights, Glossy Reflections & Bass Ripples
   function drawDanceFloor(now) {
-    const horizonY = H * 0.48;
+    const horizonY = H * 0.435;
     const bottomY = H;
     const rows = 12;
     const cols = 10;
@@ -2044,9 +2044,9 @@
     ctx.restore();
 
     // D. Front Metallic Engraved Plaque on base wall
-    const badgeW = rank === 1 ? 190 : 155;
-    const badgeH = 28;
-    const badgeY = cy + tiers[0].offsetY + tiers[0].height - 18;
+    const badgeW = rank === 1 ? 220 : 155;
+    const badgeH = rank === 1 ? 30 : 28;
+    const badgeY = cy + tiers[0].offsetY + tiers[0].height - (rank === 1 ? 20 : 18);
 
     ctx.save();
     const bGrad = ctx.createLinearGradient(cx - badgeW / 2, badgeY, cx + badgeW / 2, badgeY + badgeH);
@@ -2090,13 +2090,13 @@
 
   // 3 VIP Podiums on Dance Floor (Top 1 Center Gold, Top 2 Left Silver, Top 3 Right Bronze)
   function drawVIPPodiums(now) {
-    // 1. TOP 1 PODIUM (Center - Elevated 3-Tier Gold Stage)
+    // 1. TOP 1 PODIUM (Center - Elevated 3-Tier Massive Gold Stage)
     const top1Cx = W * 0.50;
-    const top1Cy = H * 0.58;
+    const top1Cy = H * 0.535;
     const top1Tiers = [
-      { offsetY: 42, height: 26, rx: 160, ry: 48 }, // Tier 0 (bottom)
-      { offsetY: 21, height: 24, rx: 140, ry: 42 }, // Tier 1 (mid)
-      { offsetY: 0,  height: 22, rx: 120, ry: 36 }  // Tier 2 (top platform)
+      { offsetY: 48, height: 30, rx: 220, ry: 60 }, // Tier 0 (bottom base)
+      { offsetY: 24, height: 26, rx: 190, ry: 52 }, // Tier 1 (mid)
+      { offsetY: 0,  height: 24, rx: 160, ry: 44 }  // Tier 2 (top platform)
     ];
     const top1Colors = {
       spotLight: 'rgba(255, 230, 0, ALPHA)',
@@ -2114,11 +2114,11 @@
     drawSinglePodium(ctx, top1Cx, top1Cy, top1Tiers, top1Colors, '👑 TOP 1 ĐẠI GIA', 1, now);
 
     // 2. TOP 2 PODIUM (Left - 2-Tier Silver / Electric Cyan Stage)
-    const top2Cx = W * 0.26;
-    const top2Cy = H * 0.63;
+    const top2Cx = W * 0.24;
+    const top2Cy = H * 0.585;
     const top2Tiers = [
-      { offsetY: 26, height: 24, rx: 135, ry: 40 }, // Tier 0 (bottom)
-      { offsetY: 0,  height: 22, rx: 115, ry: 34 }  // Tier 1 (top platform)
+      { offsetY: 26, height: 24, rx: 135, ry: 38 }, // Tier 0 (bottom)
+      { offsetY: 0,  height: 22, rx: 115, ry: 32 }  // Tier 1 (top platform)
     ];
     const top2Colors = {
       spotLight: 'rgba(0, 240, 255, ALPHA)',
@@ -2136,11 +2136,11 @@
     drawSinglePodium(ctx, top2Cx, top2Cy, top2Tiers, top2Colors, '🥈 TOP 2 VIP', 2, now);
 
     // 3. TOP 3 PODIUM (Right - 2-Tier Bronze / Amber Stage)
-    const top3Cx = W * 0.74;
-    const top3Cy = H * 0.63;
+    const top3Cx = W * 0.76;
+    const top3Cy = H * 0.585;
     const top3Tiers = [
-      { offsetY: 26, height: 24, rx: 135, ry: 40 }, // Tier 0 (bottom)
-      { offsetY: 0,  height: 22, rx: 115, ry: 34 }  // Tier 1 (top platform)
+      { offsetY: 26, height: 24, rx: 130, ry: 36 }, // Tier 0 (bottom)
+      { offsetY: 0,  height: 22, rx: 110, ry: 30 }  // Tier 1 (top platform)
     ];
     const top3Colors = {
       spotLight: 'rgba(255, 140, 0, ALPHA)',
@@ -2202,18 +2202,22 @@
     dancers.forEach(d => {
       if (d.vipRank === 1) {
         d.targetX = 0.50;
-        d.targetY = 0.54; // Feet land on Top 1 platform (H * 0.58)
+        d.targetY = 0.472; // Feet land on Top 1 massive gold platform (H * 0.535)
+        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else if (d.vipRank === 2) {
-        d.targetX = 0.26;
-        d.targetY = 0.595; // Feet land on Top 2 platform (H * 0.63)
+        d.targetX = 0.24;
+        d.targetY = 0.535; // Feet land on Top 2 platform (H * 0.585)
+        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else if (d.vipRank === 3) {
-        d.targetX = 0.74;
-        d.targetY = 0.595; // Feet land on Top 3 platform (H * 0.63)
+        d.targetX = 0.76;
+        d.targetY = 0.535; // Feet land on Top 3 platform (H * 0.585)
+        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else {
-        // Regular crowd: ensure they do not stand on or block the 3 podiums
-        if (d.targetY < 0.69) {
+        // Regular crowd: keep clear of the 3 elevated podiums
+        if (d.targetY < 0.65) {
           const charCode = (d.id || d.username || 'user').charCodeAt(0);
-          d.targetY = 0.72 + (charCode % 15) * 0.012;
+          d.targetY = 0.68 + (charCode % 15) * 0.018;
+          if (!d.crowdPositioned) { d.y = d.targetY; d.crowdPositioned = true; }
         }
       }
     });
