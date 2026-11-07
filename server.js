@@ -56,7 +56,8 @@ const state = {
     autoJoinOnGift: true,
     chatBubbleDuration: 5000,
     effectsDuration: 4000,
-    characterTheme: 'humans' // 'humans' | 'cats' | 'all'
+    characterTheme: 'humans', // 'humans' | 'cats' | 'all'
+    audioMode: 'glass_room' // 'glass_room' | 'main_floor' | 'outside_door'
   }
 };
 
@@ -581,6 +582,11 @@ function handleClientMessage(msg, ws) {
         d.charType = targetStyle;
       });
       broadcast('dancers_sync', state.dancers);
+      break;
+
+    case 'set_audio_mode':
+      state.settings.audioMode = data.mode || 'glass_room';
+      broadcast('audio_mode_changed', { mode: state.settings.audioMode });
       break;
 
     case 'clear_dancers':

@@ -192,6 +192,46 @@
     });
   }
 
+
+  // ---------------------------------------------------------------------------
+  // BAR VIP GLASS ROOM AUDIO EFFECTS ENGINE SYNC
+  // ---------------------------------------------------------------------------
+  let currentAudioMode = 'glass_room';
+
+  function updateAudioModeUI(mode) {
+    currentAudioMode = mode;
+    const btn = document.getElementById('btn-audio-mode');
+    if (!btn) return;
+    const textEl = document.getElementById('audio-mode-text');
+    const iconEl = btn.querySelector('.audio-mode-icon');
+
+    btn.className = 'audio-mode-pill mode-' + mode;
+    if (window.BarAudioEffects) {
+      const info = window.BarAudioEffects.getModeInfo(mode);
+      if (textEl) textEl.textContent = info.shortName;
+      if (iconEl) iconEl.textContent = info.icon;
+      btn.title = info.name + ' - ' + info.desc + ' (Bấm để đổi chế độ)';
+    }
+  }
+
+  function toggleAudioMode() {
+    if (window.BarAudioEffects) {
+      const nextMode = window.BarAudioEffects.toggleMode();
+      updateAudioModeUI(nextMode);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_audio_mode', data: { mode: nextMode } }));
+      }
+    }
+  }
+
+  const btnAudioMode = document.getElementById('btn-audio-mode');
+  if (btnAudioMode) {
+    btnAudioMode.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudioMode();
+    });
+  }
+
   function initAudio() {
     if (audioCtx) return;
     try {
@@ -203,8 +243,13 @@
       freqData = new Uint8Array(analyser.frequencyBinCount);
 
       audioSource = audioCtx.createMediaElementSource(audioElement);
-      audioSource.connect(analyser);
-      analyser.connect(audioCtx.destination);
+      audioSource.connect(analyser); // Keep beat detection at full raw signal
+      if (window.BarAudioEffects) {
+        BarAudioEffects.init(audioCtx, audioSource, audioCtx.destination);
+        BarAudioEffects.setMode(currentAudioMode || 'glass_room', 0.05);
+      } else {
+        audioSource.connect(audioCtx.destination);
+      }
 
       sfx.init(audioCtx);
       console.log('Audio Context & Analyser initialized successfully (fftSize 512)');
@@ -2622,6 +2667,13 @@
         if (data.currentTrack) {
           playTrack(data.currentTrack);
         }
+        if (data.settings && data.settings.audioMode) {
+          currentAudioMode = data.settings.audioMode;
+          if (window.BarAudioEffects) {
+            window.BarAudioEffects.setMode(currentAudioMode, 0.05);
+          }
+          updateAudioModeUI(currentAudioMode);
+        }
         if (data.settings && data.settings.transparentBg) {
           document.body.classList.add('transparent-mode');
         }
@@ -2729,6 +2781,16 @@
         addFloatingHeart();
         const likesCountEl = document.getElementById('likes-count');
         if (likesCountEl) likesCountEl.textContent = data.totalLikes || (parseInt(likesCountEl.textContent) + 1);
+        break;
+
+      case 'audio_mode_changed':
+        if (data && data.mode) {
+          currentAudioMode = data.mode;
+          if (window.BarAudioEffects) {
+            window.BarAudioEffects.setMode(currentAudioMode);
+          }
+          updateAudioModeUI(currentAudioMode);
+        }
         break;
 
       case 'settings_updated':

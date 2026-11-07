@@ -439,3 +439,10 @@ body {
   color: var(--text-muted);
   line-height: 1.3;
 }
+
+.fx-btn.active-audio-mode {
+  background: linear-gradient(135deg, rgba(255, 0, 127, 0.45), rgba(112, 0, 255, 0.45)) !important;
+  border-color: var(--neon-pink) !important;
+  box-shadow: 0 0 14px rgba(255, 0, 127, 0.6) !important;
+  color: #fff !important;
+}

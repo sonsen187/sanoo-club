@@ -505,3 +505,53 @@ body.transparent-mode .stream-container {
   color: var(--neon-yellow);
   text-shadow: 0 0 10px var(--neon-yellow);
 }
+
+
+/* ==========================================================================
+   GLASS ROOM AUDIO MODE TOGGLE PILL
+   ========================================================================== */
+.audio-mode-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 0, 127, 0.18);
+  border: 1.5px solid rgba(255, 0, 127, 0.6);
+  color: #ff3399;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(255, 0, 127, 0.35);
+  font-family: inherit;
+}
+
+.audio-mode-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(255, 0, 127, 0.6);
+}
+
+.audio-mode-pill.mode-glass_room {
+  background: rgba(255, 0, 127, 0.22);
+  border-color: #ff007f;
+  color: #ff3399;
+  box-shadow: 0 0 14px rgba(255, 0, 127, 0.45);
+}
+
+.audio-mode-pill.mode-main_floor {
+  background: rgba(0, 255, 136, 0.18);
+  border-color: #00ff88;
+  color: #00ff88;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.45);
+}
+
+.audio-mode-pill.mode-outside_door {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #f59e0b;
+  color: #fbbf24;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}

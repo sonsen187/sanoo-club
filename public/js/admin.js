@@ -70,6 +70,7 @@
           const bgCheck = document.getElementById('chk-transparent-bg');
           if (bgCheck) bgCheck.checked = !!data.settings.transparentBg;
           if (data.settings.characterTheme) updateCharThemeUI(data.settings.characterTheme);
+          if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
         }
         break;
 
@@ -78,6 +79,12 @@
         if (data.transparentBg !== undefined) {
           const bg = document.getElementById('chk-transparent-bg');
           if (bg) bg.checked = !!data.transparentBg;
+        }
+        break;
+
+      case 'audio_mode_changed':
+        if (data && data.mode) {
+          updateAudioModeAdminUI(data.mode);
         }
         break;
 
@@ -424,6 +431,28 @@
       });
     });
   }
+
+  
+  // ---------------------------------------------------------------------------
+  // BAR ACOUSTIC AUDIO MODE CONTROLS
+  // ---------------------------------------------------------------------------
+  function updateAudioModeAdminUI(mode) {
+    document.querySelectorAll('[data-audio-mode]').forEach(btn => {
+      if (btn.getAttribute('data-audio-mode') === mode) {
+        btn.classList.add('active-audio-mode');
+      } else {
+        btn.classList.remove('active-audio-mode');
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-audio-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-audio-mode');
+      updateAudioModeAdminUI(mode);
+      sendWS('set_audio_mode', { mode });
+    });
+  });
 
   setupWebSocket();
 })();
