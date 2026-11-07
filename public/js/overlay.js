@@ -224,6 +224,16 @@
     }
   }
 
+  // Hype Drop Quick Button
+  const btnHypeDrop = document.getElementById('btn-hype-drop');
+  if (btnHypeDrop) {
+    btnHypeDrop.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('⚡ User triggered manual SIÊU QUẨY drop!');
+      beatEngine.forceHypeDrop(14);
+    });
+  }
+
   const btnAudioMode = document.getElementById('btn-audio-mode');
   if (btnAudioMode) {
     btnAudioMode.addEventListener('click', (e) => {
@@ -343,15 +353,34 @@
     }
   };
 
-  // 4 Pro Volumetric Moving Heads on Ceiling Truss Rigging (y=135)
+  // 6 Pro Volumetric Moving Heads on Ceiling Truss Rigging (y=135)
   let movingHeads = [];
   function initMovingHeads() {
     movingHeads = [
-      { x: 200, y: 135, baseAngle: 0.32, sweepRange: 0.35, speed: 0.90, colorOffset: 0 },
-      { x: 420, y: 135, baseAngle: 0.12, sweepRange: 0.28, speed: -1.10, colorOffset: 2 },
-      { x: 660, y: 135, baseAngle: 0.12, sweepRange: 0.28, speed: 1.10, colorOffset: 1 },
-      { x: 880, y: 135, baseAngle: 0.32, sweepRange: 0.35, speed: -0.90, colorOffset: 3 }
+      { x: 130, y: 135, baseAngle: 0.38, sweepRange: 0.38, speed: 0.95, colorOffset: 0 },
+      { x: 290, y: 135, baseAngle: 0.22, sweepRange: 0.30, speed: -1.15, colorOffset: 2 },
+      { x: 450, y: 135, baseAngle: 0.08, sweepRange: 0.25, speed: 1.05, colorOffset: 4 },
+      { x: 630, y: 135, baseAngle: 0.08, sweepRange: 0.25, speed: -1.05, colorOffset: 1 },
+      { x: 790, y: 135, baseAngle: 0.22, sweepRange: 0.30, speed: 1.15, colorOffset: 3 },
+      { x: 950, y: 135, baseAngle: 0.38, sweepRange: 0.38, speed: -0.95, colorOffset: 5 }
     ];
+  }
+
+  // Floating Club Atmosphere Motes (Catching moving head beams)
+  let clubAtmosphereMotes = [];
+  function initClubAtmosphere() {
+    clubAtmosphereMotes = [];
+    for (let i = 0; i < 35; i++) {
+      clubAtmosphereMotes.push({
+        x: Math.random() * W,
+        y: H * 0.15 + Math.random() * (H * 0.75),
+        vx: (Math.random() - 0.5) * 8,
+        vy: -10 - Math.random() * 16,
+        size: 2 + Math.random() * 3.5,
+        alpha: 0.2 + Math.random() * 0.5,
+        hue: Math.floor(Math.random() * 360)
+      });
+    }
   }
 
   // Disco Mirror Ball Sparkles drifting across dance floor
@@ -375,6 +404,7 @@
 
   function initLasers() {
     initMovingHeads();
+    initClubAtmosphere();
     initDiscoSparkles();
   }
 
@@ -533,14 +563,59 @@
         stageLighting.update(dt);
 
       } else {
-        this.bassIntensity = 0;
-        this.bassLevel = 0;
-        this.danceEnergy = 0;
+        // Idle / Paused simulation: Keep gentle lively pulse so stage NEVER looks dead!
+        this.bassIntensity = 0.08;
+        this.bassLevel = 0.08 + Math.sin(now * 0.004) * 0.04;
+        this.danceEnergy = 0.10;
         this.isBassActive = false;
         this.isBeatHit = false;
         this.beatProgress += dt / this.beatDuration;
         this.beatPhase = ((this.beatProgress % 1.0) + 1.0) % 1.0;
         this.danceCycle = ((this.beatProgress / 2) % 1.0 + 1.0) % 1.0;
+        stageLighting.update(dt);
+      }
+
+      // 💥 FORCED HYPE MODE (Manual Trigger or Test)
+      if (this.forcedDropUntil && now < this.forcedDropUntil) {
+        this.isBassActive = true;
+        this.bassLevel = Math.max(this.bassLevel, 0.78 + Math.sin(this.beatPhase * Math.PI) * 0.22);
+        this.danceEnergy = 1.0;
+      }
+
+      // 💥 AUTOMATIC DROP IMPACT DETECTION & HYPE STAGE EXPLOSION
+      if (this.isBassActive && !this._lastBassActiveState) {
+        // 1. Twin CO2 Cryo Geysers shooting skyward!
+        triggerSmoke();
+        // 2. Twin Stage Flame Cannons firing!
+        triggerFlame();
+        // 3. Confetti Shower
+        triggerConfetti();
+        // 4. Synchronized Crowd Rave Jump!
+        dancers.forEach(d => { d.isJumping = true; });
+        setTimeout(() => {
+          dancers.forEach(d => { d.isJumping = false; });
+        }, 4200);
+        // 5. Fullscreen Light Strobe
+        stageLighting.flashIntensity = 1.0;
+        const strobe = document.getElementById('strobe-fx');
+        if (strobe) {
+          strobe.classList.remove('active');
+          void strobe.offsetWidth;
+          strobe.classList.add('active');
+        }
+      }
+      this._lastBassActiveState = this.isBassActive;
+
+      // Periodic Auto Stage Pyro / CO2 on continuous heavy bass drops
+      if (this.isBassActive && this.bassLevel > 0.65) {
+        if (!this._lastAutoFxTime || (now - this._lastAutoFxTime > 6200)) {
+          this._lastAutoFxTime = now;
+          if (Math.random() > 0.45) {
+            triggerFlame();
+          } else {
+            triggerSmoke();
+          }
+        }
       }
 
       // Update Real-Time HUD Bass Meter
@@ -558,6 +633,15 @@
           textEl.className = 'bass-mode-text';
         }
       }
+    },
+
+    forceHypeDrop(durationSec = 14) {
+      this.forcedDropUntil = performance.now() + durationSec * 1000;
+      triggerRave();
+      dancers.forEach(d => { d.isJumping = true; });
+      setTimeout(() => {
+        dancers.forEach(d => { d.isJumping = false; });
+      }, 4500);
     }
   };
 
@@ -978,42 +1062,49 @@
     }
   }
 
-  // Particle Generators
+  // Particle Generators (Concert Stage Flame Cannons & CO2 Cryo Geysers)
   function triggerFlame() {
     sfx.playBassDrop();
+    const stageY = H * 0.36;
     for (let k = 0; k < 2; k++) {
-      const originX = k === 0 ? 240 : 840;
-      const originY = 820;
-      for (let i = 0; i < 40; i++) {
+      const originX = k === 0 ? 220 : 860;
+      const originY = stageY + 50;
+      for (let i = 0; i < 48; i++) {
+        const spread = (Math.random() - 0.5) * 0.25;
+        const speed = 20 + Math.random() * 28;
         flames.push({
-          x: originX + (Math.random() - 0.5) * 50,
+          x: originX + (Math.random() - 0.5) * 40,
           y: originY,
-          vx: (Math.random() - 0.5) * 6,
-          vy: -15 - Math.random() * 25,
-          size: 35 + Math.random() * 45,
-          color: Math.random() > 0.3 ? '#ff3b00' : '#ffd000',
+          vx: Math.sin(spread) * speed * 0.35,
+          vy: -Math.cos(spread) * speed,
+          size: 32 + Math.random() * 45,
+          color: Math.random() > 0.35 ? '#ff3b00' : '#ffe600',
           alpha: 1,
-          decay: 0.02 + Math.random() * 0.02
+          decay: 0.022 + Math.random() * 0.018
         });
       }
     }
   }
 
   function triggerSmoke() {
+    // Twin CO2 Cryo Cannons mounted beside DJ booth, blasting upward to the ceiling!
+    const stageY = H * 0.36;
     for (let k = 0; k < 2; k++) {
-      const originX = k === 0 ? 180 : 900;
-      const originY = 750;
-      for (let i = 0; i < 35; i++) {
+      const originX = k === 0 ? 200 : 880;
+      const originY = stageY + 50;
+      for (let i = 0; i < 50; i++) {
+        const spreadAngle = (Math.random() - 0.5) * 0.32 + (k === 0 ? 0.12 : -0.12);
+        const speed = 22 + Math.random() * 28;
         fogs.push({
-          x: originX + (Math.random() - 0.5) * 60,
+          x: originX + (Math.random() - 0.5) * 35,
           y: originY,
-          vx: (k === 0 ? 1 : -1) * (4 + Math.random() * 8),
-          vy: 6 + Math.random() * 12,
-          radius: 40 + Math.random() * 50,
-          growth: 1.5,
-          alpha: 0.75,
-          decay: 0.008 + Math.random() * 0.006,
-          color: Math.random() > 0.5 ? 'rgba(0, 240, 255, ' : 'rgba(255, 0, 128, '
+          vx: Math.sin(spreadAngle) * speed * 0.45,
+          vy: -Math.cos(spreadAngle) * speed, // Blasts UPWARDS like genuine festival cryo jets!
+          radius: 28 + Math.random() * 32,
+          growth: 2.2,
+          alpha: 0.85,
+          decay: 0.011 + Math.random() * 0.007,
+          color: Math.random() > 0.35 ? 'rgba(235, 250, 255, ' : 'rgba(0, 240, 255, '
         });
       }
     }
@@ -1238,17 +1329,17 @@
     }
 
     // LED Screen boundaries (Center Upper Stage Visualizer)
-    ctx.fillStyle = '#050714';
+    ctx.fillStyle = '#040612';
     ctx.fillRect(sx, sy, sw, sh);
     const borderColor = stageLighting.getCurrentColor();
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 4;
     ctx.shadowColor = borderColor;
-    ctx.shadowBlur = 12 + beatEngine.bassLevel * 15;
+    ctx.shadowBlur = 14 + beatEngine.bassLevel * 18;
     ctx.strokeRect(sx, sy, sw, sh);
     ctx.shadowBlur = 0;
 
-    // Kaleidoscope effect inside screen
+    // Clip graphics strictly inside the LED wall
     ctx.save();
     ctx.beginPath();
     ctx.rect(sx + 4, sy + 4, sw - 8, sh - 8);
@@ -1256,30 +1347,140 @@
 
     const cx = sx + sw / 2;
     const cy = sy + sh / 2;
-    const petals = 8;
-    const midIntensity = beatEngine.bassLevel;
-    const baseRadius = 40 + midIntensity * 75;
-    const rotSpeed = now * 0.0015 * (beatEngine.bpm / 120);
 
-    for (let i = 0; i < petals; i++) {
-      const angle = rotSpeed + (i * (Math.PI * 2 / petals));
-      const px = cx + Math.cos(angle) * (baseRadius * 0.6);
-      const py = cy + Math.sin(angle) * (baseRadius * 0.6);
-
-      ctx.beginPath();
-      ctx.arc(px, py, baseRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = i % 2 === 0 ? stageLighting.getCurrentColor(i) : stageLighting.getCurrentColor(i + 3);
-      ctx.lineWidth = 2 + beatEngine.bassLevel * 3;
-      ctx.stroke();
+    // 1. Subtle Cyber Dot Matrix Background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
+    for (let gx = sx + 15; gx < sx + sw; gx += 28) {
+      for (let gy = sy + 15; gy < sy + sh; gy += 28) {
+        ctx.fillRect(gx, gy, 2, 2);
+      }
     }
 
-    // High energy strobe flash across LED screen on heavy drops
-    if (stageLighting.flashIntensity > 0.08) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${stageLighting.flashIntensity * 0.45})`;
-      ctx.fillRect(sx, sy, sw, sh);
+    // 2. Concentric Cyber Octagons (Soundwave Tunnel)
+    const tunnelRings = 5;
+    for (let r = 0; r < tunnelRings; r++) {
+      const ringProg = ((now * 0.0009 * (beatEngine.bpm / 120) + r / tunnelRings) % 1.0);
+      const ringR = 25 + ringProg * (sw * 0.46);
+      const ringAlpha = Math.sin(ringProg * Math.PI) * (0.28 + beatEngine.bassLevel * 0.42);
+      const ringColor = stageLighting.getCurrentColor(r * 2);
+
+      ctx.save();
+      ctx.strokeStyle = ringColor;
+      ctx.globalAlpha = ringAlpha;
+      ctx.lineWidth = 2 + beatEngine.bassLevel * 3;
+      ctx.shadowColor = ringColor;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      for (let a = 0; a < 8; a++) {
+        const ang = a * (Math.PI / 4) + (now * 0.0006);
+        const ax = cx + Math.cos(ang) * ringR;
+        const ay = cy - 25 + Math.sin(ang) * (ringR * 0.65);
+        if (a === 0) ctx.moveTo(ax, ay);
+        else ctx.lineTo(ax, ay);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 3. Dynamic 36-Band Graphic Equalizer Spectrum (EQ Bars)
+    const barCount = 36;
+    const barSpacing = (sw - 40) / barCount;
+    const barW = barSpacing * 0.72;
+    const maxBarH = sh * 0.58;
+    const baseBarY = sy + sh - 18;
+
+    for (let b = 0; b < barCount; b++) {
+      let mag = 0;
+      if (analyser && freqData && audioCtx && audioCtx.state === 'running') {
+        const binIdx = Math.min(freqData.length - 1, 2 + Math.floor(b * (freqData.length / 80)));
+        mag = freqData[binIdx] / 255.0;
+      } else {
+        // High-energy energetic simulated wave
+        const wave1 = Math.sin(now * 0.007 * (beatEngine.bpm / 120) + b * 0.38);
+        const wave2 = Math.cos(now * 0.012 + b * 0.75);
+        const beatBounce = (b < 10 ? Math.sin(beatEngine.beatPhase * Math.PI) * 0.5 : 0);
+        mag = Math.max(0.08, 0.30 + wave1 * 0.28 + wave2 * 0.18 + beatBounce);
+      }
+
+      if (beatEngine.isBassActive) {
+        mag = Math.min(1.0, mag * (1.1 + beatEngine.bassLevel * 0.55));
+      } else {
+        mag = Math.min(0.75, mag * 0.65);
+      }
+
+      const barH = Math.max(6, mag * maxBarH);
+      const bx = sx + 20 + b * barSpacing;
+      const by = baseBarY - barH;
+
+      const barGrad = ctx.createLinearGradient(0, baseBarY, 0, by);
+      barGrad.addColorStop(0, '#00f0ff');
+      barGrad.addColorStop(0.5, '#ff007f');
+      barGrad.addColorStop(0.85, '#ffe600');
+      barGrad.addColorStop(1, '#ffffff');
+
+      ctx.fillStyle = barGrad;
+      ctx.fillRect(bx, by, barW, barH);
+
+      // Peak Hold Cap
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(bx, by - 3, barW, 2);
+    }
+
+    // 4. Dynamic High-Energy LED Stage Banner Text
+    ctx.save();
+    if (beatEngine.isBassActive) {
+      const slogans = [
+        '⚡ BASS DROP! ⚡',
+        '🔥 SANOO RAVE CLUB 🔥',
+        '💥 QUẨY LÊN NÀO! 💥',
+        '⚡ DROP THE BASS ⚡'
+      ];
+      const sloganIdx = Math.floor(now * 0.001 * (beatEngine.bpm / 120) * 0.5) % slogans.length;
+      const slogan = slogans[sloganIdx];
+      const pulseScale = 1.0 + beatEngine.bassLevel * 0.22;
+
+      ctx.translate(cx, sy + 75);
+      ctx.scale(pulseScale, pulseScale);
+      ctx.font = '900 38px "Rajdhani", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = stageLighting.getCurrentColor(0);
+      ctx.shadowBlur = 24;
+      ctx.fillStyle = '#ffe600';
+      ctx.fillText(slogan, 0, 0);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeText(slogan, 0, 0);
+    } else {
+      ctx.font = '900 24px "Rajdhani", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 14;
+      ctx.fillText('🎧 SANOO CLUB RESIDENT DJ • GROOVE SESSION 🎧', cx, sy + 65);
+
+      // Rolling sine soundwave in chill mode
+      ctx.beginPath();
+      for (let x = sx + 40; x < sx + sw - 40; x += 6) {
+        const y = sy + 95 + Math.sin(x * 0.03 + now * 0.005) * 8;
+        if (x === sx + 40) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
     }
     ctx.restore();
 
+    // 5. Strobe Flash on Bass Hits
+    if (stageLighting.flashIntensity > 0.08) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${stageLighting.flashIntensity * 0.55})`;
+      ctx.fillRect(sx, sy, sw, sh);
+    }
+
+    ctx.restore();
     ctx.restore();
   }
 
@@ -1408,43 +1609,98 @@
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Turntable Hands
+    // Turntables & Hands
     const deckLeftX = tableX + 85;
     const deckRightX = tableX + tableW - 85;
     const deckLeftY = tableY + 22;
 
-    if (djHype > 0.45) {
+    const isDJDropRave = beatEngine.isBassActive || djHype > 0.35;
+
+    if (isDJDropRave) {
+      // ⚡ SUPERSTAR DJ IN FULL RAVE MODE (BOTH ARMS PUMPING IN THE AIR!)
       const pumpProgress = Math.sin(beatEngine.beatPhase * Math.PI);
       const pumpOffset = pumpProgress * 42;
-      const handX = djHeadX + 75;
-      const handY = djHeadY - 45 - pumpOffset;
 
+      // Right arm pumping
+      const rHandX = djHeadX + 68;
+      const rHandY = djHeadY - 45 - pumpOffset;
       ctx.beginPath();
-      ctx.moveTo(djHeadX + 48, djHeadY + 38);
-      ctx.quadraticCurveTo(djHeadX + 70, djHeadY + 5, handX, handY);
+      ctx.moveTo(djHeadX + 44, djHeadY + 36);
+      ctx.quadraticCurveTo(djHeadX + 68, djHeadY + 5, rHandX, rHandY);
       ctx.strokeStyle = '#ffe600';
       ctx.lineWidth = 14;
       ctx.lineCap = 'round';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(handX, handY, 13, 0, Math.PI * 2);
+      ctx.arc(rHandX, rHandY, 13, 0, Math.PI * 2);
       ctx.fillStyle = '#ffdd99';
       ctx.fill();
       ctx.strokeStyle = '#ffe600';
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Peace sign fingers
-      ctx.lineWidth = 5;
+      // Neon wristband (Pink)
+      ctx.beginPath();
+      ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff007f';
+      ctx.shadowColor = '#ff007f';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Peace / Rave finger sign
+      ctx.lineWidth = 4.5;
       ctx.strokeStyle = '#ffdd99';
       ctx.beginPath();
-      ctx.moveTo(handX - 4, handY - 5);
-      ctx.lineTo(handX - 10, handY - 26);
-      ctx.moveTo(handX + 4, handY - 5);
-      ctx.lineTo(handX + 6, handY - 28);
+      ctx.moveTo(rHandX - 4, rHandY - 5);
+      ctx.lineTo(rHandX - 10, rHandY - 26);
+      ctx.moveTo(rHandX + 4, rHandY - 5);
+      ctx.lineTo(rHandX + 6, rHandY - 28);
       ctx.stroke();
+
+      // Left arm pumping
+      const lHandX = djHeadX - 68;
+      const lHandY = djHeadY - 45 - pumpOffset;
+      ctx.beginPath();
+      ctx.moveTo(djHeadX - 44, djHeadY + 36);
+      ctx.quadraticCurveTo(djHeadX - 68, djHeadY + 5, lHandX, lHandY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(lHandX, lHandY, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Neon wristband (Cyan)
+      ctx.beginPath();
+      ctx.arc(lHandX, lHandY + 6, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Left hand peace sign
+      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = '#ffdd99';
+      ctx.beginPath();
+      ctx.moveTo(lHandX - 4, lHandY - 5);
+      ctx.lineTo(lHandX - 6, lHandY - 28);
+      ctx.moveTo(lHandX + 4, lHandY - 5);
+      ctx.lineTo(lHandX + 10, lHandY - 26);
+      ctx.stroke();
+
     } else {
+      // Chill / Groove Mode: Hands on turntables with scratching
+      const scratchWobble = Math.sin(now * 0.015) * 8;
+      // Right hand on right deck
       ctx.beginPath();
       ctx.moveTo(djHeadX + 48, djHeadY + 38);
       ctx.quadraticCurveTo(djHeadX + 65, tableY - 15, deckRightX, deckLeftY);
@@ -1456,21 +1712,20 @@
       ctx.arc(deckRightX, deckLeftY, 11, 0, Math.PI * 2);
       ctx.fillStyle = '#ffdd99';
       ctx.fill();
-    }
 
-    // Left hand scratching turntable
-    const scratchWobble = Math.sin(now * 0.015) * 8;
-    ctx.beginPath();
-    ctx.moveTo(djHeadX - 48, djHeadY + 38);
-    ctx.quadraticCurveTo(djHeadX - 65, tableY - 15, deckLeftX + scratchWobble, deckLeftY);
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 12;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(deckLeftX + scratchWobble, deckLeftY, 11, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffdd99';
-    ctx.fill();
+      // Left hand on left deck scratching
+      ctx.beginPath();
+      ctx.moveTo(djHeadX - 48, djHeadY + 38);
+      ctx.quadraticCurveTo(djHeadX - 65, tableY - 15, deckLeftX + scratchWobble, deckLeftY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(deckLeftX + scratchWobble, deckLeftY, 11, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+    }
 
     // DJ Head & Face
     ctx.beginPath();
@@ -1571,25 +1826,25 @@
     ctx.lineWidth = 3;
     ctx.strokeRect(tableX, tableY, tableW, tableH);
 
-    // Glowing Neon Banner
+    // Glowing Neon Banner (Safely centered at tableY + 95, completely unobstructed!)
     ctx.font = '900 17px "Rajdhani", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = stageLighting.getCurrentColor(0);
     ctx.shadowBlur = 12;
-    ctx.fillText('⚡ RESIDENT SUPERSTAR DJ ⚡', W / 2, tableY + 68);
+    ctx.fillText('★ SANOO CLUB • RESIDENT DJ ★', W / 2, tableY + 95);
     ctx.shadowBlur = 0;
 
     // Bottom Soundwave line across table
     ctx.beginPath();
-    for (let wx = tableX + 15; wx < tableX + tableW - 15; wx += 5) {
-      const wy = tableY + 98 + Math.sin(wx * 0.1 + now * 0.01) * (3 + beatEngine.bassLevel * 8);
+    for (let wx = tableX + 15; wx < tableX + tableW - 15; wx += 4) {
+      const wy = tableY + 115 + Math.sin(wx * 0.12 + now * 0.012) * (2 + beatEngine.bassLevel * 7);
       if (wx === tableX + 15) ctx.moveTo(wx, wy);
       else ctx.lineTo(wx, wy);
     }
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = stageLighting.getCurrentColor(2);
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     // Pioneer DJ Mixer & Turntables
@@ -2052,33 +2307,33 @@
   // PROFESSIONAL NIGHTCLUB LIGHTING RIG (Authentic Volumetric Moving Heads)
   // Clean, realistic concert beams: ZERO harsh geometric laser sticks!
   // ===========================================================================
+  // 6 Volumetric Moving Heads, Liquid Sky & Club Atmosphere
+  // ===========================================================================
   function drawLasers(now) {
-    const sweepTime = now * 0.0014 * (beatEngine.bpm / 120);
+    const sweepSpeed = beatEngine.isBassActive
+      ? (now * 0.0022 * (beatEngine.bpm / 120))
+      : (now * 0.0013 * (beatEngine.bpm / 120));
 
     ctx.save();
-    // Additive blending: beams glow and naturally brighten in the smoky air!
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = 'lighter'; // Additive volumetric lighting
 
-    // 4 Symmetrical Moving Heads mounted on the top ceiling truss
+    // 1. 6 Pro Moving Heads mounted on top ceiling truss
     movingHeads.forEach((head, idx) => {
-      const isLeft = idx < 2;
-      const pairIdx = isLeft ? idx : (3 - idx);
-      const wavePhase = sweepTime * head.speed + pairIdx * 0.65;
+      const isLeft = idx < 3;
+      const pairIdx = isLeft ? idx : (5 - idx);
+      const wavePhase = sweepSpeed * head.speed + pairIdx * 0.55;
       const sweepAngle = (isLeft ? -1 : 1) * (head.baseAngle + Math.sin(wavePhase) * head.sweepRange);
 
       const colorRgb = stageLighting.getRgb(head.colorOffset);
 
-      // Fixture lens aperture origin
       const originX = head.x;
       const originY = head.y + 14;
 
-      // Beam target point on the dance floor
-      const beamLength = 1350;
+      const beamLength = 1400;
       const targetX = originX + Math.sin(sweepAngle) * beamLength;
       const targetY = originY + Math.cos(sweepAngle) * beamLength;
 
-      // Beam spread
-      const endWidth = 130 + beatEngine.bassLevel * 45 + (stageLighting.flashIntensity * 35);
+      const endWidth = 145 + beatEngine.bassLevel * 55 + (stageLighting.flashIntensity * 40);
       const perpAngle = sweepAngle + Math.PI / 2;
       const p1X = originX - Math.cos(perpAngle) * 7;
       const p1Y = originY - Math.sin(perpAngle) * 7;
@@ -2090,17 +2345,15 @@
       const p4Y = targetY - Math.sin(perpAngle) * (endWidth / 2);
 
       const alphaBase = beatEngine.isBassActive
-        ? (0.20 + beatEngine.bassLevel * 0.25 + stageLighting.flashIntensity * 0.20)
-        : 0.12;
+        ? (0.24 + beatEngine.bassLevel * 0.32 + stageLighting.flashIntensity * 0.28)
+        : 0.14;
 
-      // Smooth Longitudinal Gradient (bright at lens, fading smoothly down to floor)
       const beamGrad = ctx.createLinearGradient(originX, originY, targetX, targetY);
-      beamGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 0.9})`);
-      beamGrad.addColorStop(0.12, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.75})`);
-      beamGrad.addColorStop(0.60, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.25})`);
+      beamGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 0.95})`);
+      beamGrad.addColorStop(0.10, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.85})`);
+      beamGrad.addColorStop(0.55, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.30})`);
       beamGrad.addColorStop(1, 'transparent');
 
-      // Draw Volumetric Smoky Beam Cone
       ctx.beginPath();
       ctx.moveTo(p1X, p1Y);
       ctx.lineTo(p2X, p2Y);
@@ -2110,11 +2363,11 @@
       ctx.fillStyle = beamGrad;
       ctx.fill();
 
-      // Floor Spotlight Reflection Pool (Soft Radial Gradient)
+      // Floor Spotlight Reflection Pool
       const floorY = Math.min(targetY, H - 40);
       if (floorY > H * 0.48) {
-        const spotRx = 65 + beatEngine.bassLevel * 30;
-        const spotRy = 22 + beatEngine.bassLevel * 10;
+        const spotRx = 70 + beatEngine.bassLevel * 35;
+        const spotRy = 24 + beatEngine.bassLevel * 12;
 
         ctx.save();
         ctx.translate(targetX, floorY);
@@ -2134,28 +2387,56 @@
       }
     });
 
-    ctx.restore(); // Restore normal composite operation
+    // 2. Liquid Sky / Laser Fan Plane (Horizontal laser ceiling above crowd)
+    const fanColor = stageLighting.getCurrentColor(1);
+    const fanAlpha = 0.10 + beatEngine.bassLevel * 0.22 + stageLighting.flashIntensity * 0.20;
+    const fanY = H * 0.47;
+    const fanGrad = ctx.createLinearGradient(0, fanY - 26, 0, fanY + 26);
+    fanGrad.addColorStop(0, 'transparent');
+    fanGrad.addColorStop(0.5, fanColor);
+    fanGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = fanGrad;
+    ctx.globalAlpha = fanAlpha;
+    ctx.beginPath();
+    ctx.ellipse(W / 2, fanY, W * 0.48, 16 + beatEngine.bassLevel * 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
 
-    // Physical Moving Head Lamp Housings & Glowing Lenses on Truss
+    // 3. Floating Atmospheric Club Haze Sparkles
+    clubAtmosphereMotes.forEach(m => {
+      m.y += m.vy * 0.016;
+      m.x += Math.sin(now * 0.002 + m.hue) * 0.4;
+      if (m.y < H * 0.12) {
+        m.y = H * 0.88;
+        m.x = Math.random() * W;
+      }
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${m.hue}, 90%, 65%, ${m.alpha * (0.35 + beatEngine.bassLevel * 0.55)})`;
+      ctx.shadowColor = `hsla(${m.hue}, 90%, 65%, 0.8)`;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    ctx.restore(); // Restore normal blend mode
+
+    // Physical Moving Head Housings on Truss
     movingHeads.forEach(head => {
       ctx.save();
       ctx.translate(head.x, head.y);
-
-      // Steel mounting bracket
       ctx.fillStyle = '#161928';
       ctx.strokeStyle = '#3a4460';
       ctx.lineWidth = 1.5;
       ctx.fillRect(-5, -12, 10, 12);
       ctx.strokeRect(-5, -12, 10, 12);
 
-      // Pivot yoke
       ctx.beginPath();
       ctx.arc(0, 0, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#111322';
       ctx.fill();
       ctx.stroke();
 
-      // Glowing Lens Aperture
       const lensColor = stageLighting.getCurrentColor(head.colorOffset);
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
@@ -2229,7 +2510,11 @@
 
   // Particle updates & renders (Flames, Fog, Fireworks, Confetti, Hearts)
   function renderParticles(dt) {
-    // 1. Flames (喷火)
+    // 1. Stage Fire Cannons & CO2 Cryo Geysers in Glowing Additive Mode
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // 1. Flames (Stage Fire)
     for (let i = flames.length - 1; i >= 0; i--) {
       const p = flames[i];
       p.x += p.vx;
@@ -2242,18 +2527,16 @@
         continue;
       }
 
-      ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fillStyle = p.color;
       ctx.globalAlpha = p.alpha;
       ctx.shadowColor = p.color;
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 24;
       ctx.fill();
-      ctx.restore();
     }
 
-    // 2. Smoke / CO2 Fog (烟雾)
+    // 2. Smoke / CO2 Cryo Geysers (Cold White & Cyan Plumes)
     for (let i = fogs.length - 1; i >= 0; i--) {
       const p = fogs[i];
       p.x += p.vx;
@@ -2266,13 +2549,15 @@
         continue;
       }
 
-      ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `${p.color}${p.alpha})`;
+      ctx.fillStyle = `${p.color}${p.alpha * 0.75})`;
+      ctx.globalAlpha = p.alpha;
+      ctx.shadowColor = 'rgba(0, 240, 255, 0.45)';
+      ctx.shadowBlur = 20;
       ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
 
     // 3. Fireworks & Confetti
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -2597,5 +2882,10 @@
   preloadAssets(() => {
     console.log('All character sprites and stage assets loaded!');
   });
+
+  // Automated Test Drop Support (for testing or direct query)
+  if (window.location.search.includes('testDrop')) {
+    beatEngine.forceHypeDrop(60);
+  }
 
 })();

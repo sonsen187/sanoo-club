@@ -555,3 +555,40 @@ body.transparent-mode .stream-container {
   color: #fbbf24;
   box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
 }
+
+/* ==========================================================================
+   HYPE DROP QUICK BUTTON
+   ========================================================================== */
+.hype-drop-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(255, 0, 127, 0.35), rgba(255, 230, 0, 0.35));
+  border: 1.5px solid #ffe600;
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.5);
+  transition: all 0.25s ease;
+  animation: pulseHypePill 1.8s infinite alternate;
+}
+
+@keyframes pulseHypePill {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 230, 0, 0.4);
+  }
+  100% {
+    transform: scale(1.05);
+    box-shadow: 0 0 22px rgba(255, 0, 127, 0.8), 0 0 12px rgba(255, 230, 0, 0.9);
+  }
+}
+
+.hype-drop-pill:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 0 25px rgba(255, 230, 0, 0.9);
+}
