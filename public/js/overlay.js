@@ -1551,82 +1551,137 @@
     const deckLeftY = tableY + 22;
 
     const isDJDropRave = beatEngine.isBassActive || djHype > 0.35;
-    const pumpProgress = Math.sin(beatEngine.beatPhase * Math.PI);
-    const pumpOffset = pumpProgress * (isDJDropRave ? 40 : 16);
 
-    // 1. Right Arm: Raised Up with Number 2 / Peace Sign (✌️)
-    const rHandX = djHeadX + 68 + Math.sin(now * 0.002) * 4;
-    const rHandY = djHeadY - 45 - pumpOffset;
-    ctx.beginPath();
-    ctx.moveTo(djHeadX + 44, djHeadY + 36);
-    ctx.quadraticCurveTo(djHeadX + 68, djHeadY + 5, rHandX, rHandY);
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 14;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+    if (isDJDropRave) {
+      // 🔥 BASS RAVE MODE: 1 TAY CHẠM TAI NGHE, 1 TAY GIƠ SỐ 2 (✌️) QUẨY THEO BEAT!
+      const pumpProgress = Math.sin(beatEngine.beatPhase * Math.PI);
+      const pumpOffset = pumpProgress * 42;
 
-    ctx.beginPath();
-    ctx.arc(rHandX, rHandY, 13, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffdd99';
-    ctx.fill();
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+      // 1. Right Arm: Raised Up with Number 2 / Peace Sign (✌️)
+      const rHandX = djHeadX + 68 + Math.sin(now * 0.002) * 4;
+      const rHandY = djHeadY - 45 - pumpOffset;
+      ctx.beginPath();
+      ctx.moveTo(djHeadX + 44, djHeadY + 36);
+      ctx.quadraticCurveTo(djHeadX + 68, djHeadY + 5, rHandX, rHandY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.stroke();
 
-    // Neon wristband (Pink)
-    ctx.beginPath();
-    ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
-    ctx.fillStyle = '#ff007f';
-    ctx.fill();
+      ctx.beginPath();
+      ctx.arc(rHandX, rHandY, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
 
-    // Number 2 / Peace sign (✌️ 2 fingers raised)
-    ctx.lineWidth = 4.5;
-    ctx.strokeStyle = '#ffdd99';
-    ctx.beginPath();
-    ctx.moveTo(rHandX - 4, rHandY - 5);
-    ctx.lineTo(rHandX - 10, rHandY - 26);
-    ctx.moveTo(rHandX + 4, rHandY - 5);
-    ctx.lineTo(rHandX + 6, rHandY - 28);
-    ctx.stroke();
+      // Neon wristband (Pink)
+      ctx.beginPath();
+      ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff007f';
+      ctx.fill();
 
-    // 2. Left Arm: Touching Left Headphone (Iconic Pro DJ Stance)
-    const lHandX = djHeadX - 44;
-    const lHandY = djHeadY + 10;
-    const lElbowX = djHeadX - 74;
-    const lElbowY = djHeadY + 34;
+      // Number 2 / Peace sign (✌️ 2 fingers raised)
+      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = '#ffdd99';
+      ctx.beginPath();
+      ctx.moveTo(rHandX - 4, rHandY - 5);
+      ctx.lineTo(rHandX - 10, rHandY - 26);
+      ctx.moveTo(rHandX + 4, rHandY - 5);
+      ctx.lineTo(rHandX + 6, rHandY - 28);
+      ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(djHeadX - 44, djHeadY + 36);
-    ctx.quadraticCurveTo(lElbowX, lElbowY, lHandX, lHandY);
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 14;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+      // 2. Left Arm: Touching Left Headphone (Iconic Pro DJ Stance)
+      const lHandX = djHeadX - 44;
+      const lHandY = djHeadY + 10;
+      const lElbowX = djHeadX - 74;
+      const lElbowY = djHeadY + 34;
 
-    // Left hand palm cupping the headphone
-    ctx.beginPath();
-    ctx.arc(lHandX, lHandY, 13, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffdd99';
-    ctx.fill();
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(djHeadX - 44, djHeadY + 36);
+      ctx.quadraticCurveTo(lElbowX, lElbowY, lHandX, lHandY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.stroke();
 
-    // Neon wristband (Cyan) on left wrist
-    ctx.beginPath();
-    ctx.arc(lHandX - 5, lHandY + 9, 7, 0, Math.PI * 2);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fill();
+      // Left hand palm cupping the headphone
+      ctx.beginPath();
+      ctx.arc(lHandX, lHandY, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
 
-    // Fingers cupping headphone outer shell
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#ffdd99';
-    ctx.beginPath();
-    ctx.moveTo(lHandX + 2, lHandY - 7);
-    ctx.quadraticCurveTo(lHandX - 8, lHandY - 9, lHandX - 11, lHandY - 2);
-    ctx.moveTo(lHandX + 2, lHandY - 1);
-    ctx.quadraticCurveTo(lHandX - 8, lHandY - 3, lHandX - 11, lHandY + 4);
-    ctx.stroke();
+      // Neon wristband (Cyan) on left wrist
+      ctx.beginPath();
+      ctx.arc(lHandX - 5, lHandY + 9, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#00f0ff';
+      ctx.fill();
+
+      // Fingers cupping headphone outer shell
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ffdd99';
+      ctx.beginPath();
+      ctx.moveTo(lHandX + 2, lHandY - 7);
+      ctx.quadraticCurveTo(lHandX - 8, lHandY - 9, lHandX - 11, lHandY - 2);
+      ctx.moveTo(lHandX + 2, lHandY - 1);
+      ctx.quadraticCurveTo(lHandX - 8, lHandY - 3, lHandX - 11, lHandY + 4);
+      ctx.stroke();
+
+    } else {
+      // 🎧 CHILL / GROOVE MODE: 2 TAY CHƠI DJ (CHÀ ĐĨA & XOAY NÚT TURNTABLE NHƯ CŨ)
+      const scratchWobble = Math.sin(now * 0.015) * 8;
+      const tweakKnob = Math.sin(now * 0.008) * 4;
+
+      // Right hand on right turntable deck
+      ctx.beginPath();
+      ctx.moveTo(djHeadX + 44, djHeadY + 36);
+      ctx.quadraticCurveTo(djHeadX + 65, tableY - 15, deckRightX + tweakKnob, deckLeftY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(deckRightX + tweakKnob, deckLeftY, 11, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Neon wristband (Pink)
+      ctx.beginPath();
+      ctx.arc(deckRightX + tweakKnob, deckLeftY - 6, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff007f';
+      ctx.fill();
+
+      // Left hand on left turntable deck scratching back & forth
+      ctx.beginPath();
+      ctx.moveTo(djHeadX - 44, djHeadY + 36);
+      ctx.quadraticCurveTo(djHeadX - 65, tableY - 15, deckLeftX + scratchWobble, deckLeftY);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(deckLeftX + scratchWobble, deckLeftY, 11, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Neon wristband (Cyan)
+      ctx.beginPath();
+      ctx.arc(deckLeftX + scratchWobble, deckLeftY - 6, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#00f0ff';
+      ctx.fill();
+    }
 
     // DJ Head & Face
     ctx.beginPath();
