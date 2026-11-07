@@ -791,15 +791,16 @@
       this.x += (this.targetX - this.x) * 0.05;
       this.y += (this.targetY - this.y) * 0.05;
 
-      // Scale prestige based on VIP Rank vs floor perspective
+      // Scale hierarchy: Top 1 (TO NHẤT: 1.45) > Top 2 (TO NHÌ: 1.20) > Top 3 (TO BA: 1.08) > Không có top (NHỎ NHẤT: 0.54 ~ 0.58)
       if (this.vipRank === 1) {
-        this.scale = 1.48; // Top 1 is undeniably the biggest! (Champion VIP)
+        this.scale = 1.45; // Top 1: TO NHẤT (Vĩ đại, nổi bật nhất sàn nhảy!)
       } else if (this.vipRank === 2) {
-        this.scale = 1.15; // Top 2 Silver
+        this.scale = 1.20; // Top 2: TO NHÌ (Rõ ràng lớn hơn Top 3, nhỏ hơn Top 1)
       } else if (this.vipRank === 3) {
-        this.scale = 1.08; // Top 3 Bronze
+        this.scale = 1.08; // Top 3: TO BA (Lớn hơn khán giả dưới sàn, nhỏ hơn Top 2)
       } else {
-        this.scale = 0.62 + (this.y - 0.62) * 0.32; // Regular crowd is smaller (~0.65 - 0.73)
+        // Không có top: NHỎ NHẤT (Khán giả chibi quẩy dưới sàn)
+        this.scale = 0.54 + Math.max(0, (this.y - 0.65)) * 0.14; // Dao động 0.54 đến 0.58
       }
 
       const frames = this.getFrames();
@@ -2122,74 +2123,82 @@
     ctx.restore();
   }
 
+  // 3 VIP Podiums Configurations (Shifted UP, Perfectly Spaced & Centered)
+  const PODIUM_CONFIG = {
+    top1: {
+      cx: W * 0.50, // 540px Center
+      cy: H * 0.505, // Shifted UP naturally to 970px (was 0.54 = 1036px)
+      tiers: [
+        { offsetY: 48, height: 30, rx: 205, ry: 56 }, // Tier 0 (base)
+        { offsetY: 24, height: 26, rx: 175, ry: 48 }, // Tier 1 (mid)
+        { offsetY: 0,  height: 24, rx: 150, ry: 40 }  // Tier 2 (top platform face)
+      ],
+      colors: {
+        spotLight: 'rgba(255, 230, 0, ALPHA)',
+        wallDark: '#1a1302',
+        wallLight: '#785408',
+        wallMid: '#422e05',
+        topCenter: '#fffbe6',
+        topRim: '#f59e0b',
+        topEdge: '#451a03',
+        rimColor: '#ffe600',
+        badgeBg0: '#ffe600',
+        badgeBg1: '#b45309',
+        badgeTextColor: '#000000'
+      },
+      plaqueText: '👑 TOP 1 ĐẠI GIA'
+    },
+    top2: {
+      cx: W * 0.20, // 216px (Spaced wide to the left, zero overlap with Top 1)
+      cy: H * 0.555, // 1065px (Shifted UP naturally, was 0.59 = 1132px)
+      tiers: [
+        { offsetY: 26, height: 24, rx: 132, ry: 36 }, // Tier 0 (base)
+        { offsetY: 0,  height: 22, rx: 112, ry: 30 }  // Tier 1 (top platform face)
+      ],
+      colors: {
+        spotLight: 'rgba(0, 240, 255, ALPHA)',
+        wallDark: '#04121e',
+        wallLight: '#1e4e75',
+        wallMid: '#0e2b45',
+        topCenter: '#e0f7fa',
+        topRim: '#0284c7',
+        topEdge: '#082f49',
+        rimColor: '#00f0ff',
+        badgeBg0: '#e0f7fa',
+        badgeBg1: '#0284c7',
+        badgeTextColor: '#000000'
+      },
+      plaqueText: '🥈 TOP 2 VIP'
+    },
+    top3: {
+      cx: W * 0.80, // 864px (Spaced wide to the right, zero overlap with Top 1)
+      cy: H * 0.555, // 1065px (Shifted UP naturally, was 0.59 = 1132px)
+      tiers: [
+        { offsetY: 26, height: 24, rx: 132, ry: 36 }, // Tier 0 (base)
+        { offsetY: 0,  height: 22, rx: 112, ry: 30 }  // Tier 1 (top platform face)
+      ],
+      colors: {
+        spotLight: 'rgba(255, 140, 0, ALPHA)',
+        wallDark: '#1c0a02',
+        wallLight: '#6e2b0a',
+        wallMid: '#381605',
+        topCenter: '#ffedd5',
+        topRim: '#ea580c',
+        topEdge: '#431407',
+        rimColor: '#ff8c00',
+        badgeBg0: '#ffedd5',
+        badgeBg1: '#c2410c',
+        badgeTextColor: '#000000'
+      },
+      plaqueText: '🥉 TOP 3 VIP'
+    }
+  };
+
   // 3 VIP Podiums on Dance Floor (Top 1 Center Gold, Top 2 Left Silver, Top 3 Right Bronze)
   function drawVIPPodiums(now) {
-    // 1. TOP 1 PODIUM (Center - Elevated 3-Tier Massive Gold Stage)
-    const top1Cx = W * 0.50;
-    const top1Cy = H * 0.54; // Shifted UP naturally (was 0.58)
-    const top1Tiers = [
-      { offsetY: 48, height: 30, rx: 210, ry: 58 }, // Tier 0 (bottom base)
-      { offsetY: 24, height: 26, rx: 180, ry: 50 }, // Tier 1 (mid)
-      { offsetY: 0,  height: 24, rx: 155, ry: 42 }  // Tier 2 (top platform)
-    ];
-    const top1Colors = {
-      spotLight: 'rgba(255, 230, 0, ALPHA)',
-      wallDark: '#1a1302',
-      wallLight: '#785408',
-      wallMid: '#422e05',
-      topCenter: '#fffbe6',
-      topRim: '#f59e0b',
-      topEdge: '#451a03',
-      rimColor: '#ffe600',
-      badgeBg0: '#ffe600',
-      badgeBg1: '#b45309',
-      badgeTextColor: '#000000'
-    };
-    drawSinglePodium(ctx, top1Cx, top1Cy, top1Tiers, top1Colors, '👑 TOP 1 ĐẠI GIA', 1, now);
-
-    // 2. TOP 2 PODIUM (Left - 2-Tier Silver / Electric Cyan Stage)
-    const top2Cx = W * 0.24;
-    const top2Cy = H * 0.59; // Shifted UP naturally (was 0.63)
-    const top2Tiers = [
-      { offsetY: 26, height: 24, rx: 135, ry: 38 }, // Tier 0 (bottom)
-      { offsetY: 0,  height: 22, rx: 115, ry: 32 }  // Tier 1 (top platform)
-    ];
-    const top2Colors = {
-      spotLight: 'rgba(0, 240, 255, ALPHA)',
-      wallDark: '#04121e',
-      wallLight: '#1e4e75',
-      wallMid: '#0e2b45',
-      topCenter: '#e0f7fa',
-      topRim: '#0284c7',
-      topEdge: '#082f49',
-      rimColor: '#00f0ff',
-      badgeBg0: '#e0f7fa',
-      badgeBg1: '#0284c7',
-      badgeTextColor: '#000000'
-    };
-    drawSinglePodium(ctx, top2Cx, top2Cy, top2Tiers, top2Colors, '🥈 TOP 2 VIP', 2, now);
-
-    // 3. TOP 3 PODIUM (Right - 2-Tier Bronze / Amber Stage)
-    const top3Cx = W * 0.76;
-    const top3Cy = H * 0.59; // Shifted UP naturally (was 0.63)
-    const top3Tiers = [
-      { offsetY: 26, height: 24, rx: 130, ry: 36 }, // Tier 0 (bottom)
-      { offsetY: 0,  height: 22, rx: 110, ry: 30 }  // Tier 1 (top platform)
-    ];
-    const top3Colors = {
-      spotLight: 'rgba(255, 140, 0, ALPHA)',
-      wallDark: '#1c0a02',
-      wallLight: '#6e2b0a',
-      wallMid: '#381605',
-      topCenter: '#ffedd5',
-      topRim: '#ea580c',
-      topEdge: '#431407',
-      rimColor: '#ff8c00',
-      badgeBg0: '#ffedd5',
-      badgeBg1: '#c2410c',
-      badgeTextColor: '#000000'
-    };
-    drawSinglePodium(ctx, top3Cx, top3Cy, top3Tiers, top3Colors, '🥉 TOP 3 VIP', 3, now);
+    drawSinglePodium(ctx, PODIUM_CONFIG.top1.cx, PODIUM_CONFIG.top1.cy, PODIUM_CONFIG.top1.tiers, PODIUM_CONFIG.top1.colors, PODIUM_CONFIG.top1.plaqueText, 1, now);
+    drawSinglePodium(ctx, PODIUM_CONFIG.top2.cx, PODIUM_CONFIG.top2.cy, PODIUM_CONFIG.top2.tiers, PODIUM_CONFIG.top2.colors, PODIUM_CONFIG.top2.plaqueText, 2, now);
+    drawSinglePodium(ctx, PODIUM_CONFIG.top3.cx, PODIUM_CONFIG.top3.cy, PODIUM_CONFIG.top3.tiers, PODIUM_CONFIG.top3.colors, PODIUM_CONFIG.top3.plaqueText, 3, now);
   }
 
   // Synchronize VIP Podiums and Dancer Rank Positions
@@ -2232,26 +2241,54 @@
       }
     }
 
-    // 3. Anchor VIPs to podium coordinates and keep regular crowd clear of podiums
+    // 3. Anchor VIPs precisely to stand in the DEAD CENTER of each podium platform
     dancers.forEach(d => {
       if (d.vipRank === 1) {
-        d.targetX = 0.50;
-        // Platform is at H * 0.54. Feet rest on platform surface without blocking plaque!
-        d.targetY = 0.490;
-        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
+        const p = PODIUM_CONFIG.top1;
+        d.targetX = p.cx / W;
+        const isHuman = (d.charCategory === 'human');
+        const baseH = isHuman ? 320 : 194;
+        const scaleMult = isHuman ? 1.05 : 1.1;
+        const drawH = baseH * 1.45 * scaleMult;
+        // Contact point on podium surface (p.cy - 8px so character stands squarely in the center of the platform):
+        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
+        d.targetY = (p.cy - 8 - contactOffset) / H;
+        d.x = d.targetX;
+        d.y = d.targetY;
+        d.vipPositioned = true;
+        d.lastVipRank = 1;
       } else if (d.vipRank === 2) {
-        d.targetX = 0.24;
-        d.targetY = 0.545; // Platform is at H * 0.59
-        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
+        const p = PODIUM_CONFIG.top2;
+        d.targetX = p.cx / W;
+        const isHuman = (d.charCategory === 'human');
+        const baseH = isHuman ? 320 : 194;
+        const scaleMult = isHuman ? 1.05 : 1.1;
+        const drawH = baseH * 1.20 * scaleMult;
+        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
+        d.targetY = (p.cy - 6 - contactOffset) / H;
+        d.x = d.targetX;
+        d.y = d.targetY;
+        d.vipPositioned = true;
+        d.lastVipRank = 2;
       } else if (d.vipRank === 3) {
-        d.targetX = 0.76;
-        d.targetY = 0.545; // Platform is at H * 0.59
-        if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
+        const p = PODIUM_CONFIG.top3;
+        d.targetX = p.cx / W;
+        const isHuman = (d.charCategory === 'human');
+        const baseH = isHuman ? 320 : 194;
+        const scaleMult = isHuman ? 1.05 : 1.1;
+        const drawH = baseH * 1.08 * scaleMult;
+        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
+        d.targetY = (p.cy - 6 - contactOffset) / H;
+        d.x = d.targetX;
+        d.y = d.targetY;
+        d.vipPositioned = true;
+        d.lastVipRank = 3;
       } else {
-        // Regular crowd: dance on lower floor (y >= 0.67), completely clear of VIP podiums!
+        d.lastVipRank = 0;
+        // Regular crowd (không có top): dance on lower floor (y >= 0.67), completely clear of VIP podiums!
         if (d.targetY < 0.66) {
           const charCode = (d.id || d.username || 'user').charCodeAt(0);
-          d.targetY = 0.68 + (charCode % 15) * 0.018;
+          d.targetY = 0.68 + (charCode % 14) * 0.018;
           if (!d.crowdPositioned) { d.y = d.targetY; d.crowdPositioned = true; }
         }
       }
