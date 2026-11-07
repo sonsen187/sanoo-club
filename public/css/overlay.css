@@ -181,9 +181,7 @@ body.transparent-mode .stream-container {
 }
 
 .track-title-wrapper {
-  overflow: hidden;
-  white-space: nowrap;
-  width: 100%;
+  display: none !important;
 }
 
 .track-title {

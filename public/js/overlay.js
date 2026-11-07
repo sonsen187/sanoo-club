@@ -302,7 +302,7 @@
       titleEl.textContent = `${track.id}. ${track.title}`;
     }
     if (labelEl && track) {
-      labelEl.textContent = `DJ VŨ TRƯỜNG • BÀI #${track.id}`;
+      labelEl.textContent = `DJ SANOO • BÀI #${track.id}`;
     }
   }
 
@@ -817,7 +817,7 @@
         // ========================================================
         this.frameIndex = 0;
         const dip = Math.sin(beatEngine.beatPhase * Math.PI);
-        this.bounceY = -dip * 24; // Nhún người hạ thấp xuống 24px trên mỗi nhịp beat!
+        this.bounceY = dip * (this.vipRank > 0 ? 8 : 16); // Nhún người nhịp nhàng trên mặt sàn/bục!
         this.squash = 1.0 - (dip * 0.12); // Nén gối đàn hồi 12% rõ rệt
         this.swayAngle = Math.sin(beatEngine.beatProgress * Math.PI) * 0.035; // Lắc lư thân mình
         this.kickImpulse = 0;
@@ -1451,7 +1451,7 @@
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#00f0ff';
       
-      ctx.fillText('🎧 SANOO CLUB RESIDENT DJ • GROOVE SESSION 🎧', cx, sy + 65);
+      ctx.fillText('🎧 DJ SANOO • GROOVE SESSION 🎧', cx, sy + 65);
 
       // Rolling sine soundwave in chill mode
       ctx.beginPath();
@@ -1604,111 +1604,82 @@
     const deckLeftY = tableY + 22;
 
     const isDJDropRave = beatEngine.isBassActive || djHype > 0.35;
+    const pumpProgress = Math.sin(beatEngine.beatPhase * Math.PI);
+    const pumpOffset = pumpProgress * (isDJDropRave ? 40 : 16);
 
-    if (isDJDropRave) {
-      // ⚡ SUPERSTAR DJ IN FULL RAVE MODE (BOTH ARMS PUMPING IN THE AIR!)
-      const pumpProgress = Math.sin(beatEngine.beatPhase * Math.PI);
-      const pumpOffset = pumpProgress * 42;
+    // 1. Right Arm: Raised Up with Number 2 / Peace Sign (✌️)
+    const rHandX = djHeadX + 68 + Math.sin(now * 0.002) * 4;
+    const rHandY = djHeadY - 45 - pumpOffset;
+    ctx.beginPath();
+    ctx.moveTo(djHeadX + 44, djHeadY + 36);
+    ctx.quadraticCurveTo(djHeadX + 68, djHeadY + 5, rHandX, rHandY);
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.stroke();
 
-      // Right arm pumping
-      const rHandX = djHeadX + 68;
-      const rHandY = djHeadY - 45 - pumpOffset;
-      ctx.beginPath();
-      ctx.moveTo(djHeadX + 44, djHeadY + 36);
-      ctx.quadraticCurveTo(djHeadX + 68, djHeadY + 5, rHandX, rHandY);
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 14;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(rHandX, rHandY, 13, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffdd99';
+    ctx.fill();
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(rHandX, rHandY, 13, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffdd99';
-      ctx.fill();
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+    // Neon wristband (Pink)
+    ctx.beginPath();
+    ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff007f';
+    ctx.fill();
 
-      // Neon wristband (Pink)
-      ctx.beginPath();
-      ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
-      ctx.fillStyle = '#ff007f';
-      ctx.fill();
+    // Number 2 / Peace sign (✌️ 2 fingers raised)
+    ctx.lineWidth = 4.5;
+    ctx.strokeStyle = '#ffdd99';
+    ctx.beginPath();
+    ctx.moveTo(rHandX - 4, rHandY - 5);
+    ctx.lineTo(rHandX - 10, rHandY - 26);
+    ctx.moveTo(rHandX + 4, rHandY - 5);
+    ctx.lineTo(rHandX + 6, rHandY - 28);
+    ctx.stroke();
 
-      // Peace / Rave finger sign
-      ctx.lineWidth = 4.5;
-      ctx.strokeStyle = '#ffdd99';
-      ctx.beginPath();
-      ctx.moveTo(rHandX - 4, rHandY - 5);
-      ctx.lineTo(rHandX - 10, rHandY - 26);
-      ctx.moveTo(rHandX + 4, rHandY - 5);
-      ctx.lineTo(rHandX + 6, rHandY - 28);
-      ctx.stroke();
+    // 2. Left Arm: Touching Left Headphone (Iconic Pro DJ Stance)
+    const lHandX = djHeadX - 44;
+    const lHandY = djHeadY + 10;
+    const lElbowX = djHeadX - 74;
+    const lElbowY = djHeadY + 34;
 
-      // Left arm pumping
-      const lHandX = djHeadX - 68;
-      const lHandY = djHeadY - 45 - pumpOffset;
-      ctx.beginPath();
-      ctx.moveTo(djHeadX - 44, djHeadY + 36);
-      ctx.quadraticCurveTo(djHeadX - 68, djHeadY + 5, lHandX, lHandY);
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 14;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(djHeadX - 44, djHeadY + 36);
+    ctx.quadraticCurveTo(lElbowX, lElbowY, lHandX, lHandY);
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(lHandX, lHandY, 13, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffdd99';
-      ctx.fill();
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+    // Left hand palm cupping the headphone
+    ctx.beginPath();
+    ctx.arc(lHandX, lHandY, 13, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffdd99';
+    ctx.fill();
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
 
-      // Neon wristband (Cyan)
-      ctx.beginPath();
-      ctx.arc(lHandX, lHandY + 6, 8, 0, Math.PI * 2);
-      ctx.fillStyle = '#00f0ff';
-      ctx.fill();
+    // Neon wristband (Cyan) on left wrist
+    ctx.beginPath();
+    ctx.arc(lHandX - 5, lHandY + 9, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#00f0ff';
+    ctx.fill();
 
-      // Left hand peace sign
-      ctx.lineWidth = 4.5;
-      ctx.strokeStyle = '#ffdd99';
-      ctx.beginPath();
-      ctx.moveTo(lHandX - 4, lHandY - 5);
-      ctx.lineTo(lHandX - 6, lHandY - 28);
-      ctx.moveTo(lHandX + 4, lHandY - 5);
-      ctx.lineTo(lHandX + 10, lHandY - 26);
-      ctx.stroke();
-
-    } else {
-      // Chill / Groove Mode: Hands on turntables with scratching
-      const scratchWobble = Math.sin(now * 0.015) * 8;
-      // Right hand on right deck
-      ctx.beginPath();
-      ctx.moveTo(djHeadX + 48, djHeadY + 38);
-      ctx.quadraticCurveTo(djHeadX + 65, tableY - 15, deckRightX, deckLeftY);
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 12;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(deckRightX, deckLeftY, 11, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffdd99';
-      ctx.fill();
-
-      // Left hand on left deck scratching
-      ctx.beginPath();
-      ctx.moveTo(djHeadX - 48, djHeadY + 38);
-      ctx.quadraticCurveTo(djHeadX - 65, tableY - 15, deckLeftX + scratchWobble, deckLeftY);
-      ctx.strokeStyle = '#ffe600';
-      ctx.lineWidth = 12;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(deckLeftX + scratchWobble, deckLeftY, 11, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffdd99';
-      ctx.fill();
-    }
+    // Fingers cupping headphone outer shell
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ffdd99';
+    ctx.beginPath();
+    ctx.moveTo(lHandX + 2, lHandY - 7);
+    ctx.quadraticCurveTo(lHandX - 8, lHandY - 9, lHandX - 11, lHandY - 2);
+    ctx.moveTo(lHandX + 2, lHandY - 1);
+    ctx.quadraticCurveTo(lHandX - 8, lHandY - 3, lHandX - 11, lHandY + 4);
+    ctx.stroke();
 
     // DJ Head & Face
     ctx.beginPath();
@@ -1794,7 +1765,7 @@
     ctx.font = '900 13px "Rajdhani", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DJ', djHeadX, djHeadY - 26);
+    ctx.fillText('SANOO', djHeadX, djHeadY - 26);
     ctx.restore();
 
     // 5. DJ Table Front Panel
@@ -1814,7 +1785,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('★ SANOO CLUB • RESIDENT DJ ★', W / 2, tableY + 95);
+    ctx.fillText('★ RESIDENT DJ SANOO ★', W / 2, tableY + 95);
 
     // Bottom Soundwave line across table
     ctx.beginPath();
@@ -2266,9 +2237,9 @@
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
         const drawH = baseH * 1.38 * scaleMult;
-        // Contact point on podium surface (p.cy - 8px so character stands squarely in the center of the platform):
-        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
-        d.targetY = (p.cy - 8 - contactOffset) / H;
+        // Top 1 contact point squarely on Tier 2 top platform (cy = 970px):
+        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
+        d.targetY = (p.cy - 16 - contactOffset) / H;
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
@@ -2280,8 +2251,8 @@
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
         const drawH = baseH * 0.88 * scaleMult;
-        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
-        d.targetY = (p.cy - 6 - contactOffset) / H;
+        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
+        d.targetY = (p.cy - 14 - contactOffset) / H;
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
@@ -2293,19 +2264,29 @@
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
         const drawH = baseH * 0.78 * scaleMult;
-        const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
-        d.targetY = (p.cy - 6 - contactOffset) / H;
+        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
+        d.targetY = (p.cy - 14 - contactOffset) / H;
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
         d.lastVipRank = 3;
       } else {
         d.lastVipRank = 0;
-        // Regular crowd (không có top): dance on lower floor (y >= 0.67), completely clear of VIP podiums!
-        if (d.targetY < 0.66) {
-          const charCode = (d.id || d.username || 'user').charCodeAt(0);
-          d.targetY = 0.68 + (charCode % 14) * 0.018;
-          if (!d.crowdPositioned) { d.y = d.targetY; d.crowdPositioned = true; }
+        // Regular crowd (không có top): close the gap! Dance floor starts right below podiums (y = 0.59 ~ 0.88)
+        if (!d.crowdPositioned || d.targetY >= 0.67 || d.targetY < 0.585) {
+          const str = d.id || d.username || 'user';
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+          hash = Math.abs(hash);
+          const row = hash % 18;
+          d.targetY = 0.595 + row * 0.016; // 18 natural staggered depth rows (0.595 ~ 0.87)
+
+          // Avoid standing directly on Top 2 or Top 3 podium bases in front rows (y < 0.62)
+          if (d.targetY < 0.62) {
+            if (d.targetX >= 0.08 && d.targetX <= 0.32) d.targetX = 0.38 + ((hash >> 3) % 4) * 0.04;
+            if (d.targetX >= 0.68 && d.targetX <= 0.92) d.targetX = 0.62 - ((hash >> 3) % 4) * 0.04;
+          }
+          d.crowdPositioned = true;
         }
       }
     });

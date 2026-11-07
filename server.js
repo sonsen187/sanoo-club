@@ -137,7 +137,7 @@ function addOrUpdateDancer(user) {
       charType,
       danceStyle: danceStyle || 1,
       x: 0.15 + Math.random() * 0.7, // normalized 0..1
-      y: 0.54 + Math.random() * 0.38, // lower dance floor
+      y: 0.59 + Math.random() * 0.28, // lower dance floor close to podiums
       score: 0,
       joinedAt: Date.now(),
       lastActive: Date.now()
