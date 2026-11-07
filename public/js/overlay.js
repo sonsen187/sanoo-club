@@ -1143,31 +1143,32 @@
       ctx.rotate(-this.swayAngle);
       let nameText = this.nickname;
       let badgePrefix = '';
-      let fontSize = 15;
-      let tagHeight = 26;
-      let textPadY = 18;
+      // Increased font size for EVERYONE (thẻ tên mọi người to lên rõ ràng!)
+      let fontSize = 18; // Regular crowd increased from 15px -> 18px
+      let tagHeight = 31; // Increased from 26px
+      let textPadY = 22;
 
       if (this.vipRank === 1) {
-        badgePrefix = '👑 TOP 1 • ';
-        fontSize = 21;
-        tagHeight = 36;
-        textPadY = 25;
+        badgePrefix = '👑 '; // Removed "TOP 1 • " as requested
+        fontSize = 25;      // Increased from 21px -> 25px
+        tagHeight = 42;     // Increased from 36px
+        textPadY = 29;
       } else if (this.vipRank === 2) {
-        badgePrefix = '🥈 TOP 2 • ';
-        fontSize = 17;
-        tagHeight = 30;
-        textPadY = 21;
+        badgePrefix = '🥈 '; // Removed "TOP 2 • " as requested
+        fontSize = 21;      // Increased from 17px -> 21px
+        tagHeight = 36;     // Increased from 30px
+        textPadY = 25;
       } else if (this.vipRank === 3) {
-        badgePrefix = '🥉 TOP 3 • ';
-        fontSize = 17;
-        tagHeight = 30;
-        textPadY = 21;
+        badgePrefix = '🥉 '; // Removed "TOP 3 • " as requested
+        fontSize = 21;      // Increased from 17px -> 21px
+        tagHeight = 36;     // Increased from 30px
+        textPadY = 25;
       }
 
       ctx.font = `bold ${fontSize}px "Rajdhani", sans-serif`;
       const fullText = badgePrefix + nameText;
       const textWidth = ctx.measureText(fullText).width;
-      const tagWidth = Math.max(textWidth + 24, 88);
+      const tagWidth = Math.max(textWidth + 28, 98);
       // Stable reference height (102px body height) so tag doesn't jitter
       const standardHeadHeight = 102 * (this.scale * 1.1);
       const tagY = -standardHeadHeight - tagHeight - 6;
@@ -3467,6 +3468,7 @@
     ctx.globalCompositeOperation = 'lighter'; // Additive volumetric lighting
 
     // 1. 6 Pro Moving Heads mounted on top ceiling truss
+    // Volumetric 3D Conical Beams (NOT squashed/flattened! Wide, full & atmospheric!)
     movingHeads.forEach((head, idx) => {
       const isLeft = idx < 3;
       const pairIdx = isLeft ? idx : (5 - idx);
@@ -3478,29 +3480,32 @@
       const originX = head.x;
       const originY = head.y + 14;
 
-      const beamLength = 1400;
+      const beamLength = 1450;
       const targetX = originX + Math.sin(sweepAngle) * beamLength;
       const targetY = originY + Math.cos(sweepAngle) * beamLength;
 
-      const endWidth = 145 + beatEngine.bassLevel * 55 + (stageLighting.flashIntensity * 40);
+      // Generous, realistic conical beam width (Expanded from 145px -> 340px+ to eliminate flattened look)
+      const endWidth = 340 + beatEngine.bassLevel * 120 + (stageLighting.flashIntensity * 90);
       const perpAngle = sweepAngle + Math.PI / 2;
-      const p1X = originX - Math.cos(perpAngle) * 7;
-      const p1Y = originY - Math.sin(perpAngle) * 7;
-      const p2X = originX + Math.cos(perpAngle) * 7;
-      const p2Y = originY + Math.sin(perpAngle) * 7;
+      const topHalfW = 13; // 26px wide lens opening at truss
+      const p1X = originX - Math.cos(perpAngle) * topHalfW;
+      const p1Y = originY - Math.sin(perpAngle) * topHalfW;
+      const p2X = originX + Math.cos(perpAngle) * topHalfW;
+      const p2Y = originY + Math.sin(perpAngle) * topHalfW;
       const p3X = targetX + Math.cos(perpAngle) * (endWidth / 2);
       const p3Y = targetY + Math.sin(perpAngle) * (endWidth / 2);
       const p4X = targetX - Math.cos(perpAngle) * (endWidth / 2);
       const p4Y = targetY - Math.sin(perpAngle) * (endWidth / 2);
 
       const alphaBase = beatEngine.isBassActive
-        ? (0.24 + beatEngine.bassLevel * 0.32 + stageLighting.flashIntensity * 0.28)
-        : 0.14;
+        ? (0.22 + beatEngine.bassLevel * 0.28 + stageLighting.flashIntensity * 0.25)
+        : 0.13;
 
+      // Layer A: Wide Volumetric Atmospheric Wash Cone
       const beamGrad = ctx.createLinearGradient(originX, originY, targetX, targetY);
       beamGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 0.95})`);
-      beamGrad.addColorStop(0.10, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.85})`);
-      beamGrad.addColorStop(0.55, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.30})`);
+      beamGrad.addColorStop(0.08, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.85})`);
+      beamGrad.addColorStop(0.50, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.35})`);
       beamGrad.addColorStop(1, 'transparent');
 
       ctx.beginPath();
@@ -3512,11 +3517,34 @@
       ctx.fillStyle = beamGrad;
       ctx.fill();
 
-      // Floor Spotlight Reflection Pool
+      // Layer B: Intense Inner Core Beam (Gives beam cylindrical 3D roundness!)
+      const coreEndW = endWidth * 0.42;
+      const coreP3X = targetX + Math.cos(perpAngle) * (coreEndW / 2);
+      const coreP3Y = targetY + Math.sin(perpAngle) * (coreEndW / 2);
+      const coreP4X = targetX - Math.cos(perpAngle) * (coreEndW / 2);
+      const coreP4Y = targetY - Math.sin(perpAngle) * (coreEndW / 2);
+
+      const coreGrad = ctx.createLinearGradient(originX, originY, targetX, targetY);
+      coreGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 1.1})`);
+      coreGrad.addColorStop(0.12, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.95})`);
+      coreGrad.addColorStop(0.60, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.25})`);
+      coreGrad.addColorStop(1, 'transparent');
+
+      ctx.beginPath();
+      ctx.moveTo(p1X + Math.cos(perpAngle) * 4, p1Y + Math.sin(perpAngle) * 4);
+      ctx.lineTo(p2X - Math.cos(perpAngle) * 4, p2Y - Math.sin(perpAngle) * 4);
+      ctx.lineTo(coreP3X, coreP3Y);
+      ctx.lineTo(coreP4X, coreP4Y);
+      ctx.closePath();
+      ctx.fillStyle = coreGrad;
+      ctx.fill();
+
+      // Floor Spotlight Reflection Pool (Full round perspective, NOT squashed flat!)
       const floorY = Math.min(targetY, H - 40);
       if (floorY > H * 0.48) {
-        const spotRx = 70 + beatEngine.bassLevel * 35;
-        const spotRy = 24 + beatEngine.bassLevel * 12;
+        // Natural 3D perspective ellipse: Rx = 150-210, Ry = 90-130 (Ratio 0.60 instead of flat 0.34)
+        const spotRx = 150 + beatEngine.bassLevel * 60;
+        const spotRy = 90 + beatEngine.bassLevel * 40;
 
         ctx.save();
         ctx.translate(targetX, floorY);
@@ -3524,8 +3552,8 @@
 
         const spotGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, spotRx);
         spotGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 0.95})`);
-        spotGrad.addColorStop(0.3, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.65})`);
-        spotGrad.addColorStop(0.7, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.15})`);
+        spotGrad.addColorStop(0.35, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.65})`);
+        spotGrad.addColorStop(0.75, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.15})`);
         spotGrad.addColorStop(1, 'transparent');
 
         ctx.beginPath();
@@ -3547,7 +3575,7 @@
     ctx.fillStyle = fanGrad;
     ctx.globalAlpha = fanAlpha;
     ctx.beginPath();
-    ctx.ellipse(W / 2, fanY, W * 0.48, 16 + beatEngine.bassLevel * 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(W / 2, fanY, W * 0.48, 52 + beatEngine.bassLevel * 32, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1.0;
 
