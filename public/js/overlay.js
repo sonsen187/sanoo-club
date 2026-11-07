@@ -296,50 +296,71 @@
     }
   }
 
-  // Dynamic Stage Lighting Engine (Color Changing, Strobe & Volumetric Moving Heads)
+  // Dynamic Stage Lighting Engine (Curated Club Palettes, Strobe Flash & Volumetric Colors)
   const stageLighting = {
     colorIndex: 0,
     flashIntensity: 0,
-    chillPalette: ['#00f0ff', '#7000ff', '#0077b6', '#4361ee', '#4cc9f0', '#9d4edd'],
-    dropPalette: ['#ff007f', '#ffe600', '#00ff88', '#00f0ff', '#ff3300', '#ffffff', '#e0aaff'],
+    // Modern High-End Club Palettes (Curated pairs and cohesive tonal transitions)
+    chillPalette: [
+      { hex: '#00f5d4', r: 0,   g: 245, b: 212 }, // Laser Cyan
+      { hex: '#4361ee', r: 67,  g: 97,  b: 238 }, // Electric Indigo
+      { hex: '#7209b7', r: 114, g: 9,   b: 183 }, // Ultra Violet
+      { hex: '#f72585', r: 247, g: 37,  b: 133 }, // Hot Magenta
+      { hex: '#00b4d8', r: 0,   g: 180, b: 216 }, // Deep Ocean
+      { hex: '#fee440', r: 254, g: 228, b: 64 }   // Champagne
+    ],
+    dropPalette: [
+      { hex: '#ff007f', r: 255, g: 0,   b: 127 }, // Neon Pink
+      { hex: '#00f0ff', r: 0,   g: 240, b: 255 }, // Laser Cyan
+      { hex: '#39ff14', r: 57,  g: 255, b: 20 },  // Acid Green
+      { hex: '#ffe600', r: 255, g: 230, b: 0 },   // Strobe Gold
+      { hex: '#b5179e', r: 181, g: 23,  b: 158 }, // Deep Violet
+      { hex: '#ffffff', r: 255, g: 255, b: 255 }  // Pure White Flash
+    ],
 
     getCurrentColor(offset = 0) {
       const palette = beatEngine.isBassActive ? this.dropPalette : this.chillPalette;
       const idx = (Math.floor(this.colorIndex) + offset) % palette.length;
-      return palette[idx >= 0 ? idx : 0];
+      return (palette[idx >= 0 ? idx : 0] || palette[0]).hex;
+    },
+
+    getRgb(offset = 0) {
+      const palette = beatEngine.isBassActive ? this.dropPalette : this.chillPalette;
+      const idx = (Math.floor(this.colorIndex) + offset) % palette.length;
+      const c = palette[idx >= 0 ? idx : 0] || palette[0];
+      return { r: c.r, g: c.g, b: c.b };
+    },
+
+    getRgba(alpha = 1, offset = 0) {
+      const rgb = this.getRgb(offset);
+      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
     },
 
     update(dt) {
-      // Color change pace scales directly with BPM and Bass intensity!
       const cycleSpeed = beatEngine.isBassActive
-        ? (beatEngine.bpm / 120) * (0.9 + beatEngine.bassLevel * 1.8)
-        : (beatEngine.bpm / 120) * 0.28;
+        ? (beatEngine.bpm / 120) * (0.8 + beatEngine.bassLevel * 1.5)
+        : (beatEngine.bpm / 120) * 0.25;
 
       this.colorIndex = (this.colorIndex + dt * cycleSpeed) % 60;
-      this.flashIntensity = Math.max(0, this.flashIntensity - dt * 4.0);
+      this.flashIntensity = Math.max(0, this.flashIntensity - dt * 3.8);
     },
 
     onBeatHit(bpm, bassLevel) {
-      // Shift colors on kick drum and trigger strobe flash
       this.colorIndex = (this.colorIndex + 1) % 60;
-      this.flashIntensity = Math.min(1.0, 0.45 + bassLevel * 0.55);
+      this.flashIntensity = Math.min(1.0, 0.40 + bassLevel * 0.60);
     }
   };
 
-  // Professional Stage Lighting Rig (8 Volumetric Moving Heads on Truss)
+  // 6 Pro Volumetric Moving Heads Suspended on Ceiling Truss Rigging (y=125)
   let movingHeads = [];
   function initMovingHeads() {
     movingHeads = [
-      // 2 Side Truss Totems (Mounted high on vertical aluminum truss columns at y=350, above the stage)
-      { x: 67, y: 350, baseAngle: 0.52, sweepRange: 0.42, speed: 1.1, colorOffset: 0, isSide: true },
-      { x: 1013, y: 350, baseAngle: -0.52, sweepRange: 0.42, speed: -1.1, colorOffset: 2, isSide: true },
-      // 6 Overhead Ceiling Truss Moving Heads (Suspended from top horizontal truss at y=146)
-      { x: 140, y: 146, baseAngle: 0.40, sweepRange: 0.55, speed: 0.90, colorOffset: 1 },
-      { x: 300, y: 146, baseAngle: 0.25, sweepRange: 0.50, speed: -1.10, colorOffset: 3 },
-      { x: 440, y: 146, baseAngle: 0.10, sweepRange: 0.45, speed: 1.25, colorOffset: 4 },
-      { x: 640, y: 146, baseAngle: -0.10, sweepRange: 0.45, speed: -1.25, colorOffset: 5 },
-      { x: 780, y: 146, baseAngle: -0.25, sweepRange: 0.50, speed: 1.10, colorOffset: 0 },
-      { x: 940, y: 146, baseAngle: -0.40, sweepRange: 0.55, speed: -0.90, colorOffset: 2 }
+      { x: 160, y: 125, baseAngle: 0.32, sweepRange: 0.36, speed: 0.90, colorOffset: 0 },
+      { x: 310, y: 125, baseAngle: 0.20, sweepRange: 0.32, speed: -1.05, colorOffset: 2 },
+      { x: 460, y: 125, baseAngle: 0.08, sweepRange: 0.28, speed: 1.20, colorOffset: 4 },
+      { x: 620, y: 125, baseAngle: 0.08, sweepRange: 0.28, speed: -1.20, colorOffset: 5 },
+      { x: 770, y: 125, baseAngle: 0.20, sweepRange: 0.32, speed: 1.05, colorOffset: 1 },
+      { x: 920, y: 125, baseAngle: 0.32, sweepRange: 0.36, speed: -0.90, colorOffset: 3 }
     ];
   }
 
@@ -353,7 +374,7 @@
         speed: (0.0008 + Math.random() * 0.0016) * (Math.random() < 0.5 ? 1 : -1),
         orbitRadius: 35 + Math.random() * 260,
         floorX: 0.08 + Math.random() * 0.84,
-        floorY: 0.52 + Math.random() * 0.45,
+        floorY: 0.42 + Math.random() * 0.52,
         size: 3 + Math.random() * 5,
         colorOffset: Math.floor(Math.random() * 6)
       });
@@ -363,14 +384,7 @@
   // 2.5D Expanding Bass Ripple Shockwaves on the Dance Floor
   let bassRipples = [];
 
-  // Aerial Concert Lasers (Mounted strictly on Structural Truss & LED Screen Top, ZERO on speakers!)
   function initLasers() {
-    lasers = [
-      { x: 220, y: 146, angle: -0.42, speed: 0.016, color: '#00f0ff', width: 3 },
-      { x: 380, y: 288, angle: -0.18, speed: 0.024, color: '#ff007f', width: 3.5 },
-      { x: 700, y: 288, angle: 0.18, speed: -0.020, color: '#ffe600', width: 3.5 },
-      { x: 860, y: 146, angle: 0.42, speed: -0.026, color: '#00ff66', width: 3 }
-    ];
     initMovingHeads();
     initDiscoSparkles();
   }
@@ -1189,12 +1203,12 @@
     requestAnimationFrame(renderLoop);
   }
 
-  // Draw Stage Backdrop & Industrial Truss & Kaleidoscope Screen
+  // Draw Stage Backdrop & Industrial Truss & Kaleidoscope Screen (Elevated)
   function drawStageBackdrop(now) {
     const sx = W * 0.15;
-    const sy = H * 0.15;
+    const sy = 160;
     const sw = W * 0.7;
-    const sh = H * 0.22;
+    const sh = 230;
 
     ctx.save();
 
@@ -1293,34 +1307,25 @@
     ctx.restore();
   }
 
-  // Draw DJ Booth Platform, Disco Mirror Ball, Superstar Resident DJ, Pioneer Mixer & Vibrating Speakers
+  // Draw DJ Booth Platform, Disco Mirror Ball, Superstar Resident DJ, Pioneer Mixer & Vibrating Speakers (Elevated)
   function drawDJStage(now) {
-    const stageY = H * 0.315;
+    const stageY = 360;
 
     ctx.save();
 
     // ========================================================
-    // 1. MASSIVE OVERHEAD FOLLOW-SPOTLIGHT ON DJ (Concert Centerpiece)
+    // 1. SOFT THEATRICAL KEY-LIGHT WASH ON DJ (Smooth Volumetric Bloom)
     // ========================================================
-    const spotAlpha = 0.32 + beatEngine.bassLevel * 0.35;
     ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const djWashAlpha = 0.16 + beatEngine.bassLevel * 0.20;
+    const djGlow = ctx.createRadialGradient(W / 2, stageY + 45, 15, W / 2, stageY + 45, 220);
+    djGlow.addColorStop(0, `rgba(255, 245, 190, ${djWashAlpha})`);
+    djGlow.addColorStop(0.5, `rgba(255, 200, 50, ${djWashAlpha * 0.45})`);
+    djGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = djGlow;
     ctx.beginPath();
-    ctx.moveTo(W / 2 - 35, 115);
-    ctx.lineTo(W / 2 + 35, 115);
-    ctx.lineTo(W / 2 + 230, stageY + 140);
-    ctx.lineTo(W / 2 - 230, stageY + 140);
-    ctx.closePath();
-    const beamGrad = ctx.createLinearGradient(0, 115, 0, stageY + 140);
-    beamGrad.addColorStop(0, `rgba(255, 248, 140, ${spotAlpha * 0.95})`);
-    beamGrad.addColorStop(0.5, `rgba(255, 215, 0, ${spotAlpha * 0.45})`);
-    beamGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
-    ctx.fillStyle = beamGrad;
-    ctx.fill();
-
-    // Floor spotlight puddle under DJ
-    ctx.beginPath();
-    ctx.ellipse(W / 2, stageY + 115, 210, 48, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255, 230, 0, ${spotAlpha * 0.28})`;
+    ctx.ellipse(W / 2, stageY + 45, 240, 90, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -1405,10 +1410,10 @@
     ctx.stroke();
 
     // DJ Booth Table coordinates
-    const tableW = 380;
-    const tableH = 125;
+    const tableW = 360;
+    const tableH = 105;
     const tableX = (W - tableW) / 2;
-    const tableY = stageY + 25;
+    const tableY = stageY + 20;
 
     // ========================================================
     // 4. SUPERSTAR RESIDENT DJ CHARACTER (Centerpiece of the Stage!)
@@ -1830,7 +1835,7 @@
 
   // 2.5D Perspective Dance Floor Grid with Floor Lights, Glossy Reflections & Bass Ripples
   function drawDanceFloor(now) {
-    const horizonY = H * 0.435;
+    const horizonY = 560;
     const bottomY = H;
     const rows = 12;
     const cols = 10;
@@ -1977,24 +1982,17 @@
   function drawSinglePodium(ctx, cx, cy, tiers, colors, badgeText, rank, now) {
     ctx.save();
 
-    // A. Vertical God-Ray Spotlight Column from Ceiling Truss down to Podium
-    const spotAlpha = 0.16 + (rank === 1 ? 0.08 : 0) + beatEngine.bassLevel * 0.14;
-    const topW = rank === 1 ? 75 : 55;
-    const botW = tiers[0].rx * 1.55;
-
+    // A. Soft Volumetric Highlight Glow on Podium (Additive Theatrical Key-Light)
     ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const spotAlpha = 0.14 + (rank === 1 ? 0.08 : 0) + beatEngine.bassLevel * 0.12;
+    const podiumGlow = ctx.createRadialGradient(cx, cy, 10, cx, cy, tiers[0].rx * 1.5);
+    podiumGlow.addColorStop(0, colors.spotLight.replace('ALPHA', spotAlpha.toFixed(2)));
+    podiumGlow.addColorStop(0.55, colors.spotLight.replace('ALPHA', (spotAlpha * 0.35).toFixed(2)));
+    podiumGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = podiumGlow;
     ctx.beginPath();
-    ctx.moveTo(cx - topW / 2, 140);
-    ctx.lineTo(cx + topW / 2, 140);
-    ctx.lineTo(cx + botW / 2, cy + 20);
-    ctx.lineTo(cx - botW / 2, cy + 20);
-    ctx.closePath();
-
-    const beamGrad = ctx.createLinearGradient(0, 140, 0, cy + 20);
-    beamGrad.addColorStop(0, colors.spotLight.replace('ALPHA', (spotAlpha * 0.9).toFixed(2)));
-    beamGrad.addColorStop(0.7, colors.spotLight.replace('ALPHA', (spotAlpha * 0.4).toFixed(2)));
-    beamGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = beamGrad;
+    ctx.ellipse(cx, cy, tiers[0].rx * 1.5, tiers[0].ry * 2.0, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -2092,7 +2090,7 @@
   function drawVIPPodiums(now) {
     // 1. TOP 1 PODIUM (Center - Elevated 3-Tier Massive Gold Stage)
     const top1Cx = W * 0.50;
-    const top1Cy = H * 0.535;
+    const top1Cy = 850; // Shifted UP into upper-mid VIP focal zone
     const top1Tiers = [
       { offsetY: 48, height: 30, rx: 220, ry: 60 }, // Tier 0 (bottom base)
       { offsetY: 24, height: 26, rx: 190, ry: 52 }, // Tier 1 (mid)
@@ -2115,7 +2113,7 @@
 
     // 2. TOP 2 PODIUM (Left - 2-Tier Silver / Electric Cyan Stage)
     const top2Cx = W * 0.24;
-    const top2Cy = H * 0.585;
+    const top2Cy = 940; // Shifted UP
     const top2Tiers = [
       { offsetY: 26, height: 24, rx: 135, ry: 38 }, // Tier 0 (bottom)
       { offsetY: 0,  height: 22, rx: 115, ry: 32 }  // Tier 1 (top platform)
@@ -2137,7 +2135,7 @@
 
     // 3. TOP 3 PODIUM (Right - 2-Tier Bronze / Amber Stage)
     const top3Cx = W * 0.76;
-    const top3Cy = H * 0.585;
+    const top3Cy = 940; // Shifted UP
     const top3Tiers = [
       { offsetY: 26, height: 24, rx: 130, ry: 36 }, // Tier 0 (bottom)
       { offsetY: 0,  height: 22, rx: 110, ry: 30 }  // Tier 1 (top platform)
@@ -2198,219 +2196,225 @@
       }
     }
 
-    // 3. Anchor VIPs to podium coordinates and keep regular crowd clear of podiums
+    // 3. Anchor VIPs to elevated podium coordinates and keep regular crowd clear of podiums
     dancers.forEach(d => {
       if (d.vipRank === 1) {
         d.targetX = 0.50;
-        d.targetY = 0.472; // Feet land on Top 1 massive gold platform (H * 0.535)
+        d.targetY = 0.373; // Feet land precisely on Top 1 massive gold platform (cy = 850px)
         if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else if (d.vipRank === 2) {
         d.targetX = 0.24;
-        d.targetY = 0.535; // Feet land on Top 2 platform (H * 0.585)
+        d.targetY = 0.436; // Feet land on Top 2 platform (cy = 940px)
         if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else if (d.vipRank === 3) {
         d.targetX = 0.76;
-        d.targetY = 0.535; // Feet land on Top 3 platform (H * 0.585)
+        d.targetY = 0.436; // Feet land on Top 3 platform (cy = 940px)
         if (!d.vipPositioned) { d.x = d.targetX; d.y = d.targetY; d.vipPositioned = true; }
       } else {
-        // Regular crowd: keep clear of the 3 elevated podiums
-        if (d.targetY < 0.65) {
+        // Regular crowd: keep clear of elevated VIP podiums, dancing on floor (y >= 0.58)
+        if (d.targetY < 0.58) {
           const charCode = (d.id || d.username || 'user').charCodeAt(0);
-          d.targetY = 0.68 + (charCode % 15) * 0.018;
+          d.targetY = 0.60 + (charCode % 15) * 0.024;
           if (!d.crowdPositioned) { d.y = d.targetY; d.crowdPositioned = true; }
         }
       }
     });
   }
 
-  // 4. Realistic Stage Lighting: 8 Moving Heads on Aluminum Trusses + 4 Aerial Lasers
+  // ===========================================================================
+  // PROFESSIONAL NIGHTCLUB LIGHTING RIG (Cinematic Volumetric Haze & Liquid Sky)
+  // Replaces harsh polygons with true atmospheric feathered light shafts:
+  //   1. 6 Pro Volumetric Moving Heads (Perpendicular cross-gradient soft haze)
+  //   2. Overhead Liquid Sky Laser Sheet (Tomorrowland/Ultra Festival canopy)
+  //   3. Optical Fixture Lens Flare Blooms
+  //   4. Gaussian Floor Wash Pools (Perspective Radial Falloff)
+  // ===========================================================================
   function drawLasers(now) {
-    const sweepTime = now * 0.0018 * (beatEngine.bpm / 120);
+    const sweepTime = now * 0.0012 * (beatEngine.bpm / 120);
+    const horizonY = 560;
 
-    // ========================================================
-    // 8 VOLUMETRIC MOVING HEAD BEAMS (MOUNTED ON TRUSS RIGGING)
-    // ========================================================
-    movingHeads.forEach(head => {
-      const sweepAngle = head.baseAngle + Math.sin(sweepTime * head.speed) * head.sweepRange;
-      const beamColor = stageLighting.getCurrentColor(head.colorOffset);
+    ctx.save();
+    // Use ADDITIVE BLENDING for all volumetric light beams:
+    ctx.globalCompositeOperation = 'lighter';
 
-      // Beam origin at lens tip (18px out from fixture pivot)
-      const originX = head.x + Math.sin(sweepAngle) * 18;
-      const originY = head.y + Math.cos(sweepAngle) * 18;
+    // -------------------------------------------------------------------------
+    // 1. 6 VOLUMETRIC MOVING HEADS (Soft Perpendicular-Feathered Haze Shafts)
+    // -------------------------------------------------------------------------
+    movingHeads.forEach((head, idx) => {
+      // Symmetrical sweep choreography: left side mirrors right side
+      const isLeft = idx < 3;
+      const pairIdx = isLeft ? idx : (5 - idx);
+      const wavePhase = sweepTime * head.speed + pairIdx * 0.50;
+      const sweepAngle = (isLeft ? -1 : 1) * (head.baseAngle + Math.sin(wavePhase) * head.sweepRange);
 
-      const beamLength = 1400;
+      const colorRgb = stageLighting.getRgb(head.colorOffset);
+      const beamColorStr = stageLighting.getCurrentColor(head.colorOffset);
+
+      // Emitter origin at fixture lens tip
+      const originX = head.x;
+      const originY = head.y + 14;
+
+      // Calculate trajectory length and target floor point
+      const beamLength = 1200;
       const targetX = originX + Math.sin(sweepAngle) * beamLength;
       const targetY = originY + Math.cos(sweepAngle) * beamLength;
 
+      // Base atmospheric luminance
+      const alphaBase = beatEngine.isBassActive
+        ? (0.18 + beatEngine.bassLevel * 0.22 + stageLighting.flashIntensity * 0.16)
+        : 0.10;
+
+      // TRANSFORM TO LOCAL BEAM COORDINATE SYSTEM:
+      // In local coordinates: (0, 0) is emitter, X-axis extends down the beam length!
+      // This allows 100% mathematically soft perpendicular feathering across the beam width!
+      const angleRad = Math.atan2(targetY - originY, targetX - originX);
+      const dist = Math.hypot(targetX - originX, targetY - originY);
+      const endWidth = 140 + beatEngine.bassLevel * 50 + (stageLighting.flashIntensity * 35);
+      const startWidth = 10;
+
       ctx.save();
+      ctx.translate(originX, originY);
+      ctx.rotate(angleRad); // Local +X is now the direction of the beam!
 
-      // 1. Volumetric Light Cone (Atmospheric haze scatter)
-      const coneWidth = 42 + beatEngine.bassLevel * 55 + (stageLighting.flashIntensity * 40);
-      const perpAngle = sweepAngle + Math.PI / 2;
-      const p1X = targetX - Math.cos(perpAngle) * (coneWidth / 2);
-      const p1Y = targetY - Math.sin(perpAngle) * (coneWidth / 2);
-      const p2X = targetX + Math.cos(perpAngle) * (coneWidth / 2);
-      const p2Y = targetY + Math.sin(perpAngle) * (coneWidth / 2);
-
-      const beamGrad = ctx.createLinearGradient(originX, originY, targetX, targetY);
-      beamGrad.addColorStop(0, beamColor);
-      beamGrad.addColorStop(0.18, beamColor);
-      beamGrad.addColorStop(1, 'transparent');
-
+      // Layer A: Wide Soft Volumetric Haze Shaft (Trapezoid with soft lateral gradient)
+      // Along local Y: -endWidth/2 to +endWidth/2 is the width of the beam.
+      // We clip to the trapezoid cone and fill with a 2-directional soft gradient.
       ctx.beginPath();
-      ctx.moveTo(originX, originY);
-      ctx.lineTo(p1X, p1Y);
-      ctx.lineTo(p2X, p2Y);
+      ctx.moveTo(0, -startWidth / 2);
+      ctx.lineTo(dist, -endWidth / 2);
+      ctx.lineTo(dist, endWidth / 2);
+      ctx.lineTo(0, startWidth / 2);
       ctx.closePath();
 
-      ctx.fillStyle = beamGrad;
-      const beamAlpha = beatEngine.isBassActive
-        ? (0.32 + beatEngine.bassLevel * 0.45 + stageLighting.flashIntensity * 0.25)
-        : 0.16;
-      ctx.globalAlpha = beamAlpha;
+      // Lateral cross-gradient (hot center, completely soft transparent edges - NO HARD LINES!)
+      const lateralGrad = ctx.createLinearGradient(0, -endWidth / 2, 0, endWidth / 2);
+      lateralGrad.addColorStop(0.00, 'transparent');
+      lateralGrad.addColorStop(0.20, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.15})`);
+      lateralGrad.addColorStop(0.50, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.85})`);
+      lateralGrad.addColorStop(0.80, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.15})`);
+      lateralGrad.addColorStop(1.00, 'transparent');
+      ctx.fillStyle = lateralGrad;
       ctx.fill();
 
-      // Core Laser / Hotspot Line inside the volumetric beam
+      // Longitudinal distance fade overlay (brighter near fixture, fading toward floor)
+      const distGrad = ctx.createLinearGradient(0, 0, dist, 0);
+      distGrad.addColorStop(0.00, `rgba(255, 255, 255, ${alphaBase * 0.50})`);
+      distGrad.addColorStop(0.15, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.40})`);
+      distGrad.addColorStop(0.70, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.10})`);
+      distGrad.addColorStop(1.00, 'transparent');
+      ctx.fillStyle = distGrad;
+      ctx.fill();
+
+      // Layer B: Hot Core Centerline (Subtle luminous ray down the spine)
       ctx.beginPath();
-      ctx.moveTo(originX, originY);
-      ctx.lineTo(targetX, targetY);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2 + beatEngine.bassLevel * 3.5;
-      ctx.globalAlpha = beamAlpha * 0.85;
+      ctx.moveTo(0, 0);
+      ctx.lineTo(dist * 0.9, 0);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${alphaBase * 0.65})`;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // 2. Realistic Floor Spotlight Reflection (Elliptical puddle with soft radial falloff)
-      const floorY = Math.min(targetY, H - 35);
-      if (floorY > H * 0.48) {
-        const spotRadiusX = 52 + beatEngine.bassLevel * 35;
-        const spotRadiusY = 20 + beatEngine.bassLevel * 14;
+      ctx.restore(); // Restore world coordinates
+
+      // 2. Realistic Floor Light Pool (Soft Elliptical Radial Hotspot)
+      const floorY = Math.min(targetY, H - 40);
+      if (floorY > horizonY) {
+        const spotRx = 65 + beatEngine.bassLevel * 30;
+        const spotRy = 22 + beatEngine.bassLevel * 10;
 
         ctx.save();
         ctx.translate(targetX, floorY);
-        ctx.scale(1, spotRadiusY / spotRadiusX);
+        ctx.scale(1, spotRy / spotRx);
 
-        const spotGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, spotRadiusX);
-        spotGrad.addColorStop(0, '#ffffff');
-        spotGrad.addColorStop(0.25, beamColor);
-        spotGrad.addColorStop(0.7, beamColor);
+        const spotGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, spotRx);
+        spotGrad.addColorStop(0, `rgba(255, 255, 255, ${alphaBase * 1.1})`);
+        spotGrad.addColorStop(0.25, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.70})`);
+        spotGrad.addColorStop(0.65, `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${alphaBase * 0.20})`);
         spotGrad.addColorStop(1, 'transparent');
 
         ctx.beginPath();
-        ctx.arc(0, 0, spotRadiusX, 0, Math.PI * 2);
+        ctx.arc(0, 0, spotRx, 0, Math.PI * 2);
         ctx.fillStyle = spotGrad;
-        ctx.globalAlpha = 0.38 + beatEngine.bassLevel * 0.45;
         ctx.fill();
         ctx.restore();
       }
+    });
 
-      ctx.restore();
+    // -------------------------------------------------------------------------
+    // 2. THEATRICAL OVERHEAD LIQUID SKY LASER SHEET (Festival Atmosphere Canopy)
+    // Slices horizontally above the stage (y=190-250), skimming cleanly OVER dancers!
+    // -------------------------------------------------------------------------
+    const laserPulse = beatEngine.isBassActive ? (0.45 + beatEngine.bassLevel * 0.45) : 0.22;
+    const laserY = 210 + Math.sin(now * 0.0018) * 18;
+    const laserColor1 = stageLighting.getCurrentColor(0);
+    const laserColor2 = stageLighting.getCurrentColor(2);
 
-      // 3. Physical Moving Head Fixture Body (Metal clamp, U-yoke, rotating lamp housing & glowing lens)
+    // Glowing Horizontal Liquid Sky Sheet
+    const sheetGrad = ctx.createLinearGradient(0, laserY - 15, 0, laserY + 45);
+    sheetGrad.addColorStop(0, 'transparent');
+    sheetGrad.addColorStop(0.3, `rgba(0, 245, 212, ${laserPulse * 0.25})`);
+    sheetGrad.addColorStop(0.5, `rgba(255, 0, 127, ${laserPulse * 0.35})`);
+    sheetGrad.addColorStop(1, 'transparent');
+
+    ctx.fillStyle = sheetGrad;
+    ctx.fillRect(W * 0.10, laserY - 15, W * 0.80, 60);
+
+    // Razor-thin scanning beam lines skimming through the liquid sky
+    for (let l = 0; l < 4; l++) {
+      const phase = (now * 0.002 + l * 0.25) % 1;
+      const lx = W * (0.12 + phase * 0.76);
+      const ly = laserY + Math.sin(phase * Math.PI * 4 + now * 0.003) * 12;
+
+      ctx.beginPath();
+      ctx.moveTo(W * 0.5, 125); // Origin at center truss
+      ctx.lineTo(lx, ly);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(W * 0.5, 125);
+      ctx.lineTo(lx, ly);
+      ctx.strokeStyle = l % 2 === 0 ? laserColor1 : laserColor2;
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+    }
+
+    ctx.restore(); // Restore normal composite operation
+
+    // -------------------------------------------------------------------------
+    // 3. PHYSICAL FIXTURE BODIES & OPTICAL LENS FLARES (On Ceiling Rig)
+    // -------------------------------------------------------------------------
+    movingHeads.forEach(head => {
       ctx.save();
       ctx.translate(head.x, head.y);
 
-      // Truss mounting clamp
-      ctx.fillStyle = '#1e2233';
-      ctx.strokeStyle = '#4a5568';
-      ctx.lineWidth = 2;
-      if (head.isSide) {
-        // Outrigger steel arm from vertical side truss column
-        const dir = head.x < 540 ? 1 : -1;
-        ctx.fillRect(0, -5, dir * 16, 10);
-        ctx.strokeRect(0, -5, dir * 16, 10);
-      } else {
-        // Drop-down clamp from horizontal ceiling truss
-        ctx.fillRect(-5, -14, 10, 14);
-        ctx.strokeRect(-5, -14, 10, 14);
-      }
-
-      // Base Yoke mount
-      ctx.fillStyle = '#161926';
-      ctx.beginPath();
-      ctx.arc(0, 0, 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Rotating Lamp Canister (rotates physically to face beam direction!)
-      ctx.rotate(sweepAngle);
-      ctx.fillStyle = '#0f111a';
-      ctx.strokeStyle = '#333b50';
+      // Truss clamp bracket
+      ctx.fillStyle = '#161928';
+      ctx.strokeStyle = '#3a4460';
       ctx.lineWidth = 1.5;
+      ctx.fillRect(-5, -12, 10, 12);
+      ctx.strokeRect(-5, -12, 10, 12);
+
+      // Yoke assembly
       ctx.beginPath();
-      ctx.roundRect(-8, -2, 16, 18, 3);
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#111322';
       ctx.fill();
       ctx.stroke();
 
-      // Front Glass Lens (Intensely illuminated in current beam color)
-      ctx.fillStyle = beamColor;
-      ctx.shadowColor = beamColor;
-      ctx.shadowBlur = 14 + beatEngine.bassLevel * 10;
-      ctx.beginPath();
-      ctx.ellipse(0, 16, 7, 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.restore();
-    });
-
-    // ========================================================
-    // 4 AERIAL CONCERT LASERS (MOUNTED ON CEILING TRUSS & LED FRAME)
-    // ========================================================
-    lasers.forEach(laser => {
-      laser.angle += laser.speed * (beatEngine.bpm / 120);
-      if (laser.angle > 0.75 || laser.angle < -0.75) laser.speed *= -1;
-
-      const endLength = 1450;
-      const targetX = laser.x + Math.sin(laser.angle) * endLength;
-      const targetY = laser.y + Math.cos(laser.angle) * endLength;
-
+      // Optical Lens Flare Bloom (Additive glowing lens point)
+      const lensColor = stageLighting.getCurrentColor(head.colorOffset);
       ctx.save();
-
-      // 1. Physical Laser Projector Box on Truss
-      ctx.fillStyle = '#121420';
-      ctx.strokeStyle = '#3d4458';
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(laser.x - 10, laser.y - 8, 20, 14);
-      ctx.strokeRect(laser.x - 10, laser.y - 8, 20, 14);
-
-      // Glowing Laser Emitter Aperture
-      ctx.fillStyle = laser.color;
-      ctx.shadowColor = laser.color;
-      ctx.shadowBlur = 12;
+      ctx.globalCompositeOperation = 'lighter';
+      const lensGrad = ctx.createRadialGradient(0, 4, 1, 0, 4, 14);
+      lensGrad.addColorStop(0, '#ffffff');
+      lensGrad.addColorStop(0.35, lensColor);
+      lensGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = lensGrad;
       ctx.beginPath();
-      ctx.arc(laser.x, laser.y + 6, 2.5, 0, Math.PI * 2);
+      ctx.arc(0, 4, 14, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // 2. Laser Core & Outer Bloom Beam
-      ctx.beginPath();
-      ctx.moveTo(laser.x, laser.y + 6);
-      ctx.lineTo(targetX, targetY);
-
-      // Hot white core
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.0;
-      ctx.globalAlpha = 0.95;
-      ctx.stroke();
-
-      // Colored neon beam glow
-      ctx.strokeStyle = laser.color;
-      ctx.lineWidth = laser.width + beatEngine.bassLevel * 4;
-      ctx.shadowColor = laser.color;
-      ctx.shadowBlur = 16 + beatEngine.bassLevel * 14;
-      ctx.globalAlpha = 0.60 + beatEngine.bassLevel * 0.38;
-      ctx.stroke();
-
-      // 3. Laser Burn Spot on Floor
-      const floorY = Math.min(targetY, H - 30);
-      if (floorY > H * 0.48) {
-        ctx.beginPath();
-        ctx.arc(targetX, floorY, 4 + beatEngine.bassLevel * 3, 0, Math.PI * 2);
-        ctx.fillStyle = laser.color;
-        ctx.shadowColor = laser.color;
-        ctx.shadowBlur = 18;
-        ctx.fill();
-      }
+      ctx.restore();
 
       ctx.restore();
     });
