@@ -819,14 +819,16 @@
       const bodyH = meta[2];
       const bodyCY = meta[3];
 
-      const drawScale = this.scale * 1.1;
+      // Normalize char3 (which has a 1.58x native resolution) to match char1 & char2 perfectly
+      const charScaleMultiplier = this.charType === 3 ? 0.65 : 1.0;
+      const drawScale = this.scale * 1.1 * charScaleMultiplier;
       const screenX = this.x * W;
       const totalYOffset = this.jumpOffset + this.bounceY;
       const screenY = this.y * H - totalYOffset;
 
       const catVisualW = 145 * drawScale;
-      const catVisualH = bodyH * drawScale;
-      const catCenterY = -(bodyBottomY - bodyCY) * drawScale;
+      const catVisualH = (this.charType === 3 ? bodyH * 0.65 : bodyH) * (this.scale * 1.1);
+      const catCenterY = -(bodyBottomY - (bodyBottomY - bodyH / 2)) * drawScale;
 
       ctx.save();
       ctx.translate(screenX, screenY);
@@ -965,7 +967,9 @@
       const fullText = badgePrefix + nameText;
       const textWidth = ctx.measureText(fullText).width;
       const tagWidth = Math.max(textWidth + 24, 88);
-      const tagY = -catVisualH - tagHeight - 8;
+      // Stable reference height (102px body height) so tag doesn't jitter
+      const standardHeadHeight = 102 * (this.scale * 1.1);
+      const tagY = -standardHeadHeight - tagHeight - 6;
 
       // Tag Background
       let tagBg, tagBorder, tagTextCol;
@@ -2117,9 +2121,24 @@
   // Exact Per-Frame Cat Body Bounding Box & Alignment Metadata [bodyCX, bodyBottomY, bodyH, bodyCY]
   // Ensures 100% mathematical center and feet contact alignment regardless of swinging glowsticks
   const CAT_SPRITE_META = {
-    char1: [[138,173,95,126],[126,174,90,129],[143,174,74,137],[142,174,74,137],[161,173,94,126],[164,173,100,123],[165,173,85,131],[175,173,95,126],[177,173,89,129],[168,174,68,140],[162,174,85,132],[155,173,95,126],[147,173,100,123],[145,174,77,136]],
-    char2: [[186,172,104,120],[181,172,100,122],[171,173,85,131],[166,173,78,134],[168,173,103,122],[175,172,110,117],[177,173,111,118],[186,173,105,121],[181,173,95,126],[171,173,86,130],[162,173,90,128],[169,173,102,122],[175,172,111,117]],
-    char3: [[120,189,102,138],[118,170,93,124],[128,171,83,130],[150,200,98,151],[164,229,116,171],[132,230,107,177],[132,230,107,177],[104,219,127,156],[113,175,90,130],[123,166,83,125],[112,192,98,143],[104,216,114,159],[93,214,107,161],[93,214,107,161]]
+    char1: [
+      [141.5, 175, 99], [140, 175, 91], [138.5, 175, 77], [138.5, 175, 77],
+      [160, 175, 99], [165, 175, 104], [167, 175, 94], [168, 175, 96],
+      [170.5, 175, 91], [172.5, 175, 76], [164.5, 175, 88], [153.5, 175, 99],
+      [145, 175, 105], [143, 175, 101]
+    ],
+    char2: [
+      [186, 173, 88], [180, 173, 96], [174.5, 174, 89], [163.5, 174, 80],
+      [164.5, 173, 104], [172.5, 173, 114], [176, 173, 113], [186.5, 173, 88],
+      [180, 173, 96], [174.5, 174, 89], [160.5, 174, 92], [164.5, 173, 104],
+      [172.5, 173, 114]
+    ],
+    char3: [
+      [116.5, 237, 151], [119, 214, 140], [136.5, 197, 118], [150.5, 226, 135],
+      [155.5, 253, 156], [121.5, 272, 166], [121.5, 272, 166], [109.5, 252, 149],
+      [113.5, 219, 139], [122, 192, 118], [119.5, 219, 135], [115, 243, 154],
+      [110.5, 259, 164], [110.5, 259, 164]
+    ]
   };
 
   const PODIUM_CONFIG = {
@@ -2242,7 +2261,10 @@
     // 3. Anchor VIPs precisely to stand in the DEAD CENTER of each podium platform
     dancers.forEach(d => {
       d.charCategory = 'cat';
-      if (!d.charType || d.charType > 3) d.charType = 1 + Math.floor(Math.random() * 3);
+      if (!d.charType || d.charType > 3) {
+        // VIP podiums default to majestic Rave lightsticks (charType 1) for full symmetry!
+        d.charType = (d.vipRank > 0) ? 1 : (1 + Math.floor(Math.random() * 3));
+      }
 
       if (d.vipRank === 1) {
         const p = PODIUM_CONFIG.top1;
