@@ -66,7 +66,9 @@ function broadcast(type, data) {
   const msg = JSON.stringify({ type, data, timestamp: Date.now() });
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(msg);
+      client.send(msg, err => {
+        if (err) console.warn('WS send error:', err.message);
+      });
     }
   });
 }
@@ -110,6 +112,20 @@ function addOrUpdateDancer(user) {
   }
 
   if (!state.dancers[username]) {
+    // Enforce max dancers limit: evict least recently active non-VIP dancer if floor is full
+    const dancerKeys = Object.keys(state.dancers);
+    const maxDancers = state.settings.maxDancers || 60;
+    if (dancerKeys.length >= maxDancers) {
+      const top3Users = new Set(getTopGiftersList(3).map(g => g.username));
+      const candidates = dancerKeys.filter(k => !top3Users.has(k));
+      if (candidates.length > 0) {
+        candidates.sort((a, b) => (state.dancers[a].lastActive || 0) - (state.dancers[b].lastActive || 0));
+        const toRemove = candidates[0];
+        delete state.dancers[toRemove];
+        broadcast('remove_dancer', { username: toRemove, id: toRemove });
+      }
+    }
+
     // New dancer: spawn position
     state.dancers[username] = {
       id: username,
@@ -256,35 +272,42 @@ function processChat(chatEvent) {
   }
   // Request song: !song <index or name>
   else if (lower.startsWith('!song') || lower.startsWith('!diembai') || lower.startsWith('!bai')) {
-    const query = comment.substring(comment.indexOf(' ') + 1).trim();
-    if (query) {
-      let targetIndex = -1;
-      const parsedNum = parseInt(query, 10);
-      if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= playlist.length) {
-        targetIndex = parsedNum - 1;
-      } else {
-        targetIndex = playlist.findIndex(p => p.title.toLowerCase().includes(query.toLowerCase()));
-      }
+    if (playlist.length > 0) {
+      const spaceIdx = comment.indexOf(' ');
+      if (spaceIdx !== -1) {
+        const query = comment.substring(spaceIdx + 1).trim();
+        if (query) {
+          let targetIndex = -1;
+          const parsedNum = parseInt(query, 10);
+          if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= playlist.length) {
+            targetIndex = parsedNum - 1;
+          } else {
+            targetIndex = playlist.findIndex(p => p.title.toLowerCase().includes(query.toLowerCase()));
+          }
 
-      if (targetIndex !== -1) {
-        state.currentTrackIndex = targetIndex;
-        state.isPlaying = true;
-        broadcast('track_change', {
-          track: playlist[targetIndex],
-          index: targetIndex,
-          requestedBy: nickname
-        });
+          if (targetIndex !== -1) {
+            state.currentTrackIndex = targetIndex;
+            state.isPlaying = true;
+            broadcast('track_change', {
+              track: playlist[targetIndex],
+              index: targetIndex,
+              requestedBy: nickname
+            });
+          }
+        }
       }
     }
   }
   // Skip track: !skip
   else if (lower === '!skip' || lower === '!next' || lower === 'chuyenbai') {
-    state.currentTrackIndex = (state.currentTrackIndex + 1) % playlist.length;
-    broadcast('track_change', {
-      track: playlist[state.currentTrackIndex],
-      index: state.currentTrackIndex,
-      requestedBy: nickname
-    });
+    if (playlist.length > 0) {
+      state.currentTrackIndex = (state.currentTrackIndex + 1) % playlist.length;
+      broadcast('track_change', {
+        track: playlist[state.currentTrackIndex],
+        index: state.currentTrackIndex,
+        requestedBy: nickname
+      });
+    }
   }
   // Effect commands
   else if (lower === '!fire' || lower === '!lua') {
@@ -393,7 +416,8 @@ function connectTikTok(username) {
 function disconnectTikTok() {
   if (tiktokLiveConnection) {
     try {
-      tiktokLiveConnection.disconnect();
+      const res = tiktokLiveConnection.disconnect();
+      if (res && typeof res.catch === 'function') res.catch(() => {});
     } catch (e) {}
     tiktokLiveConnection = null;
   }
@@ -450,7 +474,9 @@ wss.on('connection', ws => {
 });
 
 function handleClientMessage(msg, ws) {
-  const { type, data } = msg;
+  if (!msg || typeof msg !== 'object') return;
+  const { type } = msg;
+  const data = msg.data || {};
 
   switch (type) {
     // Music Controls
@@ -474,26 +500,30 @@ function handleClientMessage(msg, ws) {
       }
       break;
     case 'track_next':
+      if (playlist.length === 0) break;
       state.currentTrackIndex = (state.currentTrackIndex + 1) % playlist.length;
       state.isPlaying = true;
       broadcast('track_change', {
         track: playlist[state.currentTrackIndex],
         index: state.currentTrackIndex,
-        requestedBy: 'Admin'
+        requestedBy: data.requestedBy || 'Admin'
       });
       break;
     case 'track_prev':
+      if (playlist.length === 0) break;
       state.currentTrackIndex = (state.currentTrackIndex - 1 + playlist.length) % playlist.length;
       state.isPlaying = true;
       broadcast('track_change', {
         track: playlist[state.currentTrackIndex],
         index: state.currentTrackIndex,
-        requestedBy: 'Admin'
+        requestedBy: data.requestedBy || 'Admin'
       });
       break;
     case 'track_volume':
-      state.volume = Math.max(0, Math.min(1, data.volume));
-      broadcast('volume_change', { volume: state.volume });
+      if (typeof data.volume === 'number') {
+        state.volume = Math.max(0, Math.min(1, data.volume));
+        broadcast('volume_change', { volume: state.volume });
+      }
       break;
 
     // Trigger Stage Effects
@@ -584,8 +614,9 @@ function handleClientMessage(msg, ws) {
       broadcast('dancers_sync', state.dancers);
       break;
 
+    case 'audio_mode':
     case 'set_audio_mode':
-      state.settings.audioMode = data.mode || 'glass_room';
+      state.settings.audioMode = data.mode || msg.mode || 'glass_room';
       broadcast('audio_mode_changed', { mode: state.settings.audioMode });
       break;
 

@@ -158,6 +158,7 @@
   }
 
   function highlightActiveRow(idx) {
+    if (!playlistBody) return;
     const rows = playlistBody.querySelectorAll('tr');
     rows.forEach(r => r.classList.remove('active'));
     const activeRow = document.getElementById(`track-row-${idx}`);
@@ -379,6 +380,32 @@
         sendWS('clear_dancers');
       }
     });
+  }
+
+  // Toast Notification for Admin Actions
+  function showToast(message) {
+    let container = document.getElementById('admin-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'admin-toast-container';
+      container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.style.cssText = 'background:linear-gradient(90deg,#00f0ff,#ff007f);color:#060914;font-weight:700;font-size:13px;padding:10px 18px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);opacity:0;transform:translateY(10px);transition:all 0.3s ease;';
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      setTimeout(() => {
+        if (toast.parentNode === container) container.removeChild(toast);
+      }, 300);
+    }, 2500);
   }
 
   // Shuffle & Set Dance Styles for the whole floor

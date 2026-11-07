@@ -687,7 +687,7 @@
       this.score = data.score || 0;
       this.hue = Math.floor(Math.random() * 360);
       this.frameIndex = 0;
-      this.scale = 0.62 + (this.y - 0.62) * 0.32; // Perspective scaling for crowd (smaller, cute chibi)
+      this.scale = 0.48 + (this.y - 0.65) * 0.12; // Perspective scaling for crowd (smaller, cute chibi)
       this.isJumping = false;
       this.jumpOffset = 0;
       this.bounceY = 0;
@@ -791,16 +791,16 @@
       this.x += (this.targetX - this.x) * 0.05;
       this.y += (this.targetY - this.y) * 0.05;
 
-      // Scale hierarchy: Top 1 (TO NHẤT: 1.45) > Top 2 (TO NHÌ: 1.20) > Top 3 (TO BA: 1.08) > Không có top (NHỎ NHẤT: 0.54 ~ 0.58)
+      // Scale hierarchy: Top 1 (TO NHẤT: 1.38) > Top 2 (VỪA VẶN TRÊN BỤC BẠC: 0.88) > Top 3 (VỪA VẶN TRÊN BỤC ĐỒNG: 0.78) > Không có top (NHỎ NHẤT: 0.48 ~ 0.52)
       if (this.vipRank === 1) {
-        this.scale = 1.45; // Top 1: TO NHẤT (Vĩ đại, nổi bật nhất sàn nhảy!)
+        this.scale = 1.38; // Top 1: TO NHẤT (Vĩ đại, áp đảo sàn nhảy!)
       } else if (this.vipRank === 2) {
-        this.scale = 1.20; // Top 2: TO NHÌ (Rõ ràng lớn hơn Top 3, nhỏ hơn Top 1)
+        this.scale = 0.88; // Top 2: TO NHÌ (Nhỏ hơn Top 1 ~36%, vừa vặn hoàn hảo trên bục bạc)
       } else if (this.vipRank === 3) {
-        this.scale = 1.08; // Top 3: TO BA (Lớn hơn khán giả dưới sàn, nhỏ hơn Top 2)
+        this.scale = 0.78; // Top 3: TO BA (Nhỏ hơn Top 2 ~11%, vừa vặn hoàn hảo trên bục đồng)
       } else {
         // Không có top: NHỎ NHẤT (Khán giả chibi quẩy dưới sàn)
-        this.scale = 0.54 + Math.max(0, (this.y - 0.65)) * 0.14; // Dao động 0.54 đến 0.58
+        this.scale = 0.48 + Math.max(0, (this.y - 0.65)) * 0.10; // Dao động 0.48 đến 0.52
       }
 
       const frames = this.getFrames();
@@ -987,18 +987,34 @@
       // ========================================================
       ctx.save();
       ctx.rotate(-this.swayAngle); // Keep text level
-      ctx.font = 'bold 22px "Rajdhani", sans-serif';
       let nameText = this.nickname;
       let badgePrefix = '';
-      if (this.vipRank === 1) badgePrefix = '👑 TOP 1 • ';
-      else if (this.vipRank === 2) badgePrefix = '🥈 TOP 2 • ';
-      else if (this.vipRank === 3) badgePrefix = '🥉 TOP 3 • ';
+      let fontSize = 15;
+      let tagHeight = 26;
+      let textPadY = 18;
 
+      if (this.vipRank === 1) {
+        badgePrefix = '👑 TOP 1 • ';
+        fontSize = 21;
+        tagHeight = 36;
+        textPadY = 25;
+      } else if (this.vipRank === 2) {
+        badgePrefix = '🥈 TOP 2 • ';
+        fontSize = 17;
+        tagHeight = 30;
+        textPadY = 21;
+      } else if (this.vipRank === 3) {
+        badgePrefix = '🥉 TOP 3 • ';
+        fontSize = 17;
+        tagHeight = 30;
+        textPadY = 21;
+      }
+
+      ctx.font = `bold ${fontSize}px "Rajdhani", sans-serif`;
       const fullText = badgePrefix + nameText;
       const textWidth = ctx.measureText(fullText).width;
-      const tagWidth = Math.max(textWidth + 30, 110);
-      const tagHeight = 36;
-      const tagY = isHuman ? (-drawHeight * 0.40 - 20) : (-drawHeight * 0.42 - 16);
+      const tagWidth = Math.max(textWidth + 24, 88);
+      const tagY = isHuman ? (-drawHeight * 0.40 - tagHeight * 0.6) : (-drawHeight * 0.42 - tagHeight * 0.5);
 
       // Tag Background
       let tagBg, tagBorder, tagTextCol, tagGlow;
@@ -1032,7 +1048,7 @@
 
       ctx.fillStyle = tagBg;
       ctx.strokeStyle = tagBorder;
-      ctx.lineWidth = (this.vipRank > 0) ? 2.5 : 2;
+      ctx.lineWidth = (this.vipRank > 0) ? 2.5 : 1.8;
       ctx.beginPath();
       ctx.roundRect(-tagWidth / 2, tagY, tagWidth, tagHeight, 8);
       ctx.fill();
@@ -1042,8 +1058,8 @@
       ctx.fillStyle = tagTextCol;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      ctx.font = 'bold 20px "Rajdhani", sans-serif';
-      ctx.fillText(fullText, 0, tagY + 25);
+      ctx.font = `bold ${fontSize}px "Rajdhani", sans-serif`;
+      ctx.fillText(fullText, 0, tagY + textPadY);
       ctx.restore();
 
       ctx.restore();
@@ -2249,7 +2265,7 @@
         const isHuman = (d.charCategory === 'human');
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 1.45 * scaleMult;
+        const drawH = baseH * 1.38 * scaleMult;
         // Contact point on podium surface (p.cy - 8px so character stands squarely in the center of the platform):
         const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
         d.targetY = (p.cy - 8 - contactOffset) / H;
@@ -2263,7 +2279,7 @@
         const isHuman = (d.charCategory === 'human');
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 1.20 * scaleMult;
+        const drawH = baseH * 0.88 * scaleMult;
         const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
         d.targetY = (p.cy - 6 - contactOffset) / H;
         d.x = d.targetX;
@@ -2276,7 +2292,7 @@
         const isHuman = (d.charCategory === 'human');
         const baseH = isHuman ? 320 : 194;
         const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 1.08 * scaleMult;
+        const drawH = baseH * 0.78 * scaleMult;
         const contactOffset = isHuman ? (drawH * 0.44) : (drawH * 0.36);
         d.targetY = (p.cy - 6 - contactOffset) / H;
         d.x = d.targetX;

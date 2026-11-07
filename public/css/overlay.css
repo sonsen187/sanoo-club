@@ -32,6 +32,7 @@ body, html {
   width: 100vw;
   height: 100vh;
   max-width: calc(100vh * 9 / 16);
+  max-height: calc(100vw * 16 / 9);
   margin: 0 auto;
   overflow: hidden;
   background: radial-gradient(circle at 50% 30%, #17103a 0%, #080718 60%, #03030a 100%);
@@ -47,8 +48,9 @@ body.transparent-mode .stream-container {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
   z-index: 10;
   pointer-events: none;
 }
@@ -134,6 +136,7 @@ body.transparent-mode .stream-container {
 
 /* NOW PLAYING CARD */
 .now-playing-card {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -511,6 +514,7 @@ body.transparent-mode .stream-container {
    GLASS ROOM AUDIO MODE TOGGLE PILL
    ========================================================================== */
 .audio-mode-pill {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -560,6 +564,7 @@ body.transparent-mode .stream-container {
    HYPE DROP QUICK BUTTON
    ========================================================================== */
 .hype-drop-pill {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 5px;

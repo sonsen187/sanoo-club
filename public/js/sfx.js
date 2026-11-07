@@ -1,9 +1,12 @@
 // Procedural Web Audio DJ Sound Effects & Synthesizer
 class DJSoundEffects {
   constructor(audioCtx) {
-    this.ctx = audioCtx;
+    this.ctx = audioCtx || null;
     this.enabled = true;
     this.masterGain = null;
+    if (audioCtx) {
+      this.init(audioCtx);
+    }
   }
 
   init(audioCtx) {
