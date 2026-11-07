@@ -207,58 +207,26 @@ function processChat(chatEvent) {
   // Command parsing
   const lower = comment.toLowerCase();
 
-  // Join command
-  if (lower === '!join' || lower === '1' || lower === '!nhay' || lower === 'join' || lower === 'nhay') {
+  // 1. Gia nhập sàn nhảy: Chat "1" (hoặc !join)
+  if (lower === '1' || lower === '!join' || lower === 'join') {
     addOrUpdateDancer({ username, nickname, avatar });
     broadcast('chat_command', { username, command: 'join', message: `${nickname} đã gia nhập sàn nhảy!` });
   }
-  // Change dance style: !dance 1 / !dance 2 / !dance 3 (hoặc !vudao 1, !style 1)
-  else if (lower.startsWith('!dance') || lower.startsWith('!vudao') || lower.startsWith('!style') || lower.startsWith('!nv')) {
-    const parts = lower.split(/\s+/);
-    const styleId = parseInt(parts[1], 10);
-    if ([1, 2, 3].includes(styleId)) {
-      addOrUpdateDancer({ username, nickname, avatar, charType: styleId, danceStyle: styleId });
-      const styleNames = {
-        1: 'Rave Wave Quơ Que Sáng ⚡',
-        2: 'Shuffle Dance Giậm Chân & Lắc Hông 👟',
-        3: 'Hands Up Hai Tay Giơ Cao & Nhảy Bật 🚀'
-      };
-      broadcast('chat_command', {
-        username,
-        command: 'dance_change',
-        charType: styleId,
-        danceStyle: styleId,
-        message: `${nickname} đổi vũ đạo ${styleId}: ${styleNames[styleId] || ''}!`
-      });
-    }
-  }
-  // Specific Cat selections: !cat1 / !meo1, !cat2 / !meo2, !cat3 / !meo3
-  else if (lower === '!cat1' || lower === '!meo1') {
+  // 2. Chọn Mèo & Vũ đạo: !1 / !meo1, !2 / !meo2, !3 / !meo3
+  else if (lower === '!1' || lower === '!meo1' || lower === '!dance 1') {
     addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 1, danceStyle: 1 });
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Đen Rave Que Sáng 🐱⚡!` });
   }
-  else if (lower === '!cat2' || lower === '!meo2') {
+  else if (lower === '!2' || lower === '!meo2' || lower === '!dance 2') {
     addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 2, danceStyle: 2 });
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Vàng Shuffle 🐱👟!` });
   }
-  else if (lower === '!cat3' || lower === '!meo3') {
+  else if (lower === '!3' || lower === '!meo3' || lower === '!dance 3') {
     addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 3, danceStyle: 3 });
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Xám Hands Up 🐱🚀!` });
   }
-  // Random Cat: !cat / !meo
-  else if (lower === '!cat' || lower === '!meo') {
-    const cType = Math.floor(Math.random() * 3) + 1;
-    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: cType, danceStyle: cType });
-    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} đổi loại Mèo quẩy 🐱!` });
-  }
-  // Human legacy commands inform that dancers are all cats
-  else if (lower === '!male' || lower === '!nam' || lower === '!boy' || lower === '!female' || lower === '!nu' || lower === '!girl') {
-    const cType = Math.floor(Math.random() * 3) + 1;
-    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: cType, danceStyle: cType });
-    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname}: Toàn sàn đang dùng đội hình Mèo DJ Quẩy Cực Sung 🐱!` });
-  }
-  // Request song: !song <index or name>
-  else if (lower.startsWith('!song') || lower.startsWith('!diembai') || lower.startsWith('!bai')) {
+  // 3. Chọn bài hát: !bai <số ID hoặc tên bài>
+  else if (lower.startsWith('!bai') || lower.startsWith('!song')) {
     if (playlist.length > 0) {
       const spaceIdx = comment.indexOf(' ');
       if (spaceIdx !== -1) {
@@ -285,8 +253,8 @@ function processChat(chatEvent) {
       }
     }
   }
-  // Skip track: !skip
-  else if (lower === '!skip' || lower === '!next' || lower === 'chuyenbai') {
+  // 4. Chuyển bài kế tiếp: !next
+  else if (lower === '!next' || lower === '!skip') {
     if (playlist.length > 0) {
       state.currentTrackIndex = (state.currentTrackIndex + 1) % playlist.length;
       broadcast('track_change', {
@@ -296,32 +264,26 @@ function processChat(chatEvent) {
       });
     }
   }
-  // Effect & Sound commands
+  // 5. Hiệu ứng sân khấu: !fire, !smoke, !phao, !rave
   else if (lower === '!fire' || lower === '!lua') {
     broadcast('trigger_effect', { effect: 'flame', triggerBy: nickname });
   } else if (lower === '!smoke' || lower === '!khoi') {
     broadcast('trigger_effect', { effect: 'smoke', triggerBy: nickname });
-  } else if (lower === '!rave' || lower === '!quay' || lower === '!all') {
-    broadcast('trigger_effect', { effect: 'rave', triggerBy: nickname });
-  } else if (lower === '!laser') {
-    broadcast('trigger_effect', { effect: 'laser', triggerBy: nickname });
-  } else if (lower === '!phao' || lower === '!firework' || lower === '!fireworks') {
+  } else if (lower === '!phao') {
     broadcast('trigger_effect', { effect: 'fireworks', triggerBy: nickname });
-  } else if (lower === '!confetti' || lower === '!phaogiay') {
-    broadcast('trigger_effect', { effect: 'confetti', triggerBy: nickname });
-  } else if (lower === '!horn' || lower === '!coi') {
+  } else if (lower === '!rave' || lower === '!quay') {
+    broadcast('trigger_effect', { effect: 'rave', triggerBy: nickname });
+  }
+  // 6. Hiệu ứng âm thanh DJ: !coi, !siren, !bass
+  else if (lower === '!coi' || lower === '!horn') {
     broadcast('trigger_effect', { effect: 'airhorn', triggerBy: nickname });
-  } else if (lower === '!scratch') {
-    broadcast('trigger_effect', { effect: 'scratch', triggerBy: nickname });
   } else if (lower === '!siren') {
     broadcast('trigger_effect', { effect: 'siren', triggerBy: nickname });
-  } else if (lower === '!bass' || lower === '!sub') {
+  } else if (lower === '!bass') {
     broadcast('trigger_effect', { effect: 'bassdrop', triggerBy: nickname });
-  } else if (lower === '!cheer' || lower === '!ho') {
-    broadcast('trigger_effect', { effect: 'cheer', triggerBy: nickname });
   }
 
-  // Broadcast chat message for dancer speech bubble & overlay chat log
+    // Broadcast chat message for dancer speech bubble & overlay chat log
   broadcast('chat', {
     username,
     nickname,
