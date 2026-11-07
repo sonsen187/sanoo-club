@@ -60,9 +60,9 @@
 
   let assetsLoaded = false;
 
-  // Preload character frame sequences
+  // Preload character frame sequences (Only cats: 14 + 13 + 14 = 41 frames)
   function preloadAssets(callback) {
-    let toLoad = 14 + 13 + 14 + 14 + 14 + 1; // 70 assets total
+    let toLoad = 14 + 13 + 14 + 1; // 42 assets total
     let loaded = 0;
     let finished = false;
 
@@ -75,15 +75,13 @@
       }
     }
 
-    // Safety timeout: if any asset stalls or takes > 2.5s, continue anyway!
     setTimeout(() => {
       if (!finished) {
         finished = true;
         assetsLoaded = true;
-        console.log(`Asset preloading reached fallback timeout (${loaded}/${toLoad} loaded)`);
         if (callback) callback();
       }
-    }, 2500);
+    }, 2000);
 
     // Char 1: 14 frames
     for (let i = 1; i <= 14; i++) {
@@ -111,43 +109,6 @@
       img.onerror = checkDone;
       spriteCache.char3.push(img);
     }
-
-    // Human Male Chibi: 14 frames PNG
-    for (let i = 1; i <= 14; i++) {
-      const img = new Image();
-      img.src = `/assets/characters/human_male/${i}.png?v=chibi1`;
-      img.onload = checkDone;
-      img.onerror = checkDone;
-      spriteCache.human_male.push(img);
-    }
-
-    // Human Female Chibi: 14 frames PNG
-    for (let i = 1; i <= 14; i++) {
-      const img = new Image();
-      img.src = `/assets/characters/human_female/${i}.png?v=chibi1`;
-      img.onload = checkDone;
-      img.onerror = checkDone;
-      spriteCache.human_female.push(img);
-    }
-    // Populate aliases so any legacy or tier lookup maps to chibi PNGs
-    ['regular', 'top1', 'top2', 'top3'].forEach(tier => {
-      ['style1', 'style2', 'style3'].forEach(style => {
-        spriteCache[`human_male_${tier}_${style}`] = spriteCache.human_male;
-        spriteCache[`human_female_${tier}_${style}`] = spriteCache.human_female;
-      });
-      spriteCache[`human_male_${tier}`] = spriteCache.human_male;
-      spriteCache[`human_female_${tier}`] = spriteCache.human_female;
-    });
-
-    // Generate dynamic 3-style high-definition Cool DJ Sprite Cache if engine is loaded
-    if (typeof HumanSpriteSystem !== 'undefined' && HumanSpriteSystem.generateSpriteCache) {
-      try {
-        HumanSpriteSystem.generateSpriteCache(spriteCache);
-      } catch (err) {
-        console.warn('Error generating dynamic human sprite cache:', err);
-      }
-    }
-
     // Speaker texture
     const spk = new Image();
     spk.src = '/assets/textures/speaker.png';
@@ -699,28 +660,9 @@
     }
 
     getFrames() {
-      if (this.charCategory === 'human') {
-        const gender = this.gender === 'female' ? 'female' : 'male';
-        const tier = this.getUniformTier();
-        const styleKey = 'style' + (this.danceStyle || 1);
-
-        // 1. Exact tier + dance style match (Dynamic high-def cache)
-        if (spriteCache[`human_${gender}_${tier}_${styleKey}`] && spriteCache[`human_${gender}_${tier}_${styleKey}`].length > 0) {
-          return spriteCache[`human_${gender}_${tier}_${styleKey}`];
-        }
-        // 2. Tier fallback
-        if (spriteCache[`human_${gender}_${tier}`] && spriteCache[`human_${gender}_${tier}`].length > 0) {
-          return spriteCache[`human_${gender}_${tier}`];
-        }
-        // 3. Static PNG array fallback
-        const list = (gender === 'female' ? spriteCache.human_female : spriteCache.human_male);
-        if (list && list.length > 0) return list;
-      }
       const catList = spriteCache[`char${this.charType}`] || spriteCache.char1;
-      if (catList && catList.length > 0) return catList;
-      return (spriteCache.human_male && spriteCache.human_male.length > 0) ? spriteCache.human_male : (spriteCache.char1 || []);
+      return (catList && catList.length > 0) ? catList : (spriteCache.char1 || []);
     }
-
     getUniformTier() {
       if (this.vipRank === 1) return 'top1';
       if (this.vipRank === 2) return 'top2';
@@ -860,7 +802,6 @@
     }
 
     render(ctx, now) {
-      const isHuman = (this.charCategory === 'human');
       const frames = this.getFrames();
       if (!frames || frames.length === 0) return;
 
@@ -870,53 +811,61 @@
       if (!img) return;
       if (img.complete !== undefined && (!img.complete || img.naturalWidth === 0)) return;
 
+      const charKey = 'char' + (this.charType || 1);
+      const metaList = CAT_SPRITE_META[charKey] || CAT_SPRITE_META.char1;
+      const meta = (metaList && metaList[fIdx % metaList.length]) || [160, 175, 95, 128];
+      const bodyCX = meta[0];
+      const bodyBottomY = meta[1];
+      const bodyH = meta[2];
+      const bodyCY = meta[3];
+
+      const drawScale = this.scale * 1.1;
       const screenX = this.x * W;
       const totalYOffset = this.jumpOffset + this.bounceY;
       const screenY = this.y * H - totalYOffset;
-      const baseWidth = img.naturalWidth || img.width || (isHuman ? 320 : 300);
-      const baseHeight = img.naturalHeight || img.height || (isHuman ? 240 : 200);
-      const scaleMultiplier = isHuman ? 1.05 : 1.1;
-      const drawWidth = baseWidth * this.scale * scaleMultiplier;
-      const drawHeight = baseHeight * this.scale * scaleMultiplier;
+
+      const catVisualW = 145 * drawScale;
+      const catVisualH = bodyH * drawScale;
+      const catCenterY = -(bodyBottomY - bodyCY) * drawScale;
 
       ctx.save();
       ctx.translate(screenX, screenY);
       ctx.rotate(this.swayAngle);
       ctx.scale(1 / this.squash, this.squash);
 
-      // Floor Shadow
+      // Floor Shadow: Drawn exactly at feet contact (y = 0)
       ctx.save();
       ctx.scale(this.squash, 1 / this.squash);
       ctx.rotate(-this.swayAngle);
       ctx.beginPath();
       const shadowScale = Math.max(0.45, 1 - (totalYOffset / 110));
-      ctx.ellipse(0, drawHeight * 0.42 + totalYOffset, drawWidth * 0.35 * shadowScale, drawWidth * 0.12 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, (catVisualW * 0.45) * shadowScale, (catVisualW * 0.16) * shadowScale, 0, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(0, 0, 0, ${0.45 * shadowScale})`;
       ctx.fill();
       ctx.restore();
 
       // ========================================================
-      // 1. VIP AURAS (Drawn behind character sprite)
+      // 1. VIP AURAS (Centered on cat body center)
       // ========================================================
       if (this.vipRank === 1) {
-        // TOP 1: Super Saiyan Imperial Golden Aura + Orbiting 4-Point Stars
+        // TOP 1: Super Saiyan Imperial Golden Aura + Orbiting Stars
         ctx.save();
-        const auraR = drawWidth * 0.62 * (1.0 + beatEngine.bassLevel * 0.18);
-        const auraGrad = ctx.createRadialGradient(0, 0, drawWidth * 0.2, 0, 0, auraR);
+        const auraR = catVisualW * 0.95 * (1.0 + beatEngine.bassLevel * 0.18);
+        const auraGrad = ctx.createRadialGradient(0, catCenterY, catVisualW * 0.2, 0, catCenterY, auraR);
         auraGrad.addColorStop(0, 'rgba(255, 240, 100, 0.45)');
         auraGrad.addColorStop(0.5, 'rgba(255, 193, 7, 0.3)');
         auraGrad.addColorStop(1, 'rgba(255, 111, 0, 0)');
         ctx.fillStyle = auraGrad;
         ctx.beginPath();
-        ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+        ctx.arc(0, catCenterY, auraR, 0, Math.PI * 2);
         ctx.fill();
 
         // 4 Golden Orbiting Sparkle Stars
         for (let s = 0; s < 4; s++) {
           const starAngle = curNow * 0.0025 + s * (Math.PI / 2);
-          const starDist = drawWidth * 0.54;
+          const starDist = catVisualW * 0.82;
           const sx = Math.cos(starAngle) * starDist;
-          const sy = Math.sin(starAngle) * (starDist * 0.55);
+          const sy = catCenterY + Math.sin(starAngle) * (starDist * 0.55);
           drawSparkleStar(ctx, sx, sy, 13 + Math.sin(curNow * 0.008 + s) * 4, '#ffffff', '#ffe600');
         }
         ctx.restore();
@@ -924,22 +873,22 @@
       } else if (this.vipRank === 2) {
         // TOP 2: Electric Cyan / Silver Overlord Aura + Orbiting Cyan Stars
         ctx.save();
-        const auraR = drawWidth * 0.54 * (1.0 + beatEngine.bassLevel * 0.14);
-        const auraGrad = ctx.createRadialGradient(0, 0, drawWidth * 0.15, 0, 0, auraR);
+        const auraR = catVisualW * 0.88 * (1.0 + beatEngine.bassLevel * 0.14);
+        const auraGrad = ctx.createRadialGradient(0, catCenterY, catVisualW * 0.15, 0, catCenterY, auraR);
         auraGrad.addColorStop(0, 'rgba(0, 240, 255, 0.42)');
         auraGrad.addColorStop(0.6, 'rgba(0, 140, 255, 0.22)');
         auraGrad.addColorStop(1, 'rgba(0, 60, 180, 0)');
         ctx.fillStyle = auraGrad;
         ctx.beginPath();
-        ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+        ctx.arc(0, catCenterY, auraR, 0, Math.PI * 2);
         ctx.fill();
 
         // 3 Cyan Orbiting Stars
         for (let s = 0; s < 3; s++) {
           const starAngle = -curNow * 0.0022 + s * (Math.PI * 2 / 3);
-          const starDist = drawWidth * 0.48;
+          const starDist = catVisualW * 0.75;
           const sx = Math.cos(starAngle) * starDist;
-          const sy = Math.sin(starAngle) * (starDist * 0.52);
+          const sy = catCenterY + Math.sin(starAngle) * (starDist * 0.52);
           drawSparkleStar(ctx, sx, sy, 10, '#ffffff', '#00f0ff');
         }
         ctx.restore();
@@ -947,46 +896,48 @@
       } else if (this.vipRank === 3) {
         // TOP 3: Warm Amber Bronze Warrior Aura
         ctx.save();
-        const auraR = drawWidth * 0.48 * (1.0 + beatEngine.bassLevel * 0.12);
-        const auraGrad = ctx.createRadialGradient(0, 0, drawWidth * 0.12, 0, 0, auraR);
+        const auraR = catVisualW * 0.80 * (1.0 + beatEngine.bassLevel * 0.12);
+        const auraGrad = ctx.createRadialGradient(0, catCenterY, catVisualW * 0.12, 0, catCenterY, auraR);
         auraGrad.addColorStop(0, 'rgba(255, 140, 0, 0.4)');
         auraGrad.addColorStop(0.6, 'rgba(217, 119, 6, 0.2)');
         auraGrad.addColorStop(1, 'rgba(120, 53, 15, 0)');
         ctx.fillStyle = auraGrad;
         ctx.beginPath();
-        ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+        ctx.arc(0, catCenterY, auraR, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
       } else if (this.isVip) {
-        // Fallback VIP Golden Glow
         ctx.beginPath();
-        ctx.arc(0, 0, drawWidth * 0.5, 0, Math.PI * 2);
+        ctx.arc(0, catCenterY, catVisualW * 0.7, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 230, 0, 0.22)';
         ctx.fill();
       }
 
-      // 2. Draw character sprite (centered at origin)
-      ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      // ========================================================
+      // 2. Draw Cat Sprite (Exact Body Center at x=0, Feet at y=0)
+      // ========================================================
+      const imgX = -bodyCX * drawScale;
+      const imgY = -bodyBottomY * drawScale;
+      ctx.drawImage(img, imgX, imgY, img.width * drawScale, img.height * drawScale);
 
-      // Glowstick rave trail / pulse on beat impact for char 2!
+      // Glowstick pulse on beat impact for char 2
       if (this.charType === 2 && this.kickImpulse > 0.15) {
         ctx.save();
         ctx.globalAlpha = this.kickImpulse * 0.7;
         ctx.fillStyle = '#00ff88';
-        
         ctx.beginPath();
-        ctx.arc(-drawWidth * 0.28, -drawHeight * 0.12, 16 * this.kickImpulse, 0, Math.PI * 2);
-        ctx.arc(drawWidth * 0.28, -drawHeight * 0.12, 16 * this.kickImpulse, 0, Math.PI * 2);
+        ctx.arc(-catVisualW * 0.35, catCenterY, 16 * this.kickImpulse, 0, Math.PI * 2);
+        ctx.arc(catVisualW * 0.35, catCenterY, 16 * this.kickImpulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
 
       // ========================================================
-      // 3. FLOATING NAME TAG (Hierarchical VIP Badges)
+      // 3. FLOATING NAME TAG (Neatly above cat ears)
       // ========================================================
       ctx.save();
-      ctx.rotate(-this.swayAngle); // Keep text level
+      ctx.rotate(-this.swayAngle);
       let nameText = this.nickname;
       let badgePrefix = '';
       let fontSize = 15;
@@ -1014,36 +965,32 @@
       const fullText = badgePrefix + nameText;
       const textWidth = ctx.measureText(fullText).width;
       const tagWidth = Math.max(textWidth + 24, 88);
-      const tagY = isHuman ? (-drawHeight * 0.40 - tagHeight * 0.6) : (-drawHeight * 0.42 - tagHeight * 0.5);
+      const tagY = -catVisualH - tagHeight - 8;
 
       // Tag Background
-      let tagBg, tagBorder, tagTextCol, tagGlow;
+      let tagBg, tagBorder, tagTextCol;
       if (this.vipRank === 1) {
         tagBg = ctx.createLinearGradient(-tagWidth / 2, tagY, tagWidth / 2, tagY + tagHeight);
         tagBg.addColorStop(0, '#ffe600');
         tagBg.addColorStop(1, '#ff9900');
         tagBorder = '#ffffff';
         tagTextCol = '#000000';
-        tagGlow = '#ffe600';
       } else if (this.vipRank === 2) {
         tagBg = ctx.createLinearGradient(-tagWidth / 2, tagY, tagWidth / 2, tagY + tagHeight);
         tagBg.addColorStop(0, '#e0f7fa');
         tagBg.addColorStop(1, '#00b4d8');
         tagBorder = '#ffffff';
         tagTextCol = '#000000';
-        tagGlow = '#00f0ff';
       } else if (this.vipRank === 3) {
         tagBg = ctx.createLinearGradient(-tagWidth / 2, tagY, tagWidth / 2, tagY + tagHeight);
         tagBg.addColorStop(0, '#ffedd5');
         tagBg.addColorStop(1, '#d97706');
         tagBorder = '#ffffff';
         tagTextCol = '#000000';
-        tagGlow = '#ff8c00';
       } else {
         tagBg = this.isVip ? 'rgba(255, 215, 0, 0.9)' : 'rgba(15, 20, 40, 0.85)';
         tagBorder = this.isVip ? '#ffffff' : 'rgba(0, 240, 255, 0.8)';
         tagTextCol = this.isVip ? '#000000' : '#ffffff';
-        tagGlow = this.isVip ? '#ffe600' : null;
       }
 
       ctx.fillStyle = tagBg;
@@ -2111,6 +2058,15 @@
   }
 
   // 3 VIP Podiums Configurations (Shifted UP, Perfectly Spaced & Centered)
+  
+  // Exact Per-Frame Cat Body Bounding Box & Alignment Metadata [bodyCX, bodyBottomY, bodyH, bodyCY]
+  // Ensures 100% mathematical center and feet contact alignment regardless of swinging glowsticks
+  const CAT_SPRITE_META = {
+    char1: [[138,173,95,126],[126,174,90,129],[143,174,74,137],[142,174,74,137],[161,173,94,126],[164,173,100,123],[165,173,85,131],[175,173,95,126],[177,173,89,129],[168,174,68,140],[162,174,85,132],[155,173,95,126],[147,173,100,123],[145,174,77,136]],
+    char2: [[186,172,104,120],[181,172,100,122],[171,173,85,131],[166,173,78,134],[168,173,103,122],[175,172,110,117],[177,173,111,118],[186,173,105,121],[181,173,95,126],[171,173,86,130],[162,173,90,128],[169,173,102,122],[175,172,111,117]],
+    char3: [[120,189,102,138],[118,170,93,124],[128,171,83,130],[150,200,98,151],[164,229,116,171],[132,230,107,177],[132,230,107,177],[104,219,127,156],[113,175,90,130],[123,166,83,125],[112,192,98,143],[104,216,114,159],[93,214,107,161],[93,214,107,161]]
+  };
+
   const PODIUM_CONFIG = {
     top1: {
       cx: W * 0.50, // 540px Center
@@ -2230,16 +2186,13 @@
 
     // 3. Anchor VIPs precisely to stand in the DEAD CENTER of each podium platform
     dancers.forEach(d => {
+      d.charCategory = 'cat';
+      if (!d.charType || d.charType > 3) d.charType = 1 + Math.floor(Math.random() * 3);
+
       if (d.vipRank === 1) {
         const p = PODIUM_CONFIG.top1;
         d.targetX = p.cx / W;
-        const isHuman = (d.charCategory === 'human');
-        const baseH = isHuman ? 320 : 194;
-        const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 1.38 * scaleMult;
-        // Top 1 contact point squarely on Tier 2 top platform (cy = 970px):
-        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
-        d.targetY = (p.cy - 16 - contactOffset) / H;
+        d.targetY = p.cy / H; // Feet touch dead center of Tier 2 gold platform face
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
@@ -2247,12 +2200,7 @@
       } else if (d.vipRank === 2) {
         const p = PODIUM_CONFIG.top2;
         d.targetX = p.cx / W;
-        const isHuman = (d.charCategory === 'human');
-        const baseH = isHuman ? 320 : 194;
-        const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 0.88 * scaleMult;
-        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
-        d.targetY = (p.cy - 14 - contactOffset) / H;
+        d.targetY = p.cy / H; // Feet touch dead center of silver platform face
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
@@ -2260,29 +2208,24 @@
       } else if (d.vipRank === 3) {
         const p = PODIUM_CONFIG.top3;
         d.targetX = p.cx / W;
-        const isHuman = (d.charCategory === 'human');
-        const baseH = isHuman ? 320 : 194;
-        const scaleMult = isHuman ? 1.05 : 1.1;
-        const drawH = baseH * 0.78 * scaleMult;
-        const contactOffset = isHuman ? (drawH * 0.48) : (drawH * 0.47);
-        d.targetY = (p.cy - 14 - contactOffset) / H;
+        d.targetY = p.cy / H; // Feet touch dead center of bronze platform face
         d.x = d.targetX;
         d.y = d.targetY;
         d.vipPositioned = true;
         d.lastVipRank = 3;
       } else {
         d.lastVipRank = 0;
-        // Regular crowd (không có top): close the gap! Dance floor starts right below podiums (y = 0.59 ~ 0.88)
-        if (!d.crowdPositioned || d.targetY >= 0.67 || d.targetY < 0.585) {
+        // Regular crowd (không có top): dance on floor starting right below podiums (y = 0.60 ~ 0.88)
+        if (!d.crowdPositioned || d.targetY >= 0.67 || d.targetY < 0.59) {
           const str = d.id || d.username || 'user';
           let hash = 0;
           for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
           hash = Math.abs(hash);
           const row = hash % 18;
-          d.targetY = 0.595 + row * 0.016; // 18 natural staggered depth rows (0.595 ~ 0.87)
+          d.targetY = 0.60 + row * 0.016;
 
-          // Avoid standing directly on Top 2 or Top 3 podium bases in front rows (y < 0.62)
-          if (d.targetY < 0.62) {
+          // Avoid standing directly on Top 2 or Top 3 podium bases in front rows (y < 0.63)
+          if (d.targetY < 0.63) {
             if (d.targetX >= 0.08 && d.targetX <= 0.32) d.targetX = 0.38 + ((hash >> 3) % 4) * 0.04;
             if (d.targetX >= 0.68 && d.targetX <= 0.92) d.targetX = 0.62 - ((hash >> 3) % 4) * 0.04;
           }

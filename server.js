@@ -56,7 +56,7 @@ const state = {
     autoJoinOnGift: true,
     chatBubbleDuration: 5000,
     effectsDuration: 4000,
-    characterTheme: 'humans', // 'humans' | 'cats' | 'all'
+    characterTheme: 'cats', // 100% Cats on dance floor (Only DJ is human)
     audioMode: 'glass_room' // 'glass_room' | 'main_floor' | 'outside_door'
   }
 };
@@ -86,31 +86,10 @@ function addOrUpdateDancer(user) {
   const nickname = user.nickname || username;
   const avatar = user.avatar || user.profilePictureUrl || '';
 
-  // Determine character category and attributes based on settings
-  let charCategory = user.charCategory;
-  let gender = user.gender;
-  let charType = user.charType;
-  let danceStyle = user.danceStyle;
-
-  if (!charCategory) {
-    if (state.settings.characterTheme === 'cats') {
-      charCategory = 'cat';
-    } else if (state.settings.characterTheme === 'humans') {
-      charCategory = 'human';
-    } else {
-      // 'all' / mixed: 65% humans, 35% cats
-      charCategory = Math.random() < 0.35 ? 'cat' : 'human';
-    }
-  }
-
-  if (charCategory === 'human') {
-    if (!gender) gender = Math.random() < 0.5 ? 'male' : 'female';
-    if (!danceStyle) danceStyle = Math.floor(Math.random() * 3) + 1;
-  } else {
-    charCategory = 'cat';
-    if (!charType) charType = Math.floor(Math.random() * 3) + 1;
-  }
-
+  // 🐱 ALL DANCERS ARE 100% CATS (Only DJ is human)
+  const charCategory = 'cat';
+  let charType = user.charType || Math.floor(Math.random() * 3) + 1;
+  let danceStyle = user.danceStyle || Math.floor(Math.random() * 3) + 1;
   if (!state.dancers[username]) {
     // Enforce max dancers limit: evict least recently active non-VIP dancer if floor is full
     const dancerKeys = Object.keys(state.dancers);
@@ -132,8 +111,7 @@ function addOrUpdateDancer(user) {
       username,
       nickname,
       avatar,
-      charCategory,
-      gender,
+      charCategory: 'cat',
       charType,
       danceStyle: danceStyle || 1,
       x: 0.15 + Math.random() * 0.7, // normalized 0..1
@@ -644,7 +622,7 @@ function handleClientMessage(msg, ws) {
             d.charCategory = 'cat';
             if (!d.charType) d.charType = Math.floor(Math.random() * 3) + 1;
           } else if (data.characterTheme === 'humans') {
-            d.charCategory = 'human';
+            d.charCategory = 'cat';
             if (!d.gender) d.gender = Math.random() < 0.5 ? 'male' : 'female';
           } else if (data.characterTheme === 'all') {
             const r = Math.random();
