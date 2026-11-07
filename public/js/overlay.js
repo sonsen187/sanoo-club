@@ -417,6 +417,8 @@
     isBeatHit: false,    // True on instant kick drop
     kickPower: 0,
     lastBeatTime: 0,
+    orbitAngle: 0,
+    orbitSpeed: 0.45,
 
     update(now, dt) {
       // 1. Sync Tempo and BPM from Current Track
@@ -594,6 +596,29 @@
           textEl.className = 'bass-mode-text';
         }
       }
+
+      // =========================================================================
+      // 5. Dynamic VIP Orbit Rotation Velocity synced to Sub-Bass and Beat:
+      // - Khi KHÔNG CÓ BASS (Nhạc dạo / Intro / Chill): Xoay lững lờ cực chậm (~0.40 rad/s)
+      // - Khi CÓ BASS:
+      //   + Cú đập Kick Drum (Downbeat): Tốc độ bùng nổ vút cực nhanh (lên tới 12 ~ 16 rad/s)!
+      //   + Khoảng nghỉ giữa 2 nhịp kick: Tốc độ hãm chậm lại rõ rệt (~1.2 rad/s)
+      //   => Tạo cảm giác vòng xoay "VÚT NHANH RỒI HÃM CHẬM" đúng từng nhịp bass của bài!
+      // =========================================================================
+      const safeDt = Math.min(dt || 0.016, 0.05);
+      if (!this.isBassActive || this.danceEnergy < 0.15) {
+        // Nhạc dạo / Không có bass: trôi chậm rãi
+        const idleSpeed = 0.40;
+        this.orbitSpeed = (this.orbitSpeed || 0.4) + (idleSpeed - (this.orbitSpeed || 0.4)) * 0.15;
+      } else {
+        // Có bass: Tốc độ tỷ lệ trực tiếp với mức độ Bass và xung nhịp Kick
+        const kickSnap = Math.pow(Math.max(0, 1.0 - this.beatPhase * 2.2), 2.2);
+        const peakSurge = kickSnap * (6.5 + this.bassLevel * 8.5);
+        const baseGlide = 1.0 + this.bassLevel * 1.5;
+        const targetSpeed = baseGlide + peakSurge;
+        this.orbitSpeed = (this.orbitSpeed || 1.0) + (targetSpeed - (this.orbitSpeed || 1.0)) * (targetSpeed > this.orbitSpeed ? 0.70 : 0.35);
+      }
+      this.orbitAngle = ((this.orbitAngle || 0) + this.orbitSpeed * safeDt) % (Math.PI * 20000);
     },
 
     forceHypeDrop(durationSec = 14) {
@@ -639,12 +664,17 @@
 
     const bass = beatEngine.bassLevel || 0;
     const kick = kickImpulse || 0;
-    const beatProg = beatEngine.beatProgress || (curNow * 0.002);
-    const beatPhase = beatEngine.beatPhase || 0;
-    const kickSurge = Math.sin(beatPhase * Math.PI) * 0.10 * bass;
+    const orbitAngle = (beatEngine && beatEngine.orbitAngle !== undefined)
+      ? beatEngine.orbitAngle
+      : (curNow * 0.002);
+    const orbitSpeed = (beatEngine && beatEngine.orbitSpeed !== undefined)
+      ? beatEngine.orbitSpeed
+      : 1.0;
+    const beatPhase = (beatEngine && beatEngine.beatPhase !== undefined) ? beatEngine.beatPhase : 0;
+    const kickSnap = Math.pow(Math.max(0, 1.0 - beatPhase * 2.2), 2.2);
 
     let orbCount = 4;
-    let baseAngle = (beatProg * 0.25) * Math.PI * 2 + kickSurge; // 1 full orbit per 4 beats (1 bar)
+    let baseAngle = orbitAngle;
     let dir = 1;
     let tilt = -0.22;
     let rx = catVisualW * 0.92 * (1.0 + bass * 0.15 + kick * 0.08);
@@ -662,8 +692,8 @@
       tilt = -0.22;
       rx = catVisualW * 0.92 * (1.0 + bass * 0.16 + kick * 0.08);
       ry = catVisualW * 0.38 * (1.0 + bass * 0.12);
-      baseAngle = (beatProg * 0.25) * Math.PI * 2 + kickSurge;
-      ringOuterColor = `rgba(255, 215, 0, ${0.45 + bass * 0.35})`;
+      baseAngle = orbitAngle;
+      ringOuterColor = `rgba(255, 215, 0, ${0.45 + bass * 0.35 + kickSnap * 0.20})`;
       ringCoreColor = `rgba(255, 255, 220, ${0.80 + bass * 0.20})`;
       orbOuterColor = '#ffe600';
       orbCoreColor = '#ffffff';
@@ -675,8 +705,8 @@
       tilt = 0.22;
       rx = catVisualW * 0.86 * (1.0 + bass * 0.14 + kick * 0.07);
       ry = catVisualW * 0.35 * (1.0 + bass * 0.10);
-      baseAngle = -(beatProg * 0.25) * Math.PI * 2 - kickSurge;
-      ringOuterColor = `rgba(0, 240, 255, ${0.40 + bass * 0.35})`;
+      baseAngle = -orbitAngle;
+      ringOuterColor = `rgba(0, 240, 255, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
       ringCoreColor = `rgba(215, 250, 255, ${0.80 + bass * 0.20})`;
       orbOuterColor = '#00f0ff';
       orbCoreColor = '#ffffff';
@@ -688,8 +718,8 @@
       tilt = -0.16;
       rx = catVisualW * 0.80 * (1.0 + bass * 0.12 + kick * 0.06);
       ry = catVisualW * 0.32 * (1.0 + bass * 0.09);
-      baseAngle = (beatProg * 0.25 + 0.5) * Math.PI * 2 + kickSurge;
-      ringOuterColor = `rgba(255, 140, 0, ${0.40 + bass * 0.35})`;
+      baseAngle = orbitAngle + Math.PI;
+      ringOuterColor = `rgba(255, 140, 0, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
       ringCoreColor = `rgba(255, 235, 170, ${0.75 + bass * 0.25})`;
       orbOuterColor = '#ff8c00';
       orbCoreColor = '#ffffff';
@@ -703,15 +733,15 @@
     const endArc = isFrontPass ? Math.PI : Math.PI * 2;
     ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
 
-    // Outer Neon Glow
-    ctx.lineWidth = (isFrontPass ? 4.0 : 2.5) + bass * 2.5;
+    // Outer Neon Glow (expands on kick drum spike)
+    ctx.lineWidth = (isFrontPass ? 4.0 : 2.5) + bass * 2.5 + kickSnap * 2.0;
     ctx.strokeStyle = ringOuterColor;
     ctx.stroke();
 
     // Core Bright Filament
     ctx.beginPath();
     ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
-    ctx.lineWidth = (isFrontPass ? 1.8 : 1.0) + bass * 0.8;
+    ctx.lineWidth = (isFrontPass ? 1.8 : 1.0) + bass * 0.8 + kickSnap * 0.6;
     ctx.strokeStyle = ringCoreColor;
     ctx.stroke();
     ctx.restore();
@@ -725,15 +755,16 @@
       const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
       const isFront = Math.sin(normAngle) >= 0;
 
-      // Only draw during the matching pass (back pass: behind cat; front pass: in front of cat)
+      // Only draw during matching pass (back pass: behind cat; front pass: in front of cat)
       if (isFront !== isFrontPass) continue;
 
       const z = Math.sin(normAngle); // -1 (deep behind) to +1 (front center)
       const depthScale = 1.0 + z * 0.30; // 0.70x in back to 1.30x in front
 
-      // A. Comet Motion Trail (3 trailing points along orbit)
+      // A. Comet Motion Trail (stretches dynamically with high rotation speed!)
+      const trailSpacing = 0.05 + Math.min(0.12, orbitSpeed * 0.009);
       for (let t = 3; t >= 1; t--) {
-        const trailAngle = orbAngle - dir * (t * 0.11);
+        const trailAngle = orbAngle - dir * (t * trailSpacing);
         const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
           const tu = rx * Math.cos(trailAngle);
@@ -758,11 +789,11 @@
       const v = ry * Math.sin(orbAngle);
       const ox = u * cosTilt - v * sinTilt;
       const oy = catCenterY + u * sinTilt + v * cosTilt;
-      const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.25);
+      const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.22 + kickSnap * 0.15);
 
       ctx.save();
-      // Outer Soft Radiant Glow
-      const haloR = curSize * 2.8 * (1.0 + bass * 0.35);
+      // Outer Soft Radiant Glow (pulses with kick snap)
+      const haloR = curSize * 2.8 * (1.0 + bass * 0.35 + kickSnap * 0.25);
       const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.25, ox, oy, haloR);
       haloGrad.addColorStop(0, orbOuterColor);
       haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -797,7 +828,7 @@
 
       // Sparkle Cross Flare on Front Pass (bright specular concert reflection)
       if (isFrontPass) {
-        const starRadius = (curSize * 1.6 + Math.sin(curNow * 0.012 + i) * 2.5) * (1.0 + bass * 0.4);
+        const starRadius = (curSize * 1.6 + Math.sin(curNow * 0.012 + i) * 2.5) * (1.0 + bass * 0.4 + kickSnap * 0.3);
         drawSparkleStar(ctx, ox, oy, starRadius, '#ffffff', orbOuterColor);
       }
       ctx.restore();
@@ -805,7 +836,6 @@
 
     ctx.restore();
   }
-
 
   // Dancer Class
   class Dancer {
