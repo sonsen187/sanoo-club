@@ -629,6 +629,184 @@
     ctx.restore();
   }
 
+
+  // 3D Beat-Synced Orbiting Celestial Rings & Energy Orbs for VIP Top 1, 2, 3
+  function drawVIPOrbitEffect(ctx, vipRank, catCenterY, catVisualW, curNow, beatEngine, kickImpulse, isFrontPass) {
+    if (!vipRank || vipRank < 1 || vipRank > 3) return;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter'; // Additive concert lighting glow
+
+    const bass = beatEngine.bassLevel || 0;
+    const kick = kickImpulse || 0;
+    const beatProg = beatEngine.beatProgress || (curNow * 0.002);
+    const beatPhase = beatEngine.beatPhase || 0;
+    const kickSurge = Math.sin(beatPhase * Math.PI) * 0.10 * bass;
+
+    let orbCount = 4;
+    let baseAngle = (beatProg * 0.25) * Math.PI * 2 + kickSurge; // 1 full orbit per 4 beats (1 bar)
+    let dir = 1;
+    let tilt = -0.22;
+    let rx = catVisualW * 0.92 * (1.0 + bass * 0.15 + kick * 0.08);
+    let ry = catVisualW * 0.38 * (1.0 + bass * 0.12);
+    let ringOuterColor = 'rgba(255, 230, 0, 0.45)';
+    let ringCoreColor = 'rgba(255, 255, 200, 0.90)';
+    let orbOuterColor = '#ffe600';
+    let orbCoreColor = '#ffffff';
+    let orbBaseSize = 7.5;
+
+    if (vipRank === 1) {
+      // TOP 1: Imperial Gold (4 Celestial Sun Gems, Clockwise, Tilted -13°)
+      orbCount = 4;
+      dir = 1;
+      tilt = -0.22;
+      rx = catVisualW * 0.92 * (1.0 + bass * 0.16 + kick * 0.08);
+      ry = catVisualW * 0.38 * (1.0 + bass * 0.12);
+      baseAngle = (beatProg * 0.25) * Math.PI * 2 + kickSurge;
+      ringOuterColor = `rgba(255, 215, 0, ${0.45 + bass * 0.35})`;
+      ringCoreColor = `rgba(255, 255, 220, ${0.80 + bass * 0.20})`;
+      orbOuterColor = '#ffe600';
+      orbCoreColor = '#ffffff';
+      orbBaseSize = 8.0;
+    } else if (vipRank === 2) {
+      // TOP 2: Electric Cyan Diamond (3 Cyber Diamonds, Counter-Clockwise, Tilted +13°)
+      orbCount = 3;
+      dir = -1;
+      tilt = 0.22;
+      rx = catVisualW * 0.86 * (1.0 + bass * 0.14 + kick * 0.07);
+      ry = catVisualW * 0.35 * (1.0 + bass * 0.10);
+      baseAngle = -(beatProg * 0.25) * Math.PI * 2 - kickSurge;
+      ringOuterColor = `rgba(0, 240, 255, ${0.40 + bass * 0.35})`;
+      ringCoreColor = `rgba(215, 250, 255, ${0.80 + bass * 0.20})`;
+      orbOuterColor = '#00f0ff';
+      orbCoreColor = '#ffffff';
+      orbBaseSize = 6.8;
+    } else if (vipRank === 3) {
+      // TOP 3: Warm Amber Flame (3 Bronze Fire Orbs, Clockwise, Tilted -9°)
+      orbCount = 3;
+      dir = 1;
+      tilt = -0.16;
+      rx = catVisualW * 0.80 * (1.0 + bass * 0.12 + kick * 0.06);
+      ry = catVisualW * 0.32 * (1.0 + bass * 0.09);
+      baseAngle = (beatProg * 0.25 + 0.5) * Math.PI * 2 + kickSurge;
+      ringOuterColor = `rgba(255, 140, 0, ${0.40 + bass * 0.35})`;
+      ringCoreColor = `rgba(255, 235, 170, ${0.75 + bass * 0.25})`;
+      orbOuterColor = '#ff8c00';
+      orbCoreColor = '#ffffff';
+      orbBaseSize = 6.2;
+    }
+
+    // 1. Draw Ring Segment (Back Arc: PI -> 2PI in back pass; Front Arc: 0 -> PI in front pass)
+    ctx.save();
+    ctx.beginPath();
+    const startArc = isFrontPass ? 0 : Math.PI;
+    const endArc = isFrontPass ? Math.PI : Math.PI * 2;
+    ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
+
+    // Outer Neon Glow
+    ctx.lineWidth = (isFrontPass ? 4.0 : 2.5) + bass * 2.5;
+    ctx.strokeStyle = ringOuterColor;
+    ctx.stroke();
+
+    // Core Bright Filament
+    ctx.beginPath();
+    ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
+    ctx.lineWidth = (isFrontPass ? 1.8 : 1.0) + bass * 0.8;
+    ctx.strokeStyle = ringCoreColor;
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Draw Orbiting Orbs and Comet Trails
+    const cosTilt = Math.cos(tilt);
+    const sinTilt = Math.sin(tilt);
+
+    for (let i = 0; i < orbCount; i++) {
+      const orbAngle = baseAngle + (i * (Math.PI * 2 / orbCount));
+      const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const isFront = Math.sin(normAngle) >= 0;
+
+      // Only draw during the matching pass (back pass: behind cat; front pass: in front of cat)
+      if (isFront !== isFrontPass) continue;
+
+      const z = Math.sin(normAngle); // -1 (deep behind) to +1 (front center)
+      const depthScale = 1.0 + z * 0.30; // 0.70x in back to 1.30x in front
+
+      // A. Comet Motion Trail (3 trailing points along orbit)
+      for (let t = 3; t >= 1; t--) {
+        const trailAngle = orbAngle - dir * (t * 0.11);
+        const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
+          const tu = rx * Math.cos(trailAngle);
+          const tv = ry * Math.sin(trailAngle);
+          const tx = tu * cosTilt - tv * sinTilt;
+          const ty = catCenterY + tu * sinTilt + tv * cosTilt;
+          const trailAlpha = (1 - t / 4) * (0.35 + bass * 0.45);
+          const trailR = orbBaseSize * depthScale * (1 - t * 0.22);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(tx, ty, Math.max(1, trailR), 0, Math.PI * 2);
+          ctx.fillStyle = ringOuterColor;
+          ctx.globalAlpha = trailAlpha;
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      // B. Main Orbiting Orb Coordinates
+      const u = rx * Math.cos(orbAngle);
+      const v = ry * Math.sin(orbAngle);
+      const ox = u * cosTilt - v * sinTilt;
+      const oy = catCenterY + u * sinTilt + v * cosTilt;
+      const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.25);
+
+      ctx.save();
+      // Outer Soft Radiant Glow
+      const haloR = curSize * 2.8 * (1.0 + bass * 0.35);
+      const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.25, ox, oy, haloR);
+      haloGrad.addColorStop(0, orbOuterColor);
+      haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = haloGrad;
+      ctx.beginPath();
+      ctx.arc(ox, oy, haloR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core Solid Shape
+      if (vipRank === 2) {
+        // Top 2: Diamond Crystal Shape (Rhombus)
+        ctx.save();
+        ctx.translate(ox, oy);
+        ctx.rotate(Math.PI / 4 + curNow * 0.003);
+        ctx.beginPath();
+        const dR = curSize * 1.15;
+        ctx.rect(-dR * 0.7, -dR * 0.7, dR * 1.4, dR * 1.4);
+        ctx.fillStyle = orbCoreColor;
+        ctx.shadowColor = orbOuterColor;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.restore();
+      } else {
+        // Top 1 & Top 3: Luminous Sphere
+        ctx.beginPath();
+        ctx.arc(ox, oy, curSize, 0, Math.PI * 2);
+        ctx.fillStyle = orbCoreColor;
+        ctx.shadowColor = orbOuterColor;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+      }
+
+      // Sparkle Cross Flare on Front Pass (bright specular concert reflection)
+      if (isFrontPass) {
+        const starRadius = (curSize * 1.6 + Math.sin(curNow * 0.012 + i) * 2.5) * (1.0 + bass * 0.4);
+        drawSparkleStar(ctx, ox, oy, starRadius, '#ffffff', orbOuterColor);
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+
   // Dancer Class
   class Dancer {
     constructor(data) {
@@ -850,7 +1028,7 @@
       // 1. VIP AURAS (Centered on cat body center)
       // ========================================================
       if (this.vipRank === 1) {
-        // TOP 1: Super Saiyan Imperial Golden Aura + Orbiting Stars
+        // TOP 1: Super Saiyan Imperial Golden Aura
         ctx.save();
         const auraR = catVisualW * 0.95 * (1.0 + beatEngine.bassLevel * 0.18);
         const auraGrad = ctx.createRadialGradient(0, catCenterY, catVisualW * 0.2, 0, catCenterY, auraR);
@@ -861,19 +1039,10 @@
         ctx.beginPath();
         ctx.arc(0, catCenterY, auraR, 0, Math.PI * 2);
         ctx.fill();
-
-        // 4 Golden Orbiting Sparkle Stars
-        for (let s = 0; s < 4; s++) {
-          const starAngle = curNow * 0.0025 + s * (Math.PI / 2);
-          const starDist = catVisualW * 0.82;
-          const sx = Math.cos(starAngle) * starDist;
-          const sy = catCenterY + Math.sin(starAngle) * (starDist * 0.55);
-          drawSparkleStar(ctx, sx, sy, 13 + Math.sin(curNow * 0.008 + s) * 4, '#ffffff', '#ffe600');
-        }
         ctx.restore();
 
       } else if (this.vipRank === 2) {
-        // TOP 2: Electric Cyan / Silver Overlord Aura + Orbiting Cyan Stars
+        // TOP 2: Electric Cyan / Silver Overlord Aura
         ctx.save();
         const auraR = catVisualW * 0.88 * (1.0 + beatEngine.bassLevel * 0.14);
         const auraGrad = ctx.createRadialGradient(0, catCenterY, catVisualW * 0.15, 0, catCenterY, auraR);
@@ -884,15 +1053,6 @@
         ctx.beginPath();
         ctx.arc(0, catCenterY, auraR, 0, Math.PI * 2);
         ctx.fill();
-
-        // 3 Cyan Orbiting Stars
-        for (let s = 0; s < 3; s++) {
-          const starAngle = -curNow * 0.0022 + s * (Math.PI * 2 / 3);
-          const starDist = catVisualW * 0.75;
-          const sx = Math.cos(starAngle) * starDist;
-          const sy = catCenterY + Math.sin(starAngle) * (starDist * 0.52);
-          drawSparkleStar(ctx, sx, sy, 10, '#ffffff', '#00f0ff');
-        }
         ctx.restore();
 
       } else if (this.vipRank === 3) {
@@ -916,6 +1076,11 @@
         ctx.fill();
       }
 
+      // Draw Back Half of 3D Orbiting Halo & Orbs (BEHIND Cat Body)
+      if (this.vipRank >= 1 && this.vipRank <= 3) {
+        drawVIPOrbitEffect(ctx, this.vipRank, catCenterY, catVisualW, curNow, beatEngine, this.kickImpulse, false);
+      }
+
       // ========================================================
       // 2. Draw Cat Sprite (Exact Body Center at x=0, Feet at y=0)
       // ========================================================
@@ -933,6 +1098,11 @@
         ctx.arc(catVisualW * 0.35, catCenterY, 16 * this.kickImpulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
+      }
+
+      // Draw Front Half of 3D Orbiting Halo & Orbs (IN FRONT OF Cat Body)
+      if (this.vipRank >= 1 && this.vipRank <= 3) {
+        drawVIPOrbitEffect(ctx, this.vipRank, catCenterY, catVisualW, curNow, beatEngine, this.kickImpulse, true);
       }
 
       // ========================================================
