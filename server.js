@@ -232,21 +232,30 @@ function processChat(chatEvent) {
       });
     }
   }
-  // Change character to Male: !male / !nam / !boy
-  else if (lower === '!male' || lower === '!nam' || lower === '!boy') {
-    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'human', gender: 'male' });
-    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} đổi sang vũ công Nam 👦!` });
+  // Specific Cat selections: !cat1 / !meo1, !cat2 / !meo2, !cat3 / !meo3
+  else if (lower === '!cat1' || lower === '!meo1') {
+    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 1, danceStyle: 1 });
+    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Đen Rave Que Sáng 🐱⚡!` });
   }
-  // Change character to Female: !female / !nu / !girl
-  else if (lower === '!female' || lower === '!nu' || lower === '!girl') {
-    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'human', gender: 'female' });
-    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} đổi sang vũ công Nữ 👧!` });
+  else if (lower === '!cat2' || lower === '!meo2') {
+    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 2, danceStyle: 2 });
+    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Vàng Shuffle 🐱👟!` });
   }
-  // Change character to Cat: !cat / !meo
+  else if (lower === '!cat3' || lower === '!meo3') {
+    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 3, danceStyle: 3 });
+    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Xám Hands Up 🐱🚀!` });
+  }
+  // Random Cat: !cat / !meo
   else if (lower === '!cat' || lower === '!meo') {
     const cType = Math.floor(Math.random() * 3) + 1;
-    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: cType });
-    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} đổi sang Mèo quẩy 🐱!` });
+    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: cType, danceStyle: cType });
+    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} đổi loại Mèo quẩy 🐱!` });
+  }
+  // Human legacy commands inform that dancers are all cats
+  else if (lower === '!male' || lower === '!nam' || lower === '!boy' || lower === '!female' || lower === '!nu' || lower === '!girl') {
+    const cType = Math.floor(Math.random() * 3) + 1;
+    addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: cType, danceStyle: cType });
+    broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname}: Toàn sàn đang dùng đội hình Mèo DJ Quẩy Cực Sung 🐱!` });
   }
   // Request song: !song <index or name>
   else if (lower.startsWith('!song') || lower.startsWith('!diembai') || lower.startsWith('!bai')) {
@@ -287,15 +296,29 @@ function processChat(chatEvent) {
       });
     }
   }
-  // Effect commands
+  // Effect & Sound commands
   else if (lower === '!fire' || lower === '!lua') {
     broadcast('trigger_effect', { effect: 'flame', triggerBy: nickname });
   } else if (lower === '!smoke' || lower === '!khoi') {
     broadcast('trigger_effect', { effect: 'smoke', triggerBy: nickname });
-  } else if (lower === '!rave' || lower === '!quay') {
+  } else if (lower === '!rave' || lower === '!quay' || lower === '!all') {
     broadcast('trigger_effect', { effect: 'rave', triggerBy: nickname });
   } else if (lower === '!laser') {
     broadcast('trigger_effect', { effect: 'laser', triggerBy: nickname });
+  } else if (lower === '!phao' || lower === '!firework' || lower === '!fireworks') {
+    broadcast('trigger_effect', { effect: 'fireworks', triggerBy: nickname });
+  } else if (lower === '!confetti' || lower === '!phaogiay') {
+    broadcast('trigger_effect', { effect: 'confetti', triggerBy: nickname });
+  } else if (lower === '!horn' || lower === '!coi') {
+    broadcast('trigger_effect', { effect: 'airhorn', triggerBy: nickname });
+  } else if (lower === '!scratch') {
+    broadcast('trigger_effect', { effect: 'scratch', triggerBy: nickname });
+  } else if (lower === '!siren') {
+    broadcast('trigger_effect', { effect: 'siren', triggerBy: nickname });
+  } else if (lower === '!bass' || lower === '!sub') {
+    broadcast('trigger_effect', { effect: 'bassdrop', triggerBy: nickname });
+  } else if (lower === '!cheer' || lower === '!ho') {
+    broadcast('trigger_effect', { effect: 'cheer', triggerBy: nickname });
   }
 
   // Broadcast chat message for dancer speech bubble & overlay chat log
@@ -533,40 +556,41 @@ function handleClientMessage(msg, ws) {
       });
       break;
 
+    case 'simulate_vip':
+      const vRank = data.rank || 1;
+      const vipPresets = {
+        1: { name: 'Đại_Gia_Top1', giftName: 'Sư Tử Vàng VIP 🦁', coins: 29999 },
+        2: { name: 'Thiếu_Gia_Top2', giftName: 'Du Thuyền Hoàng Gia 🛥️', coins: 9999 },
+        3: { name: 'Công_Tử_Top3', giftName: 'Siêu Xe Thể Thao 🏎️', coins: 2999 }
+      };
+      const vPreset = vipPresets[vRank] || vipPresets[1];
+      const vipUser = data.username || vPreset.name;
+      processGift({
+        uniqueId: vipUser,
+        nickname: vipUser,
+        avatar: '',
+        giftName: data.giftName || vPreset.giftName,
+        repeatCount: 1,
+        diamondCount: data.coins || vPreset.coins
+      });
+      break;
+
     case 'spawn_crowd':
       const count = data.count || 10;
-      const theme = data.theme || state.settings.characterTheme || 'humans';
       const sampleNames = ['Tuấn_DJ', 'Linh_Cute', 'Bảo_Bass', 'Hương_Dance', 'Minh_Rave', 'Trang_Club', 'Đức_Vip', 'Phương_Baby', 'Huy_Beat', 'Mai_Quẩy', 'Khánh_EDM', 'Hà_Quẩy', 'Nam_Bass', 'My_Dance', 'Sơn_Rave', 'Trâm_Beat'];
       
       for (let i = 0; i < count; i++) {
         const id = `bot_${Math.floor(Math.random() * 90000 + 10000)}`;
         const nick = sampleNames[Math.floor(Math.random() * sampleNames.length)] + '_' + Math.floor(Math.random() * 100);
         
-        let charCategory = 'human';
-        let gender = Math.random() < 0.5 ? 'male' : 'female';
-        let charType = Math.floor(Math.random() * 3) + 1;
-        let danceStyle = (i % 3) + 1; // Chia đều 3 vũ đạo phong phú khác nhau cho khán giả!
-
-        if (data.category) {
-          charCategory = data.category;
-          if (data.gender) gender = data.gender;
-        } else if (data.gender) {
-          charCategory = 'human';
-          gender = data.gender;
-        } else if (theme === 'cats') {
-          charCategory = 'cat';
-        } else if (theme === 'humans') {
-          charCategory = 'human';
-          if (data.gender) gender = data.gender;
-        } else {
-          charCategory = Math.random() < 0.35 ? 'cat' : 'human';
-        }
+        // 100% Cat Dancers (Mèo 1: Đen, Mèo 2: Vàng, Mèo 3: Xám)
+        const charType = data.charType ? parseInt(data.charType, 10) : ((i % 3) + 1);
+        const danceStyle = data.danceStyle ? parseInt(data.danceStyle, 10) : charType;
 
         addOrUpdateDancer({
           username: id,
           nickname: nick,
-          charCategory,
-          gender,
+          charCategory: 'cat',
           charType,
           danceStyle
         });

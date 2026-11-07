@@ -446,3 +446,122 @@ body {
   box-shadow: 0 0 14px rgba(255, 0, 127, 0.6) !important;
   color: #fff !important;
 }
+
+/* VIP PODIUM GRID IN ADMIN */
+.vip-podium-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.vip-card-btn {
+  background: var(--bg-input);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.vip-card-btn:hover {
+  transform: translateY(-3px);
+}
+
+.vip-card-btn.top1 {
+  border-color: #ffd700;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.12) 0%, rgba(19, 23, 46, 0.95) 100%);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.vip-card-btn.top1:hover {
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+}
+
+.vip-card-btn.top2 {
+  border-color: #00f0ff;
+  background: linear-gradient(180deg, rgba(0, 240, 255, 0.12) 0%, rgba(19, 23, 46, 0.95) 100%);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.vip-card-btn.top2:hover {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+}
+
+.vip-card-btn.top3 {
+  border-color: #ff914d;
+  background: linear-gradient(180deg, rgba(255, 145, 77, 0.12) 0%, rgba(19, 23, 46, 0.95) 100%);
+  box-shadow: 0 0 15px rgba(255, 145, 77, 0.2);
+}
+
+.vip-card-btn.top3:hover {
+  box-shadow: 0 0 25px rgba(255, 145, 77, 0.5);
+}
+
+.vip-badge-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.top1 .vip-badge-tag {
+  background: #ffd700;
+  color: #1a1200;
+}
+
+.top2 .vip-badge-tag {
+  background: #00f0ff;
+  color: #00222a;
+}
+
+.top3 .vip-badge-tag {
+  background: #ff914d;
+  color: #260f00;
+}
+
+.vip-card-btn .vip-icon {
+  font-size: 32px;
+  margin: 2px 0;
+}
+
+.vip-card-btn .vip-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+}
+
+.vip-card-btn .vip-coins {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: #ffe600;
+}
+
+.vip-card-btn .vip-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.keyboard-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--neon-cyan);
+  margin-right: 4px;
+}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bảng Điều Khiển DJ Club - TikTok Live Admin</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/admin.css?v=admin_vip_v2">
 </head>
 <body>
   <div class="admin-wrapper">
@@ -14,10 +14,13 @@
         <span class="brand-logo">🎛️</span>
         <div class="brand-text">
           <h1>DJ CLUB CONTROL CENTER</h1>
-          <p>Bảng điều khiển tương tác trực tiếp & mô phỏng TikTok Live 9:16</p>
+          <p>Bảng điều khiển tương tác trực tiếp & mô phỏng TikTok Live 9:16 (Resident DJ: Sanoo)</p>
         </div>
       </div>
       <div class="nav-links">
+        <button id="btn-quick-rave" class="btn btn-primary" style="background: linear-gradient(90deg, #ff007f, #ffe600); color: #090c1a; font-weight: 900; box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);">
+          ⚡ SIÊU QUẨY HYPE
+        </button>
         <button id="btn-copy-obs-url" class="btn btn-secondary">
           📋 Sao chép Link Overlay (OBS)
         </button>
@@ -53,7 +56,7 @@
           </div>
 
           <div style="font-size: 12px; color: #a0aec0; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
-            💡 <strong>Mẹo:</strong> Nếu chưa live hoặc muốn chuẩn bị trước trên OBS, bạn hoàn toàn có thể dùng <strong>Bảng Giả Lập Test</strong> ở cột bên phải để thử nghiệm tất cả quà và hiệu ứng mà không cần mở Live TikTok!
+            💡 <strong>Mẹo:</strong> Nếu chưa live hoặc muốn chuẩn bị trước trên OBS, bạn hoàn toàn có thể dùng <strong>Bảng Giả Lập Test</strong> ở cột bên phải để thử nghiệm tất cả quà, bục VIP và hiệu ứng mà không cần mở Live TikTok!
           </div>
         </div>
 
@@ -68,9 +71,9 @@
 
           <!-- Player Controls -->
           <div class="music-controls">
-            <button id="btn-prev" class="btn btn-secondary" title="Bài trước">⏮</button>
-            <button id="btn-play-pause" class="btn btn-primary" title="Phát / Tạm dừng">⏸ Tạm dừng</button>
-            <button id="btn-next" class="btn btn-secondary" title="Bài kế tiếp">⏭</button>
+            <button id="btn-prev" class="btn btn-secondary" title="Bài trước (Phím P)">⏮</button>
+            <button id="btn-play-pause" class="btn btn-primary" title="Phát / Tạm dừng (Phím Space)">⏸ Tạm dừng</button>
+            <button id="btn-next" class="btn btn-secondary" title="Bài kế tiếp (Phím N)">⏭</button>
             <div id="now-playing-admin-text" class="now-playing-title-admin">Đang tải danh sách bài hát...</div>
             <div class="volume-slider-group">
               <span>🔊</span>
@@ -81,14 +84,14 @@
           <!-- DJ SFX Soundboard -->
           <div>
             <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
-              Hiệu Ứng Âm Thanh DJ Trực Tiếp:
+              Hiệu Ứng Âm Thanh DJ Trực Tiếp (Soundboard):
             </div>
             <div class="button-grid">
-              <button class="fx-btn" data-sfx="airhorn">📢 Còi Airhorn DJ</button>
-              <button class="fx-btn" data-sfx="scratch">💿 Chà Đĩa Scratch</button>
-              <button class="fx-btn" data-sfx="siren">🚨 Còi Hú Club</button>
-              <button class="fx-btn" data-sfx="bassdrop">💣 Nổ Sub-Bass</button>
-              <button class="fx-btn" data-sfx="cheer">👏 Tiếng Hò Reo</button>
+              <button class="fx-btn" data-sfx="airhorn"><span class="keyboard-badge">1</span>📢 Còi Airhorn DJ</button>
+              <button class="fx-btn" data-sfx="scratch"><span class="keyboard-badge">2</span>💿 Chà Đĩa Scratch</button>
+              <button class="fx-btn" data-sfx="siren"><span class="keyboard-badge">3</span>🚨 Còi Hú Club</button>
+              <button class="fx-btn" data-sfx="bassdrop"><span class="keyboard-badge">4</span>💣 Nổ Sub-Bass</button>
+              <button class="fx-btn" data-sfx="cheer"><span class="keyboard-badge">5</span>👏 Tiếng Hò Reo</button>
             </div>
           </div>
 
@@ -141,11 +144,11 @@
           </div>
 
           <div class="button-grid">
-            <button class="fx-btn" data-effect="flame">🔥 Phun Lửa DJ</button>
-            <button class="fx-btn" data-effect="smoke">💨 Phun Khói CO2</button>
+            <button class="fx-btn" data-effect="flame"><span class="keyboard-badge">F</span>🔥 Phun Lửa DJ</button>
+            <button class="fx-btn" data-effect="smoke"><span class="keyboard-badge">S</span>💨 Phun Khói CO2</button>
             <button class="fx-btn" data-effect="fireworks">🎆 Bắn Pháo Hoa</button>
             <button class="fx-btn" data-effect="confetti">🎉 Mưa Kim Tuyến</button>
-            <button class="fx-btn rave-btn" data-effect="rave">⚡ QUẨY HẾT MÌNH (ALL FX)</button>
+            <button class="fx-btn rave-btn" data-effect="rave"><span class="keyboard-badge">R</span>⚡ SIÊU QUẨY (ALL FX)</button>
           </div>
         </div>
 
@@ -186,7 +189,7 @@
               </button>
               <button class="gift-btn" data-sim-gift="Súng tiền" data-coins="500">
                 <span class="gift-icon">🔫</span>
-                <span class="gift-name">Súng Bắn Tiền</span>
+                <span class="gift-name">Súng Tiền</span>
                 <span class="gift-coins">500 Xu</span>
               </button>
               <button class="gift-btn" data-sim-gift="Sư tử DJ" data-coins="29999" style="border-color: #ffe600;">
@@ -217,98 +220,147 @@
             </div>
             <div class="input-row" style="margin-bottom: 8px;">
               <input type="text" id="sim-chat-user" class="form-control" style="max-width: 160px;" placeholder="Tên người chat" value="Quẩy_Thủ_99">
-              <input type="text" id="sim-chat-comment" class="form-control" placeholder="Nội dung chat hoặc lệnh (ví dụ: !join, !song 5, !fire)..." value="1">
+              <input type="text" id="sim-chat-comment" class="form-control" placeholder="Nội dung chat hoặc lệnh (ví dụ: 1, !meo1, !dance 1, !fire, !skip)..." value="1">
               <button id="btn-send-custom-chat" class="btn btn-secondary">Gửi Chat</button>
             </div>
             <!-- Quick command chips -->
             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="1">Chat "1" (Vào sàn)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!nam">!nam (Vũ công Nam)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!nu">!nu (Vũ công Nữ)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!meo">!meo (Đổi Mèo)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 1">!dance 1 (Rave Que Sáng)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 2">!dance 2 (Shuffle Giậm Chân)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!dance 3">!dance 3 (Hands Up Nhảy Bật)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!skip">!skip (Đổi bài)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!fire">!fire (Phun lửa)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-quick-cmd="!rave">!rave (Quẩy tung nóc)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="1">Chat "1" (Vào sàn)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #a855f7;" data-quick-cmd="!meo1">!meo1 (Mèo Đen Rave)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #eab308;" data-quick-cmd="!meo2">!meo2 (Mèo Vàng Shuffle)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #38bdf8;" data-quick-cmd="!meo3">!meo3 (Mèo Xám HandsUp)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!dance 1">!dance 1 (Que Sáng)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!dance 2">!dance 2 (Shuffle)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!dance 3">!dance 3 (Hands Up)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!skip">!skip (Đổi bài)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!fire">!fire (Phun lửa)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!smoke">!smoke (Khói CO2)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!phao">!phao (Pháo hoa)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!confetti">!confetti (Kim tuyến)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!horn">!horn (Còi Airhorn)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!siren">!siren (Còi Hú)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="!rave">!rave (Siêu quẩy)</button>
             </div>
           </div>
         </div>
 
-        <!-- CARD 5: CHẾ ĐỘ SPRITE VŨ CÔNG (CHARACTER THEME) -->
+        <!-- CARD 5: ĐIỀU KHIỂN & GIẢ LẬP BỤC VIP (TOP ĐẠI GIA) -->
         <div class="admin-card">
           <div class="card-header">
             <div class="card-title">
-              <span>🎭</span>
-              <span>CHẾ ĐỘ SPRITE VŨ CÔNG (CHARACTER THEME)</span>
+              <span>👑</span>
+              <span>ĐIỀU KHIỂN & GIẢ LẬP BỤC VIP (TOP ĐẠI GIA)</span>
             </div>
-            <span id="char-theme-badge" class="status-badge" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid #38bdf8;">
-              🧑‍🎤 Người (Nam & Nữ)
+            <button id="btn-reset-vip-card" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;">
+              🧹 Reset BXH & Bục VIP
+            </button>
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;">
+            Nhấn vào từng bục để tức thì gán Đại Gia lên bục vinh danh cao cấp (kèm hiệu ứng pháo sáng, geyser lửa & avatar Mèo VIP):
+          </div>
+
+          <!-- 3 VIP Podiums Grid -->
+          <div class="vip-podium-grid">
+            <!-- TOP 2 (Left) -->
+            <button class="vip-card-btn top2" data-sim-vip="2" title="Gán ngay vào bục Top 2 (Bên Trái)">
+              <div class="vip-badge-tag">🥈 TOP 2 • THIẾU GIA</div>
+              <div class="vip-icon">🛥️</div>
+              <div class="vip-title">Du Thuyền Hoàng Gia</div>
+              <div class="vip-coins">9,999 Xu</div>
+              <div class="vip-sub">Bục Neon Xanh (Trái)</div>
+            </button>
+
+            <!-- TOP 1 (Center) -->
+            <button class="vip-card-btn top1" data-sim-vip="1" title="Gán ngay vào bục Top 1 (Chính Giữa, Cao Nhất)">
+              <div class="vip-badge-tag">👑 TOP 1 • ĐẠI GIA</div>
+              <div class="vip-icon">🦁</div>
+              <div class="vip-title">Sư Tử Hoàng Kim</div>
+              <div class="vip-coins">29,999 Xu</div>
+              <div class="vip-sub">Bục Vàng Cao Nhất (Giữa)</div>
+            </button>
+
+            <!-- TOP 3 (Right) -->
+            <button class="vip-card-btn top3" data-sim-vip="3" title="Gán ngay vào bục Top 3 (Bên Phải)">
+              <div class="vip-badge-tag">🥉 TOP 3 • CÔNG TỬ</div>
+              <div class="vip-icon">🏎️</div>
+              <div class="vip-title">Siêu Xe Thể Thao</div>
+              <div class="vip-coins">2,999 Xu</div>
+              <div class="vip-sub">Bục Đồng Ánh Cam (Phải)</div>
+            </button>
+          </div>
+
+          <!-- Live VIP Status Table / List -->
+          <div style="margin-top: 14px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 12px; font-weight: 700; color: #ffd700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🏆 DANH SÁCH BỤC VIP HIỆN TẠI:</span>
+              <span id="vip-live-count" style="color: var(--neon-cyan); font-weight: bold;">0/3 bục có chủ</span>
+            </div>
+            <div id="vip-live-list" style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+              <div style="color: var(--text-muted); font-style: italic;">Chưa có đại gia nào lên bục. Nhấn các nút trên để test!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 6: QUẢN LÝ SÀN NHẢY & ĐÁM ĐÔNG MÈO -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🐱</span>
+              <span>QUẢN LÝ SÀN NHẢY & ĐÁM ĐÔNG MÈO</span>
+            </div>
+            <span id="active-cats-badge" class="status-badge" style="background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid #00f0ff;">
+              0 Mèo đang quẩy
             </span>
           </div>
 
-          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
-            Chuyển đổi tức thì bộ sprite hiển thị trên màn hình livestream: Phong cách Người (Nam/Nữ 4 cấp đồng phục Thường, Top 3, 2, 1) hoặc Phong cách Mèo nguyên bản:
-          </div>
-
-          <!-- 3 Mode Buttons -->
-          <div class="char-theme-grid">
-            <button class="theme-card-btn active" data-char-theme="humans">
-              <span class="theme-icon">🧑‍🎤💃</span>
-              <span class="theme-title">Người (Humans)</span>
-              <span class="theme-desc">Nam & Nữ, 4 cấp đồng phục VIP</span>
-            </button>
-            <button class="theme-card-btn" data-char-theme="cats">
-              <span class="theme-icon">🐱🕺</span>
-              <span class="theme-title">Mèo (Cats)</span>
-              <span class="theme-desc">Bộ 3 vũ điệu mèo gốc</span>
-            </button>
-            <button class="theme-card-btn" data-char-theme="all">
-              <span class="theme-icon">🌟🎉</span>
-              <span class="theme-title">Hỗn Hợp (Mixed)</span>
-              <span class="theme-desc">Cả Người & Mèo cùng quẩy</span>
-            </button>
-          </div>
-
-          <div style="display: flex; gap: 10px; margin-top: 14px; align-items: center;">
-            <a href="/preview_sprites.html" target="_blank" class="btn btn-secondary" style="text-decoration: none; font-size: 12px;">
-              👁️ Mở Bộ Sưu Tập Preview Hoạt Ảnh 14 Frame
-            </a>
-          </div>
-        </div>
-
-        <!-- CARD 6: DANCE FLOOR & CROWD MANAGEMENT -->
-        <div class="admin-card">
-          <div class="card-header">
-            <div class="card-title">
-              <span>👥</span>
-              <span>QUẢN LÝ SÀN NHẢY & ĐÁM ĐÔNG</span>
+          <!-- Spawner buttons -->
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Triệu Hồi Vũ Công Mèo:
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <button class="btn btn-secondary" data-spawn-cat="1" style="border-color: #a855f7;">
+                🐱 +5 Mèo Đen (Vũ công 1 - Que Sáng)
+              </button>
+              <button class="btn btn-secondary" data-spawn-cat="2" style="border-color: #eab308;">
+                🐱 +5 Mèo Vàng (Vũ công 2 - Shuffle)
+              </button>
+              <button class="btn btn-secondary" data-spawn-cat="3" style="border-color: #38bdf8;">
+                🐱 +5 Mèo Xám (Vũ công 3 - Hands Up)
+              </button>
+              <button class="btn btn-primary" data-spawn-cat="random" style="background: linear-gradient(90deg, #00f0ff, #ff007f);">
+                🎉 +20 Mèo Ngẫu Nhiên
+              </button>
+              <button id="btn-clear-floor" class="btn btn-danger">
+                🧹 Xóa Hết Vũ Công
+              </button>
             </div>
           </div>
 
-          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <button class="btn btn-secondary" data-spawn-crowd="10" data-category="human" data-gender="male">➕ Thêm 10 Nam 👦</button>
-            <button class="btn btn-secondary" data-spawn-crowd="10" data-category="human" data-gender="female">➕ Thêm 10 Nữ 👧</button>
-            <button class="btn btn-secondary" data-spawn-crowd="10" data-category="cat">➕ Thêm 10 Mèo 🐱</button>
-            <button class="btn btn-secondary" data-spawn-crowd="25">➕ Thêm 25 Ngẫu Nhiên</button>
-            <button id="btn-clear-floor" class="btn btn-danger">🧹 Xóa Hết Vũ Công</button>
-            <button id="btn-reset-vip" class="btn btn-danger">👑 Đặt Lại BXH Đại Gia</button>
-          </div>
-
           <!-- Quick Dance Controls for Crowd -->
-          <div style="margin-top: 12px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
-            <div style="font-size: 12px; font-weight: 700; color: #ffd700; margin-bottom: 8px;">🎭 ĐIỀU KHIỂN VŨ ĐẠO TOÀN SÀN:</div>
+          <div style="margin-top: 12px; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 12px; font-weight: 700; color: #ffd700; margin-bottom: 8px;">
+              🎭 ĐIỀU KHIỂN VŨ ĐẠO TOÀN SÀN:
+            </div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <button id="btn-shuffle-dances" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px;">🔀 Đổi Vũ Đạo Ngẫu Nhiên Toàn Sàn</button>
-              <button class="btn btn-secondary btn-set-dance" data-dance="1" style="font-size: 12px; padding: 5px 12px;">⚡ Toàn Sàn: Vũ Đạo 1 (Rave Wave)</button>
-              <button class="btn btn-secondary btn-set-dance" data-dance="2" style="font-size: 12px; padding: 5px 12px;">👟 Toàn Sàn: Vũ Đạo 2 (Shuffle)</button>
-              <button class="btn btn-secondary btn-set-dance" data-dance="3" style="font-size: 12px; padding: 5px 12px;">🚀 Toàn Sàn: Vũ Đạo 3 (Hands Up)</button>
+              <button id="btn-shuffle-dances" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">
+                🔀 Trộn Ngẫu Nhiên 3 Vũ Đạo
+              </button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="1" style="font-size: 12px; padding: 6px 12px;">
+                ⚡ Đồng Bộ: Vũ Đạo 1 (Rave Wave)
+              </button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="2" style="font-size: 12px; padding: 6px 12px;">
+                👟 Đồng Bộ: Vũ Đạo 2 (Shuffle)
+              </button>
+              <button class="btn btn-secondary btn-set-dance" data-dance="3" style="font-size: 12px; padding: 6px 12px;">
+                🚀 Đồng Bộ: Vũ Đạo 3 (Hands Up)
+              </button>
             </div>
           </div>
 
           <!-- Settings -->
-          <div style="margin-top: 10px;">
+          <div style="margin-top: 12px;">
             <div class="toggle-row">
               <div>
                 <div class="toggle-label">Chế độ nền trong suốt (Transparent Background)</div>
@@ -319,29 +371,36 @@
           </div>
         </div>
 
-        <!-- CARD 6: OBS STREAM SETUP GUIDE -->
+        <!-- CARD 7: OBS STREAM SETUP GUIDE & HOTKEYS -->
         <div class="admin-card" style="background: rgba(10, 15, 35, 0.6); border: 1px dashed var(--neon-cyan);">
           <div class="card-header">
             <div class="card-title" style="color: var(--neon-cyan);">
-              <span>🎥</span>
-              <span>HƯỚNG DẪN CÀI ĐẶT OBS STUDIO / TIKTOK LIVE STUDIO</span>
+              <span>⌨️</span>
+              <span>PHÍM TẮT LIVESTREAM (HOTKEYS) & CÀI ĐẶT OBS</span>
             </div>
           </div>
-          <ol style="font-size: 13px; color: var(--text-muted); line-height: 1.7; padding-left: 20px;">
-            <li>Mở <strong>OBS Studio</strong> hoặc <strong>TikTok LIVE Studio</strong>.</li>
-            <li>Thêm nguồn <strong>Trình duyệt (Browser Source)</strong> mới.</li>
-            <li>Dán đường dẫn URL: <code style="color: var(--neon-yellow); background: #111; padding: 2px 6px; border-radius: 4px;">http://localhost:3000/</code></li>
-            <li>Đặt chiều rộng: <strong style="color: #fff;">1080</strong>, chiều cao: <strong style="color: #fff;">1920</strong> (chuẩn tỉ lệ 9:16 TikTok).</li>
-            <li>Tích chọn <em>"Điều khiển âm thanh qua OBS" (Control audio via OBS)</em> nếu muốn chỉnh âm lượng bài hát trực tiếp trên OBS Mixer.</li>
-            <li>Mở tab này (<code>http://localhost:3000/admin.html</code>) trên màn hình phụ hoặc điện thoại để điều khiển live!</li>
-          </ol>
+          <div style="margin-bottom: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            <strong>Bảng phím tắt nhanh trên trang Admin:</strong>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px;">
+              <div><span class="keyboard-badge">Space</span> Phát / Tạm dừng nhạc</div>
+              <div><span class="keyboard-badge">N</span> Bài kế tiếp</div>
+              <div><span class="keyboard-badge">P</span> Bài trước đó</div>
+              <div><span class="keyboard-badge">F</span> Phun Lửa DJ</div>
+              <div><span class="keyboard-badge">S</span> Phun Khói CO2</div>
+              <div><span class="keyboard-badge">R</span> Siêu Quẩy (All FX)</div>
+              <div><span class="keyboard-badge">1 .. 5</span> Bắn SFX Soundboard</div>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+            <strong>OBS Browser Source:</strong> URL: <code style="color: var(--neon-yellow);">http://localhost:3000/</code> | Kích thước: <strong>1080 x 1920</strong> (Tỉ lệ 9:16).
+          </div>
         </div>
 
       </div>
     </div>
   </div>
 
-  <script src="/js/sfx.js?v=vudao3_sunglasses_v3"></script>
-  <script src="/js/admin.js?v=vudao3_sunglasses_v3"></script>
+  <script src="/js/sfx.js?v=admin_vip_v2"></script>
+  <script src="/js/admin.js?v=admin_vip_v2"></script>
 </body>
 </html>

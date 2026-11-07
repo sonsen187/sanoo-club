@@ -1,4 +1,4 @@
-// DJ Club Admin Dashboard Logic
+// DJ Club Admin Dashboard Logic (Resident DJ: Sanoo)
 (function () {
   'use strict';
 
@@ -6,6 +6,7 @@
   let playlist = [];
   let currentTrackIndex = 0;
   let isPlaying = false;
+  let currentDancersCount = 0;
 
   // Sound effects instance for Admin preview
   const sfx = new DJSoundEffects();
@@ -24,6 +25,11 @@
   const volumeSlider = document.getElementById('volume-slider');
   const musicSearchInput = document.getElementById('music-search-input');
   const playlistBody = document.getElementById('playlist-body');
+
+  const activeCatsBadge = document.getElementById('active-cats-badge');
+  const vipLiveList = document.getElementById('vip-live-list');
+  const vipLiveCount = document.getElementById('vip-live-count');
+  const btnQuickRave = document.getElementById('btn-quick-rave');
 
   // WebSocket Connection
   function setupWebSocket() {
@@ -66,16 +72,16 @@
         renderPlaylist(playlist);
         updatePlaybackUI(data.currentTrack, isPlaying);
         updateTikTokStatus(data.tiktokConnection);
+        if (data.topGiftersList) updateVIPList(data.topGiftersList);
+        if (data.dancers) updateDancersCount(Object.keys(data.dancers).length);
         if (data.settings) {
           const bgCheck = document.getElementById('chk-transparent-bg');
           if (bgCheck) bgCheck.checked = !!data.settings.transparentBg;
-          if (data.settings.characterTheme) updateCharThemeUI(data.settings.characterTheme);
           if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
         }
         break;
 
       case 'settings_updated':
-        if (data.characterTheme) updateCharThemeUI(data.characterTheme);
         if (data.transparentBg !== undefined) {
           const bg = document.getElementById('chk-transparent-bg');
           if (bg) bg.checked = !!data.transparentBg;
@@ -90,6 +96,32 @@
 
       case 'tiktok_status':
         updateTikTokStatus(data);
+        break;
+
+      case 'top_gifters':
+        updateVIPList(Array.isArray(data) ? data : []);
+        break;
+
+      case 'gift':
+        if (data.topGifters) updateVIPList(data.topGifters);
+        break;
+
+      case 'dancers_sync':
+        updateDancersCount(Object.keys(data || {}).length);
+        break;
+
+      case 'dancer_update':
+        currentDancersCount = Math.max(1, currentDancersCount + 1);
+        updateDancersCount(currentDancersCount);
+        break;
+
+      case 'remove_dancer':
+        currentDancersCount = Math.max(0, currentDancersCount - 1);
+        updateDancersCount(currentDancersCount);
+        break;
+
+      case 'dancers_cleared':
+        updateDancersCount(0);
         break;
 
       case 'track_change':
@@ -129,6 +161,48 @@
       btnConnectTikTok.style.display = 'inline-flex';
       btnDisconnectTikTok.style.display = 'none';
     }
+  }
+
+  function updateDancersCount(cnt) {
+    currentDancersCount = cnt;
+    if (activeCatsBadge) {
+      activeCatsBadge.textContent = `${cnt} Mèo đang quẩy 🐱`;
+    }
+  }
+
+  function updateVIPList(vips) {
+    if (!vipLiveList || !vipLiveCount) return;
+    const podiumNames = [
+      { rank: 1, label: 'TOP 1 • ĐẠI GIA', color: '#ffd700', icon: '👑 🦁' },
+      { rank: 2, label: 'TOP 2 • THIẾU GIA', color: '#00f0ff', icon: '🥈 🛥️' },
+      { rank: 3, label: 'TOP 3 • CÔNG TỬ', color: '#ff914d', icon: '🥉 🏎️' }
+    ];
+
+    const activeVips = (vips || []).slice(0, 3);
+    vipLiveCount.textContent = `${activeVips.length}/3 bục có chủ`;
+
+    if (activeVips.length === 0) {
+      vipLiveList.innerHTML = `<div style="color: var(--text-muted); font-style: italic;">Chưa có đại gia nào lên bục. Nhấn các nút trên để test!</div>`;
+      return;
+    }
+
+    vipLiveList.innerHTML = '';
+    activeVips.forEach((v, idx) => {
+      const p = podiumNames[idx] || { rank: idx + 1, label: `TOP ${idx + 1}`, color: '#fff', icon: '⭐' };
+      const row = document.createElement('div');
+      row.style.cssText = `display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 6px; border-left: 4px solid ${p.color};`;
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 14px;">${p.icon}</span>
+          <strong style="color: ${p.color};">${p.label}:</strong>
+          <span style="color: #fff; font-weight: 600;">${v.nickname || v.username}</span>
+        </div>
+        <div style="font-family: 'Rajdhani', sans-serif; font-weight: 800; color: #ffe600; font-size: 14px;">
+          ${(v.coins || 0).toLocaleString()} Xu
+        </div>
+      `;
+      vipLiveList.appendChild(row);
+    });
   }
 
   function renderPlaylist(tracks) {
@@ -181,207 +255,6 @@
     btnPlayPause.textContent = playing ? '⏸ Tạm dừng' : '▶ Tiếp tục';
   }
 
-  // Event Listeners: TikTok Connect
-  if (btnConnectTikTok) {
-    btnConnectTikTok.addEventListener('click', () => {
-      const user = (tiktokUserInput.value || '').trim();
-      if (!user) {
-        alert('Vui lòng nhập TikTok username!');
-        return;
-      }
-      fetch('/api/tiktok/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user })
-      });
-    });
-  }
-
-  if (btnDisconnectTikTok) {
-    btnDisconnectTikTok.addEventListener('click', () => {
-      fetch('/api/tiktok/disconnect', { method: 'POST' });
-    });
-  }
-
-  // Music Player Events
-  if (btnPlayPause) {
-    btnPlayPause.addEventListener('click', () => {
-      if (isPlaying) {
-        sendWS('track_pause');
-      } else {
-        sendWS('track_play');
-      }
-    });
-  }
-
-  if (btnPrev) {
-    btnPrev.addEventListener('click', () => sendWS('track_prev'));
-  }
-
-  if (btnNext) {
-    btnNext.addEventListener('click', () => sendWS('track_next'));
-  }
-
-  if (volumeSlider) {
-    volumeSlider.addEventListener('input', e => {
-      sendWS('track_volume', { volume: e.target.value / 100 });
-    });
-  }
-
-  // Playlist Search Filter
-  if (musicSearchInput) {
-    musicSearchInput.addEventListener('input', e => {
-      const q = e.target.value.toLowerCase();
-      const filtered = playlist.filter(t => t.title.toLowerCase().includes(q) || t.id.toString().includes(q));
-      renderPlaylist(filtered);
-    });
-  }
-
-  // Stage FX Buttons
-  document.querySelectorAll('[data-effect]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const effect = btn.getAttribute('data-effect');
-      sendWS('trigger_effect', { effect, triggerBy: 'Admin' });
-    });
-  });
-
-  // DJ Sound Effect Buttons (Preview in Admin too!)
-  document.querySelectorAll('[data-sfx]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sound = btn.getAttribute('data-sfx');
-      sfx.init();
-      if (sound === 'airhorn') sfx.playAirhorn();
-      else if (sound === 'scratch') sfx.playScratch();
-      else if (sound === 'siren') sfx.playSiren();
-      else if (sound === 'bassdrop') sfx.playBassDrop();
-      else if (sound === 'cheer') sfx.playCheer();
-
-      // Broadcast to overlay stream as well
-      sendWS('trigger_effect', { effect: sound, triggerBy: 'Admin' });
-    });
-  });
-
-  // Simulation Gift Buttons
-  document.querySelectorAll('[data-sim-gift]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const giftName = btn.getAttribute('data-sim-gift');
-      const coins = parseInt(btn.getAttribute('data-coins'), 10) || 1;
-      const sampleSenders = ['Đại_Gia_99', 'Hải_Quay_Xe', 'Bé_Mèo', 'Hoàng_Tử_DJ', 'Trùm_TikTok'];
-      const sender = sampleSenders[Math.floor(Math.random() * sampleSenders.length)];
-
-      sendWS('simulate_gift', {
-        username: sender,
-        nickname: sender,
-        giftName,
-        repeatCount: 1,
-        diamondCount: coins
-      });
-    });
-  });
-
-  // Custom Gift Form
-  const btnSendCustomGift = document.getElementById('btn-send-custom-gift');
-  if (btnSendCustomGift) {
-    btnSendCustomGift.addEventListener('click', () => {
-      const u = document.getElementById('sim-gift-user').value || 'Đại_Gia';
-      const g = document.getElementById('sim-gift-name').value || 'Quà đặc biệt';
-      const c = parseInt(document.getElementById('sim-gift-coins').value, 10) || 10;
-      sendWS('simulate_gift', {
-        username: u,
-        nickname: u,
-        giftName: g,
-        repeatCount: 1,
-        diamondCount: c
-      });
-    });
-  }
-
-  // Custom Chat Form
-  const btnSendCustomChat = document.getElementById('btn-send-custom-chat');
-  const simChatComment = document.getElementById('sim-chat-comment');
-  if (btnSendCustomChat) {
-    btnSendCustomChat.addEventListener('click', () => {
-      const u = document.getElementById('sim-chat-user').value || 'Viewer';
-      const msg = simChatComment.value.trim() || 'Quẩy lên nào!';
-      sendWS('simulate_chat', {
-        username: u,
-        nickname: u,
-        comment: msg
-      });
-      simChatComment.value = '';
-    });
-  }
-
-  // Quick Command buttons (1, !join, !song 5, etc.)
-  document.querySelectorAll('[data-quick-cmd]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cmd = btn.getAttribute('data-quick-cmd');
-      const sampleUsers = ['DJ_Linh', 'Quang_Club', 'Vũ_Beat', 'Thảo_Dance', 'Khánh_Rave'];
-      const u = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
-      sendWS('simulate_chat', {
-        username: u,
-        nickname: u,
-        comment: cmd
-      });
-    });
-  });
-
-  // Character Theme UI Update
-  function updateCharThemeUI(theme) {
-    const badge = document.getElementById('char-theme-badge');
-    if (badge) {
-      if (theme === 'cats') {
-        badge.textContent = '🐱 Mèo (Cats)';
-        badge.style.color = '#f59e0b';
-        badge.style.borderColor = '#f59e0b';
-      } else if (theme === 'all') {
-        badge.textContent = '🌟 Hỗn Hợp (Mixed)';
-        badge.style.color = '#a855f7';
-        badge.style.borderColor = '#a855f7';
-      } else {
-        badge.textContent = '🧑‍🎤 Người (Nam & Nữ)';
-        badge.style.color = '#38bdf8';
-        badge.style.borderColor = '#38bdf8';
-      }
-    }
-
-    document.querySelectorAll('[data-char-theme]').forEach(btn => {
-      if (btn.getAttribute('data-char-theme') === theme) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-  }
-
-  // Character Theme Button Clicks
-  document.querySelectorAll('[data-char-theme]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const theme = btn.getAttribute('data-char-theme');
-      updateCharThemeUI(theme);
-      sendWS('update_settings', { characterTheme: theme });
-    });
-  });
-
-  // Crowd Spawn Buttons (supports count, gender, category)
-  document.querySelectorAll('[data-spawn-crowd]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const count = parseInt(btn.getAttribute('data-spawn-crowd'), 10);
-      const gender = btn.getAttribute('data-gender') || undefined;
-      const category = btn.getAttribute('data-category') || undefined;
-      sendWS('spawn_crowd', { count, gender, category });
-    });
-  });
-
-  const btnClearFloor = document.getElementById('btn-clear-floor');
-  if (btnClearFloor) {
-    btnClearFloor.addEventListener('click', () => {
-      if (confirm('Bạn có chắc muốn xóa tất cả vũ công khỏi sàn nhảy?')) {
-        sendWS('clear_dancers');
-      }
-    });
-  }
-
   // Toast Notification for Admin Actions
   function showToast(message) {
     let container = document.getElementById('admin-toast-container');
@@ -408,12 +281,231 @@
     }, 2500);
   }
 
+  // Event Listeners: TikTok Connect
+  if (btnConnectTikTok) {
+    btnConnectTikTok.addEventListener('click', () => {
+      const user = (tiktokUserInput.value || '').trim();
+      if (!user) {
+        alert('Vui lòng nhập TikTok username!');
+        return;
+      }
+      fetch('/api/tiktok/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user })
+      });
+    });
+  }
+
+  if (btnDisconnectTikTok) {
+    btnDisconnectTikTok.addEventListener('click', () => {
+      fetch('/api/tiktok/disconnect', { method: 'POST' });
+    });
+  }
+
+  // Music Player Events
+  function togglePlayPause() {
+    if (isPlaying) {
+      sendWS('track_pause');
+    } else {
+      sendWS('track_play');
+    }
+  }
+
+  function playNextTrack() {
+    sendWS('track_next');
+  }
+
+  function playPrevTrack() {
+    sendWS('track_prev');
+  }
+
+  if (btnPlayPause) btnPlayPause.addEventListener('click', togglePlayPause);
+  if (btnPrev) btnPrev.addEventListener('click', playPrevTrack);
+  if (btnNext) btnNext.addEventListener('click', playNextTrack);
+
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', e => {
+      sendWS('track_volume', { volume: e.target.value / 100 });
+    });
+  }
+
+  // Playlist Search Filter
+  if (musicSearchInput) {
+    musicSearchInput.addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      const filtered = playlist.filter(t => t.title.toLowerCase().includes(q) || t.id.toString().includes(q));
+      renderPlaylist(filtered);
+    });
+  }
+
+  // Stage FX Buttons
+  function triggerStageEffect(effect) {
+    sendWS('trigger_effect', { effect, triggerBy: 'Admin' });
+    if (effect === 'rave') {
+      showToast('⚡ ĐÃ KÍCH HOẠT SIÊU QUẨY HYPE (ALL FX)!');
+    } else {
+      showToast(`Đã kích hoạt hiệu ứng: ${effect}`);
+    }
+  }
+
+  document.querySelectorAll('[data-effect]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const effect = btn.getAttribute('data-effect');
+      triggerStageEffect(effect);
+    });
+  });
+
+  if (btnQuickRave) {
+    btnQuickRave.addEventListener('click', () => {
+      triggerStageEffect('rave');
+    });
+  }
+
+  // DJ Sound Effect Buttons (Preview in Admin too!)
+  function playSoundEffect(sound) {
+    sfx.init();
+    if (sound === 'airhorn') sfx.playAirhorn();
+    else if (sound === 'scratch') sfx.playScratch();
+    else if (sound === 'siren') sfx.playSiren();
+    else if (sound === 'bassdrop') sfx.playBassDrop();
+    else if (sound === 'cheer') sfx.playCheer();
+
+    // Broadcast to overlay stream as well
+    sendWS('trigger_effect', { effect: sound, triggerBy: 'Admin' });
+  }
+
+  document.querySelectorAll('[data-sfx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sound = btn.getAttribute('data-sfx');
+      playSoundEffect(sound);
+    });
+  });
+
+  // Simulation Gift Buttons
+  document.querySelectorAll('[data-sim-gift]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const giftName = btn.getAttribute('data-sim-gift');
+      const coins = parseInt(btn.getAttribute('data-coins'), 10) || 1;
+      const sampleSenders = ['Đại_Gia_99', 'Hải_Quay_Xe', 'Bé_Mèo', 'Hoàng_Tử_DJ', 'Trùm_TikTok'];
+      const sender = sampleSenders[Math.floor(Math.random() * sampleSenders.length)];
+
+      sendWS('simulate_gift', {
+        username: sender,
+        nickname: sender,
+        giftName,
+        repeatCount: 1,
+        diamondCount: coins
+      });
+      showToast(`🎁 Đã gửi: ${giftName} (${coins.toLocaleString()} Xu) từ ${sender}`);
+    });
+  });
+
+  // Custom Gift Form
+  const btnSendCustomGift = document.getElementById('btn-send-custom-gift');
+  if (btnSendCustomGift) {
+    btnSendCustomGift.addEventListener('click', () => {
+      const u = document.getElementById('sim-gift-user').value || 'Đại_Gia';
+      const g = document.getElementById('sim-gift-name').value || 'Quà đặc biệt';
+      const c = parseInt(document.getElementById('sim-gift-coins').value, 10) || 10;
+      sendWS('simulate_gift', {
+        username: u,
+        nickname: u,
+        giftName: g,
+        repeatCount: 1,
+        diamondCount: c
+      });
+      showToast(`🎁 Đã gửi: ${g} (${c.toLocaleString()} Xu) từ ${u}`);
+    });
+  }
+
+  // Custom Chat Form
+  const btnSendCustomChat = document.getElementById('btn-send-custom-chat');
+  const simChatComment = document.getElementById('sim-chat-comment');
+  if (btnSendCustomChat) {
+    btnSendCustomChat.addEventListener('click', () => {
+      const u = document.getElementById('sim-chat-user').value || 'Viewer';
+      const msg = simChatComment.value.trim() || 'Quẩy lên nào!';
+      sendWS('simulate_chat', {
+        username: u,
+        nickname: u,
+        comment: msg
+      });
+      simChatComment.value = '';
+    });
+  }
+
+  // Quick Command buttons (1, !meo1, !dance 1, !skip, !fire, etc.)
+  document.querySelectorAll('[data-quick-cmd]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cmd = btn.getAttribute('data-quick-cmd');
+      const sampleUsers = ['DJ_Linh', 'Quang_Club', 'Vũ_Beat', 'Thảo_Dance', 'Khánh_Rave'];
+      const u = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
+      sendWS('simulate_chat', {
+        username: u,
+        nickname: u,
+        comment: cmd
+      });
+      showToast(`💬 Đã gửi lệnh chat: ${cmd}`);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // VIP PODIUM SIMULATION & CONTROLS
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll('[data-sim-vip]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rank = parseInt(btn.getAttribute('data-sim-vip'), 10);
+      sendWS('simulate_vip', { rank });
+      const titles = { 1: 'Top 1 Đại Gia (Sư Tử 29,999 Xu)', 2: 'Top 2 Thiếu Gia (Du Thuyền 9,999 Xu)', 3: 'Top 3 Công Tử (Siêu Xe 2,999 Xu)' };
+      showToast(`👑 Đã đưa đại gia vào ${titles[rank] || rank}!`);
+    });
+  });
+
+  const btnResetVipCard = document.getElementById('btn-reset-vip-card');
+  if (btnResetVipCard) {
+    btnResetVipCard.addEventListener('click', () => {
+      if (confirm('Bạn có chắc muốn đặt lại toàn bộ Bảng Xếp Hạng & Bục VIP?')) {
+        sendWS('reset_top_gifters');
+        showToast('🧹 Đã reset Bảng Xếp Hạng và Bục VIP về ban đầu');
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CAT CROWD SPAWNER & FLOOR MANAGEMENT
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll('[data-spawn-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const typeVal = btn.getAttribute('data-spawn-cat');
+      if (typeVal === 'random') {
+        sendWS('spawn_crowd', { count: 20 });
+        showToast('🎉 Đã thêm 20 Mèo Quẩy ngẫu nhiên lên sàn!');
+      } else {
+        const catType = parseInt(typeVal, 10);
+        const catNames = { 1: 'Mèo Đen Rave', 2: 'Mèo Vàng Shuffle', 3: 'Mèo Xám Hands Up' };
+        sendWS('spawn_crowd', { count: 5, charType: catType, danceStyle: catType });
+        showToast(`🐱 Đã thêm 5 ${catNames[catType] || 'Mèo'} lên sàn!`);
+      }
+    });
+  });
+
+  const btnClearFloor = document.getElementById('btn-clear-floor');
+  if (btnClearFloor) {
+    btnClearFloor.addEventListener('click', () => {
+      if (confirm('Bạn có chắc muốn xóa tất cả vũ công khỏi sàn nhảy?')) {
+        sendWS('clear_dancers');
+        showToast('🧹 Đã xóa sạch vũ công khỏi sàn');
+      }
+    });
+  }
+
   // Shuffle & Set Dance Styles for the whole floor
   const btnShuffleDances = document.getElementById('btn-shuffle-dances');
   if (btnShuffleDances) {
     btnShuffleDances.addEventListener('click', () => {
       sendWS('shuffle_dances');
-      showToast('Đã trộn ngẫu nhiên 3 vũ đạo phong phú cho toàn bộ vũ công!');
+      showToast('🔀 Đã trộn ngẫu nhiên 3 vũ đạo phong phú cho toàn bộ vũ công!');
     });
   }
 
@@ -426,18 +518,9 @@
         2: 'Vũ đạo 2: Shuffle Dance (Giậm Chân & Lắc Hông)',
         3: 'Vũ đạo 3: Hands Up (Hai Tay Giơ Cao & Nhảy Bật)'
       };
-      showToast(`Toàn sàn đã chuyển sang: ${names[styleId] || styleId}`);
+      showToast(`Toàn sàn đã đồng bộ: ${names[styleId] || styleId}`);
     });
   });
-
-  const btnResetVIP = document.getElementById('btn-reset-vip');
-  if (btnResetVIP) {
-    btnResetVIP.addEventListener('click', () => {
-      if (confirm('Bạn có chắc muốn đặt lại Bảng Xếp Hạng Đại Gia?')) {
-        sendWS('reset_top_gifters');
-      }
-    });
-  }
 
   // Transparent BG setting
   const chkTransparentBg = document.getElementById('chk-transparent-bg');
@@ -459,7 +542,6 @@
     });
   }
 
-  
   // ---------------------------------------------------------------------------
   // BAR ACOUSTIC AUDIO MODE CONTROLS
   // ---------------------------------------------------------------------------
@@ -478,7 +560,58 @@
       const mode = btn.getAttribute('data-audio-mode');
       updateAudioModeAdminUI(mode);
       sendWS('set_audio_mode', { mode });
+      const modeNames = {
+        glass_room: '🍸 Phòng Kính Bar (VIP)',
+        main_floor: '🔊 Sàn Nhảy Chính',
+        outside_door: '🚪 Ngoài Cửa Bar'
+      };
+      showToast(`Âm thanh chuyển sang: ${modeNames[mode] || mode}`);
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // KEYBOARD SHORTCUTS / HOTKEYS (When not typing in inputs)
+  // ---------------------------------------------------------------------------
+  window.addEventListener('keydown', e => {
+    const activeTag = (document.activeElement && document.activeElement.tagName) || '';
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+      return; // Typing in form, don't trigger hotkeys
+    }
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      togglePlayPause();
+    } else if (e.code === 'KeyN') {
+      e.preventDefault();
+      playNextTrack();
+    } else if (e.code === 'KeyP') {
+      e.preventDefault();
+      playPrevTrack();
+    } else if (e.code === 'KeyF') {
+      e.preventDefault();
+      triggerStageEffect('flame');
+    } else if (e.code === 'KeyS') {
+      e.preventDefault();
+      triggerStageEffect('smoke');
+    } else if (e.code === 'KeyR') {
+      e.preventDefault();
+      triggerStageEffect('rave');
+    } else if (e.code === 'Digit1') {
+      e.preventDefault();
+      playSoundEffect('airhorn');
+    } else if (e.code === 'Digit2') {
+      e.preventDefault();
+      playSoundEffect('scratch');
+    } else if (e.code === 'Digit3') {
+      e.preventDefault();
+      playSoundEffect('siren');
+    } else if (e.code === 'Digit4') {
+      e.preventDefault();
+      playSoundEffect('bassdrop');
+    } else if (e.code === 'Digit5') {
+      e.preventDefault();
+      playSoundEffect('cheer');
+    }
   });
 
   setupWebSocket();
