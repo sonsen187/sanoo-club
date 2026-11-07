@@ -201,7 +201,7 @@ body.transparent-mode .stream-container {
 /* TOP GIFTERS VIP LEADERBOARD */
 .vip-leaderboard {
   position: absolute;
-  top: 110px;
+  top: 140px;
   right: 14px;
   width: 150px;
   background: rgba(10, 10, 25, 0.75);
