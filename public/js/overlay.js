@@ -600,6 +600,93 @@
       return 'regular';
     }
 
+    getAccessoryAnchors(drawWidth, drawHeight) {
+      const isHuman = (this.charCategory === 'human');
+      if (isHuman) {
+        return {
+          isHuman: true,
+          crownY: -drawHeight * 0.36,
+          crownW: drawWidth * 0.38,
+          crownH: drawHeight * 0.18,
+          tiaraY: -drawHeight * 0.35,
+          tiaraW: drawWidth * 0.28,
+          tiaraH: drawHeight * 0.13,
+          crestY: -drawHeight * 0.36,
+          // Humans generated from HumanSpriteSystem ALREADY have custom DJ sunglasses & outfits!
+          skipFaceGlasses: true,
+          skipNecklace: true
+        };
+      }
+
+      // CAT DANCERS (char1, char2, char3):
+      // Cat 1 (white cat with pink glowsticks):
+      if (this.charType === 1) {
+        return {
+          isHuman: false,
+          crownY: -drawHeight * 0.13,
+          crownW: drawWidth * 0.34,
+          crownH: drawHeight * 0.14,
+          tiaraY: -drawHeight * 0.13,
+          tiaraW: drawWidth * 0.26,
+          tiaraH: drawHeight * 0.11,
+          crestY: -drawHeight * 0.13,
+          skipFaceGlasses: false,
+          skipNecklace: false,
+          eyeX: -drawWidth * 0.04,
+          eyeY: drawHeight * 0.165,
+          lensW: 19,
+          lensH: 15,
+          lensSpacing: 10,
+          neckY: drawHeight * 0.30,
+          neckW: drawWidth * 0.18
+        };
+      }
+
+      // Cat 2 (orange cat with pink glowstick):
+      if (this.charType === 2) {
+        return {
+          isHuman: false,
+          crownY: -drawHeight * 0.15,
+          crownW: drawWidth * 0.34,
+          crownH: drawHeight * 0.14,
+          tiaraY: -drawHeight * 0.14,
+          tiaraW: drawWidth * 0.26,
+          tiaraH: drawHeight * 0.11,
+          crestY: -drawHeight * 0.14,
+          skipFaceGlasses: false,
+          skipNecklace: false,
+          eyeX: drawWidth * 0.02,
+          eyeY: drawHeight * 0.194,
+          lensW: 19,
+          lensH: 15,
+          lensSpacing: 11,
+          neckY: drawHeight * 0.31,
+          neckW: drawWidth * 0.20
+        };
+      }
+
+      // Cat 3 (black cat with big yellow ring eyes):
+      return {
+        isHuman: false,
+        crownY: -drawHeight * 0.07,
+        crownW: drawWidth * 0.32,
+        crownH: drawHeight * 0.13,
+        tiaraY: -drawHeight * 0.07,
+        tiaraW: drawWidth * 0.25,
+        tiaraH: drawHeight * 0.10,
+        crestY: -drawHeight * 0.07,
+        skipFaceGlasses: false,
+        skipNecklace: false,
+        eyeX: -drawWidth * 0.07,
+        eyeY: drawHeight * 0.198,
+        lensW: 24,
+        lensH: 18,
+        lensSpacing: 13,
+        neckY: drawHeight * 0.33,
+        neckW: drawWidth * 0.22
+      };
+    }
+
     getAdaptiveFrame(totalFrames, beatEngine) {
       if (beatEngine.danceEnergy < 0.12) {
         return 0; // Chill mode: rest frame
@@ -860,6 +947,8 @@
       // ========================================================
       // 3. WEARABLE ACCESSORIES (Cool accessories descending 1, 2, 3)
       // ========================================================
+      const anchors = this.getAccessoryAnchors(drawWidth, drawHeight);
+
       if (this.vipRank === 1) {
         // ----------------------------------------------------
         // 👑 TOP 1: THE IMPERIAL EMPEROR
@@ -870,20 +959,23 @@
         // A. Imperial 5-Peak Gold Crown
         ctx.save();
         const crownBob = Math.sin(curNow * 0.005) * 6;
-        const crownY = isHuman ? (-drawHeight * 0.36 + crownBob) : (-drawHeight * 0.47 + crownBob);
-        const cW = drawWidth * 0.38;
-        const cH = drawHeight * 0.18;
+        const crownY = anchors.crownY + crownBob;
+        const cW = anchors.crownW;
+        const cH = anchors.crownH;
 
         // Divine Crown Radiance Rays behind crown
         for (let r = 0; r < 5; r++) {
           const rayAngle = -Math.PI / 2 + (r - 2) * 0.3;
           ctx.beginPath();
-          ctx.moveTo(0, crownY);
-          ctx.lineTo(Math.cos(rayAngle) * (cW * 0.75), crownY + Math.sin(rayAngle) * (cH * 0.9));
+          ctx.moveTo(anchors.eyeX || 0, crownY);
+          ctx.lineTo((anchors.eyeX || 0) + Math.cos(rayAngle) * (cW * 0.75), crownY + Math.sin(rayAngle) * (cH * 0.9));
           ctx.strokeStyle = 'rgba(255, 230, 0, 0.45)';
           ctx.lineWidth = 2.5;
           ctx.stroke();
         }
+
+        ctx.save();
+        ctx.translate(anchors.eyeX || 0, 0);
 
         // Crown Base & 5 Peaks Path
         ctx.beginPath();
@@ -960,135 +1052,138 @@
         });
         ctx.shadowBlur = 0;
         ctx.restore();
+        ctx.restore();
 
         // ----------------------------------------------------
         // B. 🕶️ KÍNH DJ SIÊU NGẦU (SUPERSTAR VIP DUAL-LENS DJ SHADES)
-        // BỎ HOÀN TOÀN TẤT CẢ GẠCH NGANG / THANH CHỮ NHẬT TRÊN MẶT!
-        // Thiết kế 2 tròng kính riêng biệt (Left Lens & Right Lens):
-        // - Dáng kính phi công thể thao đa giác khí động học cực ngầu
-        // - Khoảng hở rõ rệt ở sống mũi với cầu nối cong mạ vàng 24K
-        // - Tráng gương Obsidian sâu thẳm phản chiếu 2 vệt sáng chéo bóng loáng
-        // - Lóe sáng ngôi sao 4 cánh theo từng cú đập Bass
+        // Vị trí chuẩn xác ngay trên mắt, không bay lơ lửng trên trời!
+        // (Nếu là người, HumanSpriteSystem đã vẽ sẵn trong sprite)
         // ----------------------------------------------------
-        ctx.save();
-        const eyeY = isHuman ? (-drawHeight * 0.10) : (-drawHeight * 0.28);
-        const lensW = isHuman ? 20 : 18;
-        const lensH = isHuman ? 16 : 14;
-        const lensSpacing = isHuman ? 12 : 10; // Khoảng cách giữa 2 mắt kính
+        if (!anchors.skipFaceGlasses) {
+          ctx.save();
+          const eyeY = anchors.eyeY;
+          const eyeX = anchors.eyeX || 0;
+          const lensW = anchors.lensW || 20;
+          const lensH = anchors.lensH || 16;
+          const lensSpacing = anchors.lensSpacing || 12;
 
-        // Hàm vẽ 1 tròng kính phi công đa giác góc cạnh
-        const drawSingleLens = (cx, cy, w, h, isLeft) => {
-          const s = isLeft ? -1 : 1;
-          ctx.beginPath();
-          ctx.moveTo(cx - (w * 0.42) * s, cy - h * 0.42); // Khớp gọng trong
-          ctx.lineTo(cx + (w * 0.48) * s, cy - h * 0.38); // Cạnh trên hơi xếch
-          ctx.lineTo(cx + (w * 0.45) * s, cy + h * 0.22); // Góc ngoài
-          ctx.lineTo(cx + (w * 0.12) * s, cy + h * 0.48); // Đáy uốn cong
-          ctx.lineTo(cx - (w * 0.38) * s, cy + h * 0.38); // Khớp dưới
-          ctx.closePath();
-        };
+          // Hàm vẽ 1 tròng kính phi công đa giác góc cạnh
+          const drawSingleLens = (cx, cy, w, h, isLeft) => {
+            const s = isLeft ? -1 : 1;
+            ctx.beginPath();
+            ctx.moveTo(cx - (w * 0.42) * s, cy - h * 0.42); // Khớp gọng trong
+            ctx.lineTo(cx + (w * 0.48) * s, cy - h * 0.38); // Cạnh trên hơi xếch
+            ctx.lineTo(cx + (w * 0.45) * s, cy + h * 0.22); // Góc ngoài
+            ctx.lineTo(cx + (w * 0.12) * s, cy + h * 0.48); // Đáy uốn cong
+            ctx.lineTo(cx - (w * 0.38) * s, cy + h * 0.38); // Khớp dưới
+            ctx.closePath();
+          };
 
-        const leftLensX = -lensSpacing - lensW / 2;
-        const rightLensX = lensSpacing + lensW / 2;
+          const leftLensX = eyeX - lensSpacing - lensW / 2;
+          const rightLensX = eyeX + lensSpacing + lensW / 2;
 
-        // 1. Thân tròng kính gương Obsidian cho từng mắt riêng biệt
-        [leftLensX, rightLensX].forEach((lx, idx) => {
-          const isL = (idx === 0);
-          drawSingleLens(lx, eyeY, lensW, lensH, isL);
+          // 1. Thân tròng kính gương Obsidian cho từng mắt riêng biệt
+          [leftLensX, rightLensX].forEach((lx, idx) => {
+            const isL = (idx === 0);
+            drawSingleLens(lx, eyeY, lensW, lensH, isL);
 
-          const lensGrad = ctx.createLinearGradient(lx - lensW / 2, eyeY - lensH / 2, lx + lensW / 2, eyeY + lensH / 2);
-          lensGrad.addColorStop(0, '#0f172a');
-          lensGrad.addColorStop(0.4, '#090d16');
-          lensGrad.addColorStop(0.8, '#1e1b4b');
-          lensGrad.addColorStop(1, '#020617');
-          ctx.fillStyle = lensGrad;
-          ctx.fill();
+            const lensGrad = ctx.createLinearGradient(lx - lensW / 2, eyeY - lensH / 2, lx + lensW / 2, eyeY + lensH / 2);
+            lensGrad.addColorStop(0, '#0f172a');
+            lensGrad.addColorStop(0.4, '#090d16');
+            lensGrad.addColorStop(0.8, '#1e1b4b');
+            lensGrad.addColorStop(1, '#020617');
+            ctx.fillStyle = lensGrad;
+            ctx.fill();
 
-          // Viền mạ vàng 24K bao quanh từng tròng kính
+            // Viền mạ vàng 24K bao quanh từng tròng kính
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2.4;
+            ctx.shadowColor = '#ffe600';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 2 Vệt sáng chéo lóa bóng kính đặc trưng (/ /)
+            ctx.save();
+            ctx.clip();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.42)';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(lx - lensW * 0.3, eyeY - lensH * 0.5);
+            ctx.lineTo(lx - lensW * 0.6, eyeY + lensH * 0.6);
+            ctx.moveTo(lx + lensW * 0.05, eyeY - lensH * 0.5);
+            ctx.lineTo(lx - lensW * 0.25, eyeY + lensH * 0.6);
+            ctx.stroke();
+            ctx.restore();
+          });
+
+          // 2. Cầu nối mũi cong chữ U mạ vàng đôi (U-Arch Double Gold Bridge)
           ctx.strokeStyle = '#ffd700';
-          ctx.lineWidth = 2.4;
+          ctx.lineWidth = 2.2;
+          ctx.shadowColor = '#ffe600';
+          ctx.shadowBlur = 8;
+          // Cầu trên
+          ctx.beginPath();
+          ctx.moveTo(leftLensX + lensW * 0.42, eyeY - lensH * 0.22);
+          ctx.quadraticCurveTo(eyeX, eyeY - lensH * 0.40, rightLensX - lensW * 0.42, eyeY - lensH * 0.22);
+          ctx.stroke();
+          // Cầu dưới
+          ctx.beginPath();
+          ctx.moveTo(leftLensX + lensW * 0.38, eyeY);
+          ctx.quadraticCurveTo(eyeX, eyeY - lensH * 0.12, rightLensX - lensW * 0.38, eyeY);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // 3. Gọng kính hai bên vuốt về phía mang tai
+          ctx.strokeStyle = '#b45309';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(leftLensX - lensW * 0.46, eyeY - lensH * 0.32);
+          ctx.lineTo(leftLensX - lensW * 0.75, eyeY - lensH * 0.10);
+          ctx.moveTo(rightLensX + lensW * 0.46, eyeY - lensH * 0.32);
+          ctx.lineTo(rightLensX + lensW * 0.75, eyeY - lensH * 0.10);
+          ctx.stroke();
+
+          // 4. Lóe sáng ngôi sao vàng trên gọng kính theo nhịp Bass
+          if (beatEngine.bassLevel > 0.38 || beatEngine.isBeatHit) {
+            drawSparkleStar(ctx, rightLensX + lensW * 0.42, eyeY - lensH * 0.35, 8, '#ffffff', '#ffd700');
+          }
+          ctx.restore();
+        }
+
+        // C. Giant Heavy Gold Cuban Link Chain & Spinning Medallion
+        if (!anchors.skipNecklace) {
+          ctx.save();
+          const neckY = anchors.neckY;
+          const neckW = anchors.neckW || (drawWidth * 0.18);
+          ctx.beginPath();
+          ctx.ellipse(anchors.eyeX || 0, neckY, neckW, 14, 0, 0, Math.PI);
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 5.5;
           ctx.shadowColor = '#ffe600';
           ctx.shadowBlur = 10;
           ctx.stroke();
           ctx.shadowBlur = 0;
 
-          // 2 Vệt sáng chéo lóa bóng kính đặc trưng (/ /)
+          // Hanging Crown Medallion
+          const medRot = Math.sin(curNow * 0.006) * 0.25;
           ctx.save();
-          ctx.clip();
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.42)';
-          ctx.lineWidth = 2.2;
+          ctx.translate(anchors.eyeX || 0, neckY + 16);
+          ctx.rotate(medRot);
           ctx.beginPath();
-          ctx.moveTo(lx - lensW * 0.3, eyeY - lensH * 0.5);
-          ctx.lineTo(lx - lensW * 0.6, eyeY + lensH * 0.6);
-          ctx.moveTo(lx + lensW * 0.05, eyeY - lensH * 0.5);
-          ctx.lineTo(lx - lensW * 0.25, eyeY + lensH * 0.6);
+          ctx.arc(0, 0, 13, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffd700';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
           ctx.stroke();
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('👑', 0, 1);
           ctx.restore();
-        });
-
-        // 2. Cầu nối mũi cong chữ U mạ vàng đôi (U-Arch Double Gold Bridge)
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 2.2;
-        ctx.shadowColor = '#ffe600';
-        ctx.shadowBlur = 8;
-        // Cầu trên
-        ctx.beginPath();
-        ctx.moveTo(leftLensX + lensW * 0.42, eyeY - lensH * 0.22);
-        ctx.quadraticCurveTo(0, eyeY - lensH * 0.40, rightLensX - lensW * 0.42, eyeY - lensH * 0.22);
-        ctx.stroke();
-        // Cầu dưới
-        ctx.beginPath();
-        ctx.moveTo(leftLensX + lensW * 0.38, eyeY);
-        ctx.quadraticCurveTo(0, eyeY - lensH * 0.12, rightLensX - lensW * 0.38, eyeY);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // 3. Gọng kính hai bên vuốt về phía mang tai
-        ctx.strokeStyle = '#b45309';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(leftLensX - lensW * 0.46, eyeY - lensH * 0.32);
-        ctx.lineTo(leftLensX - lensW * 0.75, eyeY - lensH * 0.10);
-        ctx.moveTo(rightLensX + lensW * 0.46, eyeY - lensH * 0.32);
-        ctx.lineTo(rightLensX + lensW * 0.75, eyeY - lensH * 0.10);
-        ctx.stroke();
-
-        // 4. Lóe sáng ngôi sao vàng trên gọng kính theo nhịp Bass
-        if (beatEngine.bassLevel > 0.38 || beatEngine.isBeatHit) {
-          drawSparkleStar(ctx, rightLensX + lensW * 0.42, eyeY - lensH * 0.35, 8, '#ffffff', '#ffd700');
+          ctx.restore();
         }
-        ctx.restore();
-
-        // C. Giant Heavy Gold Cuban Link Chain & Spinning Medallion
-        ctx.save();
-        const neckY = isHuman ? (-drawHeight * 0.08) : (-drawHeight * 0.10);
-        ctx.beginPath();
-        ctx.ellipse(0, neckY, drawWidth * 0.18, 14, 0, 0, Math.PI);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 5.5;
-        ctx.shadowColor = '#ffe600';
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Hanging Crown Medallion
-        const medRot = Math.sin(curNow * 0.006) * 0.25;
-        ctx.save();
-        ctx.translate(0, neckY + 16);
-        ctx.rotate(medRot);
-        ctx.beginPath();
-        ctx.arc(0, 0, 13, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('👑', 0, 1);
-        ctx.restore();
-        ctx.restore();
 
       } else if (this.vipRank === 2) {
         // ----------------------------------------------------
@@ -1100,10 +1195,12 @@
         // A. Silver 3-Spike Cyber Tiara
         ctx.save();
         const tiaraBob = Math.sin(curNow * 0.004 + 1) * 4;
-        const tiaraY = isHuman ? (-drawHeight * 0.35 + tiaraBob) : (-drawHeight * 0.44 + tiaraBob);
-        const tW = drawWidth * 0.28;
-        const tH = drawHeight * 0.13;
+        const tiaraY = anchors.tiaraY + tiaraBob;
+        const tW = anchors.tiaraW;
+        const tH = anchors.tiaraH;
 
+        ctx.save();
+        ctx.translate(anchors.eyeX || 0, 0);
         ctx.beginPath();
         ctx.moveTo(-tW * 0.45, tiaraY);
         ctx.lineTo(-tW * 0.45, tiaraY - tH * 0.6);
@@ -1134,73 +1231,80 @@
         drawSparkleStar(ctx, 0, tiaraY - tH, 6, '#ffffff', '#00f0ff');
         ctx.shadowBlur = 0;
         ctx.restore();
+        ctx.restore();
 
         // B. Dual Hexagonal Cyber AR Shades (Không dùng gạch ngang!)
-        ctx.save();
-        const vY = isHuman ? (-drawHeight * 0.195) : (-drawHeight * 0.27);
-        const cLensW = 16;
-        const cLensH = 13;
-        const cSpacing = 10;
+        if (!anchors.skipFaceGlasses) {
+          ctx.save();
+          const vY = anchors.eyeY;
+          const eyeX = anchors.eyeX || 0;
+          const cLensW = anchors.lensW || 16;
+          const cLensH = anchors.lensH || 13;
+          const cSpacing = anchors.lensSpacing || 10;
 
-        const leftCX = -cSpacing - cLensW / 2;
-        const rightCX = cSpacing + cLensW / 2;
+          const leftCX = eyeX - cSpacing - cLensW / 2;
+          const rightCX = eyeX + cSpacing + cLensW / 2;
 
-        [leftCX, rightCX].forEach((cx, idx) => {
-          // Hexagonal Cyber Lens Path
-          ctx.beginPath();
-          ctx.moveTo(cx - cLensW * 0.4, vY - cLensH * 0.45);
-          ctx.lineTo(cx + cLensW * 0.4, vY - cLensH * 0.45);
-          ctx.lineTo(cx + cLensW * 0.5, vY + cLensH * 0.1);
-          ctx.lineTo(cx + cLensW * 0.2, vY + cLensH * 0.48);
-          ctx.lineTo(cx - cLensW * 0.2, vY + cLensH * 0.48);
-          ctx.lineTo(cx - cLensW * 0.5, vY + cLensH * 0.1);
-          ctx.closePath();
-
-          ctx.fillStyle = 'rgba(0, 240, 255, 0.35)';
-          ctx.fill();
-          ctx.strokeStyle = '#00f0ff';
-          ctx.lineWidth = 2;
-          ctx.shadowColor = '#00f0ff';
-          ctx.shadowBlur = 10;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          if (idx === 0) {
-            // Left ocular HUD reticle
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.2;
+          [leftCX, rightCX].forEach((cx, idx) => {
+            // Hexagonal Cyber Lens Path
             ctx.beginPath();
-            ctx.moveTo(cx - 3, vY); ctx.lineTo(cx + 3, vY);
-            ctx.moveTo(cx, vY - 3); ctx.lineTo(cx, vY + 3);
-            ctx.stroke();
-          } else {
-            // Right ocular HUD frequency ticks
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(cx - 3, vY - 2, 6, 1.5);
-            ctx.fillRect(cx - 2, vY + 1, 4, 1.5);
-          }
-        });
+            ctx.moveTo(cx - cLensW * 0.4, vY - cLensH * 0.45);
+            ctx.lineTo(cx + cLensW * 0.4, vY - cLensH * 0.45);
+            ctx.lineTo(cx + cLensW * 0.5, vY + cLensH * 0.1);
+            ctx.lineTo(cx + cLensW * 0.2, vY + cLensH * 0.48);
+            ctx.lineTo(cx - cLensW * 0.2, vY + cLensH * 0.48);
+            ctx.lineTo(cx - cLensW * 0.5, vY + cLensH * 0.1);
+            ctx.closePath();
 
-        // Thin Cyber Nose Bridge
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(leftCX + cLensW * 0.4, vY - 2);
-        ctx.lineTo(rightCX - cLensW * 0.4, vY - 2);
-        ctx.stroke();
-        ctx.restore();
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.35)';
+            ctx.fill();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            if (idx === 0) {
+              // Left ocular HUD reticle
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(cx - 3, vY); ctx.lineTo(cx + 3, vY);
+              ctx.moveTo(cx, vY - 3); ctx.lineTo(cx, vY + 3);
+              ctx.stroke();
+            } else {
+              // Right ocular HUD frequency ticks
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(cx - 3, vY - 2, 6, 1.5);
+              ctx.fillRect(cx - 2, vY + 1, 4, 1.5);
+            }
+          });
+
+          // Thin Cyber Nose Bridge
+          ctx.strokeStyle = '#00f0ff';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(leftCX + cLensW * 0.4, vY - 2);
+          ctx.lineTo(rightCX - cLensW * 0.4, vY - 2);
+          ctx.stroke();
+          ctx.restore();
+        }
 
         // C. Platinum Chain & Silver Star
-        ctx.save();
-        const neckY = isHuman ? (-drawHeight * 0.08) : (-drawHeight * 0.09);
-        ctx.beginPath();
-        ctx.ellipse(0, neckY, drawWidth * 0.15, 11, 0, 0, Math.PI);
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        if (!anchors.skipNecklace) {
+          ctx.save();
+          const neckY = anchors.neckY;
+          const neckW = anchors.neckW || (drawWidth * 0.15);
+          ctx.beginPath();
+          ctx.ellipse(anchors.eyeX || 0, neckY, neckW, 11, 0, 0, Math.PI);
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 4;
+          ctx.stroke();
 
-        drawSparkleStar(ctx, 0, neckY + 12, 8, '#ffffff', '#00f0ff');
-        ctx.restore();
+          drawSparkleStar(ctx, anchors.eyeX || 0, neckY + 12, 8, '#ffffff', '#00f0ff');
+          ctx.restore();
+        }
 
       } else if (this.vipRank === 3) {
         // ----------------------------------------------------
@@ -1211,9 +1315,9 @@
         // ----------------------------------------------------
         // A. Floating Amber Sun Gem Crest (Hovering above head)
         ctx.save();
-        const crestY = isHuman ? (-drawHeight * 0.36) : (-drawHeight * 0.42);
+        const crestY = anchors.crestY;
         const crestBob = Math.sin(curNow * 0.005 + 2) * 3;
-        ctx.translate(0, crestY + crestBob);
+        ctx.translate(anchors.eyeX || 0, crestY + crestBob);
 
         // Radiant Amber Sunburst
         drawSparkleStar(ctx, 0, 0, 10, '#f59e0b', '#fbbf24');
@@ -1224,65 +1328,71 @@
         ctx.restore();
 
         // B. Dual Teardrop Rose-Gold Aviator Sunglasses (2 Tròng Kính Riêng Biệt)
-        ctx.save();
-        const sgY = isHuman ? (-drawHeight * 0.195) : (-drawHeight * 0.26);
-        const avW = 15;
-        const avH = 13;
-        const avSpacing = 10;
-        const leftAvX = -avSpacing - avW / 2;
-        const rightAvX = avSpacing + avW / 2;
+        if (!anchors.skipFaceGlasses) {
+          ctx.save();
+          const sgY = anchors.eyeY;
+          const eyeX = anchors.eyeX || 0;
+          const avW = anchors.lensW || 15;
+          const avH = anchors.lensH || 13;
+          const avSpacing = anchors.lensSpacing || 10;
+          const leftAvX = eyeX - avSpacing - avW / 2;
+          const rightAvX = eyeX + avSpacing + avW / 2;
 
-        [leftAvX, rightAvX].forEach((ax, idx) => {
-          const s = (idx === 0) ? -1 : 1;
-          ctx.beginPath();
-          ctx.moveTo(ax - avW * 0.35 * s, sgY - avH * 0.4);
-          ctx.lineTo(ax + avW * 0.45 * s, sgY - avH * 0.35);
-          ctx.lineTo(ax + avW * 0.42 * s, sgY + avH * 0.2);
-          ctx.lineTo(ax + avW * 0.05 * s, sgY + avH * 0.45);
-          ctx.lineTo(ax - avW * 0.35 * s, sgY + avH * 0.3);
-          ctx.closePath();
+          [leftAvX, rightAvX].forEach((ax, idx) => {
+            const s = (idx === 0) ? -1 : 1;
+            ctx.beginPath();
+            ctx.moveTo(ax - avW * 0.35 * s, sgY - avH * 0.4);
+            ctx.lineTo(ax + avW * 0.45 * s, sgY - avH * 0.35);
+            ctx.lineTo(ax + avW * 0.42 * s, sgY + avH * 0.2);
+            ctx.lineTo(ax + avW * 0.05 * s, sgY + avH * 0.45);
+            ctx.lineTo(ax - avW * 0.35 * s, sgY + avH * 0.3);
+            ctx.closePath();
 
-          ctx.fillStyle = '#090a14';
-          ctx.fill();
+            ctx.fillStyle = '#090a14';
+            ctx.fill();
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            // Highlight streak
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(ax - avW * 0.1, sgY - avH * 0.3);
+            ctx.lineTo(ax - avW * 0.3, sgY + avH * 0.3);
+            ctx.stroke();
+          });
+
+          // Rose-Gold Curved Bridge
           ctx.strokeStyle = '#f59e0b';
           ctx.lineWidth = 1.8;
-          ctx.stroke();
-
-          // Highlight streak
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-          ctx.lineWidth = 1.4;
           ctx.beginPath();
-          ctx.moveTo(ax - avW * 0.1, sgY - avH * 0.3);
-          ctx.lineTo(ax - avW * 0.3, sgY + avH * 0.3);
+          ctx.moveTo(leftAvX + avW * 0.35, sgY - 2);
+          ctx.quadraticCurveTo(eyeX, sgY - 5, rightAvX - avW * 0.35, sgY - 2);
           ctx.stroke();
-        });
-
-        // Rose-Gold Curved Bridge
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(leftAvX + avW * 0.35, sgY - 2);
-        ctx.quadraticCurveTo(0, sgY - 5, rightAvX - avW * 0.35, sgY - 2);
-        ctx.stroke();
-        ctx.restore();
+          ctx.restore();
+        }
 
         // C. Bronze Token Necklace
-        ctx.save();
-        const neckY = -drawHeight * 0.08;
-        ctx.beginPath();
-        ctx.ellipse(0, neckY, drawWidth * 0.13, 10, 0, 0, Math.PI);
-        ctx.strokeStyle = '#9a3412';
-        ctx.lineWidth = 3.5;
-        ctx.stroke();
+        if (!anchors.skipNecklace) {
+          ctx.save();
+          const neckY = anchors.neckY;
+          const neckW = anchors.neckW || (drawWidth * 0.13);
+          ctx.beginPath();
+          ctx.ellipse(anchors.eyeX || 0, neckY, neckW, 10, 0, 0, Math.PI);
+          ctx.strokeStyle = '#9a3412';
+          ctx.lineWidth = 3.5;
+          ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(0, neckY + 11, 7, 0, Math.PI * 2);
-        ctx.fillStyle = '#d97706';
-        ctx.fill();
-        ctx.strokeStyle = '#ffedd5';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.restore();
+          ctx.beginPath();
+          ctx.arc(anchors.eyeX || 0, neckY + 11, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#d97706';
+          ctx.fill();
+          ctx.strokeStyle = '#ffedd5';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
       }
 
       // ========================================================
