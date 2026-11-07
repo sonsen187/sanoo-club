@@ -1438,6 +1438,321 @@
     requestAnimationFrame(renderLoop);
   }
 
+
+  // =========================================================================
+  // TOP 3 VIP AVATAR DISPLAY ON DJ LED SCREEN (BASS REACTIVE SHOWCASE)
+  // =========================================================================
+  const avatarImageCache = new Map();
+  function getOrLoadAvatarImage(url) {
+    if (!url || typeof url !== 'string' || url.trim() === '') return null;
+    const cleanUrl = url.trim();
+    let item = avatarImageCache.get(cleanUrl);
+    if (!item) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      item = { img, loaded: false, error: false };
+      img.onload = () => { item.loaded = true; };
+      img.onerror = () => { item.error = true; };
+      img.src = cleanUrl;
+      avatarImageCache.set(cleanUrl, item);
+    }
+    return (item.loaded && !item.error && item.img.naturalWidth > 0) ? item.img : null;
+  }
+
+  function getTop3VIPUsers() {
+    const result = [];
+    // 1. Try topGifters
+    for (let i = 0; i < 3; i++) {
+      const g = topGifters[i];
+      if (g && (g.username || g.nickname)) {
+        result.push({
+          rank: i + 1,
+          username: g.username || `vip_${i + 1}`,
+          nickname: g.nickname || g.username || `Đại Gia #${i + 1}`,
+          avatar: g.avatar || g.profilePictureUrl || '',
+          coins: g.coins || 0
+        });
+      }
+    }
+
+    // 2. Fill missing ranks from VIP podium dancers
+    for (let r = 1; r <= 3; r++) {
+      if (!result.some(v => v.rank === r)) {
+        const d = (dancers || []).find(dancer => dancer.vipRank === r);
+        if (d) {
+          result.push({
+            rank: r,
+            username: d.username,
+            nickname: d.nickname || d.username,
+            avatar: d.avatar || '',
+            coins: d.score || 0
+          });
+        }
+      }
+    }
+
+    // 3. Fallback placeholders if room just opened
+    for (let r = 1; r <= 3; r++) {
+      if (!result.some(v => v.rank === r)) {
+        result.push({
+          rank: r,
+          username: `vip_${r}`,
+          nickname: r === 1 ? 'Chờ Đại Gia 👑' : (r === 2 ? 'Chờ Top 2 🥈' : 'Chờ Top 3 🥉'),
+          avatar: '',
+          coins: 0
+        });
+      }
+    }
+
+    result.sort((a, b) => a.rank - b.rank);
+    return result;
+  }
+
+  function formatVipCoins(coins) {
+    if (!coins || coins <= 0) return '';
+    if (coins >= 1000000) return (coins / 1000000).toFixed(1) + 'M';
+    if (coins >= 1000) return (coins / 1000).toFixed(1) + 'K';
+    return coins.toString();
+  }
+
+  function drawCrown(ctx, x, y, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    const w = size;
+    const h = size * 0.65;
+    ctx.moveTo(-w / 2, h / 2);
+    ctx.lineTo(-w / 2, -h / 2);
+    ctx.lineTo(-w * 0.22, 0);
+    ctx.lineTo(0, -h * 0.7);
+    ctx.lineTo(w * 0.22, 0);
+    ctx.lineTo(w / 2, -h / 2);
+    ctx.lineTo(w / 2, h / 2);
+    ctx.closePath();
+    ctx.fillStyle = '#ffe600';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 3 Jewels on crown tips
+    const tips = [
+      { tx: -w / 2, ty: -h / 2 },
+      { tx: 0, ty: -h * 0.7 },
+      { tx: w / 2, ty: -h / 2 }
+    ];
+    tips.forEach(t => {
+      ctx.beginPath();
+      ctx.arc(t.tx, t.ty, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff0055';
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function drawSingleDJScreenAvatar(ctx, vip, cfg, now, beatEngine, kickSnap, bass) {
+    const bobY = -kickSnap * (cfg.rank === 1 ? 8 : 6);
+    const scale = 1.0 + (bass * 0.16) + (kickSnap * 0.15);
+    const curX = cfg.x;
+    const curY = cfg.y + bobY;
+    const r = cfg.baseR * scale;
+
+    ctx.save();
+
+    // 1. Subwoofer Bass Shockwaves (Concentric Pulsing Waves radiating from Avatar)
+    for (let w = 1; w <= 2; w++) {
+      const waveProg = ((now * 0.0018 * (beatEngine.bpm / 120) + w * 0.45) % 1.0);
+      const waveR = r + waveProg * (cfg.baseR * 1.3);
+      const waveAlpha = (1.0 - waveProg) * (0.30 + bass * 0.40 + kickSnap * 0.35);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(curX, curY, waveR, 0, Math.PI * 2);
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.globalAlpha = waveAlpha;
+      ctx.lineWidth = 1.8 + kickSnap * 2.2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 2. Radial Audio Visualizer Spikes around Avatar Frame (Dancing with Beat)
+    ctx.save();
+    const spikeCount = cfg.rank === 1 ? 16 : 12;
+    for (let k = 0; k < spikeCount; k++) {
+      const ang = k * (Math.PI * 2 / spikeCount) + (now * 0.0006);
+      const waveBounce = Math.sin(now * 0.012 + k * 0.8) * 2;
+      const spikeLen = (3 + waveBounce + kickSnap * 9 + bass * 6);
+      const x1 = curX + Math.cos(ang) * (r + 2);
+      const y1 = curY + Math.sin(ang) * (r + 2);
+      const x2 = curX + Math.cos(ang) * (r + 2 + spikeLen);
+      const y2 = curY + Math.sin(ang) * (r + 2 + spikeLen);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.globalAlpha = 0.5 + kickSnap * 0.5;
+      ctx.lineWidth = 2.0 + kickSnap * 1.0;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3. Avatar Image or High-Quality Thematic Fallback (Clipped to Circle)
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(curX, curY, r, 0, Math.PI * 2);
+    ctx.clip();
+
+    const loadedImg = getOrLoadAvatarImage(vip.avatar);
+    if (loadedImg) {
+      ctx.drawImage(loadedImg, curX - r, curY - r, r * 2, r * 2);
+    } else {
+      // Cosmic dark gradient background
+      const bgGrad = ctx.createRadialGradient(curX, curY, 0, curX, curY, r);
+      bgGrad.addColorStop(0, '#1c2242');
+      bgGrad.addColorStop(1, '#0b0f1c');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(curX - r, curY - r, r * 2, r * 2);
+
+      // Thematic Cat Mascot Avatar
+      const catList = spriteCache[`char${cfg.rank}`];
+      const catImg = (catList && catList[0] && catList[0].complete && catList[0].naturalWidth > 0) ? catList[0] : null;
+      if (catImg) {
+        ctx.drawImage(catImg, curX - r * 0.85, curY - r * 0.85, r * 1.7, r * 1.7);
+      } else {
+        ctx.font = `bold ${Math.round(r * 0.9)}px "Rajdhani", sans-serif`;
+        ctx.fillStyle = cfg.themeColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((vip.nickname || 'VIP')[0].toUpperCase(), curX, curY);
+      }
+    }
+    ctx.restore();
+
+    // 4. Outer Glowing Bezel & Border Ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(curX, curY, r, 0, Math.PI * 2);
+    ctx.lineWidth = (cfg.rank === 1 ? 4.5 : 3.2) + kickSnap * 1.8;
+    ctx.strokeStyle = cfg.borderColor;
+    ctx.shadowColor = cfg.themeColor;
+    ctx.shadowBlur = 12 + kickSnap * 15;
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Golden Crown for Top 1
+    if (cfg.rank === 1) {
+      drawCrown(ctx, curX, curY - r - 14, 28 + kickSnap * 4);
+    }
+
+    // 6. Mini Medal Badge on Avatar Corner
+    ctx.save();
+    const medalAng = -Math.PI * 0.75; // Top-left corner
+    const mx = curX + Math.cos(medalAng) * (r * 0.88);
+    const my = curY + Math.sin(medalAng) * (r * 0.88);
+    ctx.beginPath();
+    ctx.arc(mx, my, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#0f172a';
+    ctx.fill();
+    ctx.strokeStyle = cfg.borderColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(cfg.medal, mx, my + 1);
+    ctx.restore();
+
+    // 7. Cyber Name Pill below Avatar
+    ctx.save();
+    const pillW = cfg.rank === 1 ? 156 : 132;
+    const pillH = cfg.rank === 1 ? 26 : 22;
+    const pillY = curY + r + 16;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(curX - pillW / 2, pillY - pillH / 2, pillW, pillH, 8);
+    } else {
+      ctx.rect(curX - pillW / 2, pillY - pillH / 2, pillW, pillH);
+    }
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.85)';
+    ctx.fill();
+    ctx.strokeStyle = cfg.borderColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Name text
+    let displayName = vip.nickname || `Top ${cfg.rank}`;
+    if (displayName.length > 13) {
+      displayName = displayName.substring(0, 12) + '..';
+    }
+    ctx.font = `bold ${cfg.rank === 1 ? 14 : 12}px "Rajdhani", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = cfg.themeColor;
+    ctx.shadowBlur = 6;
+    ctx.fillText(displayName, curX, pillY);
+
+    // Coins / Gift badge under pill if coins > 0
+    if (vip.coins > 0) {
+      ctx.font = 'bold 10px "Rajdhani", sans-serif';
+      ctx.fillStyle = cfg.themeColor;
+      ctx.shadowBlur = 0;
+      ctx.fillText(`💎 ${formatVipCoins(vip.coins)}`, curX, pillY + pillH * 0.75 + 1);
+    }
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function drawDJScreenTop3VIP(ctx, sx, sy, sw, sh, now, beatEngine) {
+    const vips = getTop3VIPUsers();
+    const cx = sx + sw / 2;
+
+    const bass = beatEngine.bassLevel || 0;
+    const beatPhase = beatEngine.beatPhase || 0;
+    const kickSnap = Math.pow(Math.max(0, 1.0 - beatPhase * 2.2), 2.2) * (beatEngine.isBassActive ? 1 : 0.2);
+
+    // 1. Sleek Cyber Header Bar inside LED screen
+    ctx.save();
+    const headerY = sy + 30;
+    const headerPulse = 1.0 + kickSnap * 0.06;
+    ctx.translate(cx, headerY);
+    ctx.scale(headerPulse, headerPulse);
+    ctx.font = '900 17px "Rajdhani", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (beatEngine.isBassActive) {
+      ctx.fillStyle = '#ffe600';
+      ctx.shadowColor = '#ffe600';
+      ctx.shadowBlur = 8;
+      ctx.fillText('⚡ VIP SPOTLIGHT • TOP 3 ĐẠI GIA SANOO CLUB ⚡', 0, 0);
+    } else {
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 6;
+      ctx.fillText('🎧 DJ SANOO • TOP 3 BẢNG VÀNG ĐẠI GIA 🎧', 0, 0);
+    }
+    ctx.restore();
+
+    // 2. Positions of the 3 Avatars on the DJ Screen:
+    // Top 1: Center, elevated (cx, sy + 112)
+    // Top 2: Left (cx - 195, sy + 128)
+    // Top 3: Right (cx + 195, sy + 128)
+    const configs = [
+      { rank: 1, x: cx, y: sy + 98, baseR: 38, themeColor: '#ffe600', borderColor: '#ffea00', medal: '🥇' },
+      { rank: 2, x: cx - 195, y: sy + 114, baseR: 30, themeColor: '#00f0ff', borderColor: '#38bdf8', medal: '🥈' },
+      { rank: 3, x: cx + 195, y: sy + 114, baseR: 28, themeColor: '#ff8c00', borderColor: '#fb923c', medal: '🥉' }
+    ];
+
+    configs.forEach(cfg => {
+      const vip = vips.find(v => v.rank === cfg.rank) || { rank: cfg.rank, nickname: `Top ${cfg.rank}`, coins: 0 };
+      drawSingleDJScreenAvatar(ctx, vip, cfg, now, beatEngine, kickSnap, bass);
+    });
+  }
+
+
   // Draw Stage Backdrop & Industrial Truss Framework
   function drawStageBackdrop(now) {
     const sx = W * 0.15;
@@ -1533,7 +1848,7 @@
     const barCount = 36;
     const barSpacing = (sw - 40) / barCount;
     const barW = barSpacing * 0.72;
-    const maxBarH = sh * 0.58;
+    const maxBarH = sh * 0.35;
     const baseBarY = sy + sh - 18;
 
     for (let b = 0; b < barCount; b++) {
@@ -1573,49 +1888,8 @@
       ctx.fillRect(bx, by - 3, barW, 2);
     }
 
-    // 4. Dynamic High-Energy LED Stage Banner Text
-    ctx.save();
-    if (beatEngine.isBassActive) {
-      const slogans = [
-        '⚡ BASS DROP! ⚡',
-        '🔥 SANOO RAVE CLUB 🔥',
-        '💥 QUẨY LÊN NÀO! 💥',
-        '⚡ DROP THE BASS ⚡'
-      ];
-      const sloganIdx = Math.floor(now * 0.001 * (beatEngine.bpm / 120) * 0.5) % slogans.length;
-      const slogan = slogans[sloganIdx];
-      const pulseScale = 1.0 + beatEngine.bassLevel * 0.22;
-
-      ctx.translate(cx, sy + 75);
-      ctx.scale(pulseScale, pulseScale);
-      ctx.font = '900 38px "Rajdhani", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#ffe600';
-      ctx.fillText(slogan, 0, 0);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
-      ctx.strokeText(slogan, 0, 0);
-    } else {
-      ctx.font = '900 24px "Rajdhani", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#00f0ff';
-      
-      ctx.fillText('🎧 DJ SANOO • GROOVE SESSION 🎧', cx, sy + 65);
-
-      // Rolling sine soundwave in chill mode
-      ctx.beginPath();
-      for (let x = sx + 40; x < sx + sw - 40; x += 6) {
-        const y = sy + 95 + Math.sin(x * 0.03 + now * 0.005) * 8;
-        if (x === sx + 40) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-    }
-    ctx.restore();
+    // 4. TOP 3 VIP AVATARS & NAMES WITH BASS BEAT FX ON DJ SCREEN
+    drawDJScreenTop3VIP(ctx, sx, sy, sw, sh, now, beatEngine);
 
     // 5. Strobe Flash on Bass Hits
     if (stageLighting.flashIntensity > 0.08) {
