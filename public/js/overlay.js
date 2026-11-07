@@ -1449,10 +1449,15 @@
     let item = avatarImageCache.get(cleanUrl);
     if (!item) {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // DO NOT set img.crossOrigin = 'anonymous' because TikTok CDN edge servers
+      // do not always return CORS headers. Standard 2D Canvas drawImage() works
+      // 100% reliably for cross-origin images without CORS!
       item = { img, loaded: false, error: false };
       img.onload = () => { item.loaded = true; };
-      img.onerror = () => { item.error = true; };
+      img.onerror = () => {
+        console.warn('[Avatar] Failed to load avatar:', cleanUrl);
+        item.error = true;
+      };
       img.src = cleanUrl;
       avatarImageCache.set(cleanUrl, item);
     }
@@ -1643,7 +1648,7 @@
 
     // 5. Golden Crown for Top 1
     if (cfg.rank === 1) {
-      drawCrown(ctx, curX, curY - r - 14, 28 + kickSnap * 4);
+      drawCrown(ctx, curX, curY - r - 18, 40 + kickSnap * 6);
     }
 
     // 6. Mini Medal Badge on Avatar Corner
@@ -1652,41 +1657,41 @@
     const mx = curX + Math.cos(medalAng) * (r * 0.88);
     const my = curY + Math.sin(medalAng) * (r * 0.88);
     ctx.beginPath();
-    ctx.arc(mx, my, 12, 0, Math.PI * 2);
+    ctx.arc(mx, my, cfg.rank === 1 ? 16 : 13, 0, Math.PI * 2);
     ctx.fillStyle = '#0f172a';
     ctx.fill();
     ctx.strokeStyle = cfg.borderColor;
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.font = '13px sans-serif';
+    ctx.font = (cfg.rank === 1 ? '16px' : '13px') + ' sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(cfg.medal, mx, my + 1);
     ctx.restore();
 
-    // 7. Cyber Name Pill below Avatar
+    // 7. Cyber Name Pill below Avatar (Larger & clearer typography)
     ctx.save();
-    const pillW = cfg.rank === 1 ? 156 : 132;
-    const pillH = cfg.rank === 1 ? 26 : 22;
-    const pillY = curY + r + 16;
+    const pillW = cfg.rank === 1 ? 168 : 144;
+    const pillH = cfg.rank === 1 ? 28 : 24;
+    const pillY = curY + r + (cfg.rank === 1 ? 20 : 18);
     ctx.beginPath();
     if (ctx.roundRect) {
       ctx.roundRect(curX - pillW / 2, pillY - pillH / 2, pillW, pillH, 8);
     } else {
       ctx.rect(curX - pillW / 2, pillY - pillH / 2, pillW, pillH);
     }
-    ctx.fillStyle = 'rgba(8, 12, 28, 0.85)';
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.88)';
     ctx.fill();
     ctx.strokeStyle = cfg.borderColor;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.8;
     ctx.stroke();
 
     // Name text
     let displayName = vip.nickname || `Top ${cfg.rank}`;
-    if (displayName.length > 13) {
-      displayName = displayName.substring(0, 12) + '..';
+    if (displayName.length > 14) {
+      displayName = displayName.substring(0, 13) + '..';
     }
-    ctx.font = `bold ${cfg.rank === 1 ? 14 : 12}px "Rajdhani", sans-serif`;
+    ctx.font = `bold ${cfg.rank === 1 ? 16 : 14}px "Rajdhani", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
@@ -1696,10 +1701,10 @@
 
     // Coins / Gift badge under pill if coins > 0
     if (vip.coins > 0) {
-      ctx.font = 'bold 10px "Rajdhani", sans-serif';
+      ctx.font = `bold ${cfg.rank === 1 ? 12 : 11}px "Rajdhani", sans-serif`;
       ctx.fillStyle = cfg.themeColor;
       ctx.shadowBlur = 0;
-      ctx.fillText(`💎 ${formatVipCoins(vip.coins)}`, curX, pillY + pillH * 0.75 + 1);
+      ctx.fillText(`💎 ${formatVipCoins(vip.coins)}`, curX, pillY + pillH * 0.75 + 2);
     }
     ctx.restore();
 
@@ -1740,10 +1745,14 @@
     // Top 1: Center, elevated (cx, sy + 112)
     // Top 2: Left (cx - 195, sy + 128)
     // Top 3: Right (cx + 195, sy + 128)
+    // Noticeably BIGGER & BOLDER Avatars on DJ screen:
+    // Top 1: baseR = 58 (Diameter 116px, pulses to 138px!)
+    // Top 2: baseR = 48 (Diameter 96px, pulses to 114px!)
+    // Top 3: baseR = 46 (Diameter 92px, pulses to 109px!)
     const configs = [
-      { rank: 1, x: cx, y: sy + 98, baseR: 38, themeColor: '#ffe600', borderColor: '#ffea00', medal: '🥇' },
-      { rank: 2, x: cx - 195, y: sy + 114, baseR: 30, themeColor: '#00f0ff', borderColor: '#38bdf8', medal: '🥈' },
-      { rank: 3, x: cx + 195, y: sy + 114, baseR: 28, themeColor: '#ff8c00', borderColor: '#fb923c', medal: '🥉' }
+      { rank: 1, x: cx, y: sy + 104, baseR: 58, themeColor: '#ffe600', borderColor: '#ffea00', medal: '🥇' },
+      { rank: 2, x: cx - 215, y: sy + 118, baseR: 48, themeColor: '#00f0ff', borderColor: '#38bdf8', medal: '🥈' },
+      { rank: 3, x: cx + 215, y: sy + 118, baseR: 46, themeColor: '#ff8c00', borderColor: '#fb923c', medal: '🥉' }
     ];
 
     configs.forEach(cfg => {
@@ -1848,7 +1857,7 @@
     const barCount = 36;
     const barSpacing = (sw - 40) / barCount;
     const barW = barSpacing * 0.72;
-    const maxBarH = sh * 0.35;
+    const maxBarH = sh * 0.28;
     const baseBarY = sy + sh - 18;
 
     for (let b = 0; b < barCount; b++) {

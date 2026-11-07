@@ -80,11 +80,30 @@ function getTopGiftersList(limit = 5) {
     .slice(0, limit);
 }
 
+// Helper to robustly extract TikTok Avatar from various live event structures
+function extractTikTokAvatar(event) {
+  if (!event) return '';
+  if (typeof event.profilePictureUrl === 'string' && event.profilePictureUrl.trim()) return event.profilePictureUrl.trim();
+  if (event.userDetails) {
+    if (Array.isArray(event.userDetails.profilePictureUrls) && event.userDetails.profilePictureUrls[0]) {
+      return event.userDetails.profilePictureUrls[0].trim();
+    }
+    if (typeof event.userDetails.profilePictureUrl === 'string' && event.userDetails.profilePictureUrl.trim()) {
+      return event.userDetails.profilePictureUrl.trim();
+    }
+  }
+  if (event.user && typeof event.user.profilePictureUrl === 'string' && event.user.profilePictureUrl.trim()) {
+    return event.user.profilePictureUrl.trim();
+  }
+  if (typeof event.avatar === 'string' && event.avatar.trim()) return event.avatar.trim();
+  return '';
+}
+
 // Add or update a dancer on the floor
 function addOrUpdateDancer(user) {
   const username = user.username || user.uniqueId || `guest_${Math.floor(Math.random() * 9000 + 1000)}`;
   const nickname = user.nickname || username;
-  const avatar = user.avatar || user.profilePictureUrl || '';
+  const avatar = extractTikTokAvatar(user);
 
   // 🐱 ALL DANCERS ARE 100% CATS (Only DJ is human)
   const charCategory = 'cat';
@@ -137,12 +156,12 @@ function addOrUpdateDancer(user) {
 function processGift(giftEvent) {
   const username = giftEvent.uniqueId || giftEvent.username || 'Anonymous';
   const nickname = giftEvent.nickname || username;
-  const avatar = giftEvent.profilePictureUrl || giftEvent.avatar || '';
+  const avatar = extractTikTokAvatar(giftEvent);
   const giftName = giftEvent.giftName || 'Gift';
   const repeatCount = giftEvent.repeatCount || 1;
   const diamondCount = (giftEvent.diamondCount || 1) * repeatCount;
 
-  // Update gifter stats
+  // Update gifter stats (always preserve or update real TikTok avatar)
   if (!state.topGifters[username]) {
     state.topGifters[username] = {
       username,
@@ -151,6 +170,9 @@ function processGift(giftEvent) {
       coins: 0,
       giftsCount: 0
     };
+  } else {
+    state.topGifters[username].nickname = nickname;
+    if (avatar) state.topGifters[username].avatar = avatar;
   }
   state.topGifters[username].coins += diamondCount;
   state.topGifters[username].giftsCount += repeatCount;
