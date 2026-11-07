@@ -165,15 +165,22 @@ function processGift(giftEvent) {
   // Trigger FX according to gift value
   let fxType = 'cheer';
   if (diamondCount >= 1000) {
-    fxType = 'mega_rave'; // Full fire, laser, fireworks, king mode
+    fxType = 'mega_rave'; // Full fire, laser, fireworks, rave mode
+    broadcast('trigger_effect', { effect: 'rave', triggerBy: nickname });
+    broadcast('trigger_effect', { effect: 'airhorn', triggerBy: nickname });
   } else if (diamondCount >= 100) {
     fxType = 'fireworks';
+    broadcast('trigger_effect', { effect: 'fireworks', triggerBy: nickname });
+    broadcast('trigger_effect', { effect: 'airhorn', triggerBy: nickname });
   } else if (diamondCount >= 30) {
     fxType = 'flame';
+    broadcast('trigger_effect', { effect: 'flame', triggerBy: nickname });
   } else if (diamondCount >= 10) {
     fxType = 'smoke';
+    broadcast('trigger_effect', { effect: 'smoke', triggerBy: nickname });
   } else if (diamondCount >= 5) {
     fxType = 'confetti';
+    broadcast('trigger_effect', { effect: 'confetti', triggerBy: nickname });
   } else {
     fxType = 'sparkles';
   }
@@ -212,7 +219,7 @@ function processChat(chatEvent) {
     addOrUpdateDancer({ username, nickname, avatar });
     broadcast('chat_command', { username, command: 'join', message: `${nickname} đã gia nhập sàn nhảy!` });
   }
-  // 2. Chọn Mèo & Vũ đạo: !1 / !meo1, !2 / !meo2, !3 / !meo3
+  // 2. Chọn Mèo & Vũ đạo cá nhân: !1 / !meo1, !2 / !meo2, !3 / !meo3
   else if (lower === '!1' || lower === '!meo1' || lower === '!dance 1') {
     addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 1, danceStyle: 1 });
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Đen Rave Que Sáng 🐱⚡!` });
@@ -224,63 +231,6 @@ function processChat(chatEvent) {
   else if (lower === '!3' || lower === '!meo3' || lower === '!dance 3') {
     addOrUpdateDancer({ username, nickname, avatar, charCategory: 'cat', charType: 3, danceStyle: 3 });
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Xám Hands Up 🐱🚀!` });
-  }
-  // 3. Chọn bài hát: !bai <số ID hoặc tên bài>
-  else if (lower.startsWith('!bai') || lower.startsWith('!song')) {
-    if (playlist.length > 0) {
-      const spaceIdx = comment.indexOf(' ');
-      if (spaceIdx !== -1) {
-        const query = comment.substring(spaceIdx + 1).trim();
-        if (query) {
-          let targetIndex = -1;
-          const parsedNum = parseInt(query, 10);
-          if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= playlist.length) {
-            targetIndex = parsedNum - 1;
-          } else {
-            targetIndex = playlist.findIndex(p => p.title.toLowerCase().includes(query.toLowerCase()));
-          }
-
-          if (targetIndex !== -1) {
-            state.currentTrackIndex = targetIndex;
-            state.isPlaying = true;
-            broadcast('track_change', {
-              track: playlist[targetIndex],
-              index: targetIndex,
-              requestedBy: nickname
-            });
-          }
-        }
-      }
-    }
-  }
-  // 4. Chuyển bài kế tiếp: !next
-  else if (lower === '!next' || lower === '!skip') {
-    if (playlist.length > 0) {
-      state.currentTrackIndex = (state.currentTrackIndex + 1) % playlist.length;
-      broadcast('track_change', {
-        track: playlist[state.currentTrackIndex],
-        index: state.currentTrackIndex,
-        requestedBy: nickname
-      });
-    }
-  }
-  // 5. Hiệu ứng sân khấu: !fire, !smoke, !phao, !rave
-  else if (lower === '!fire' || lower === '!lua') {
-    broadcast('trigger_effect', { effect: 'flame', triggerBy: nickname });
-  } else if (lower === '!smoke' || lower === '!khoi') {
-    broadcast('trigger_effect', { effect: 'smoke', triggerBy: nickname });
-  } else if (lower === '!phao') {
-    broadcast('trigger_effect', { effect: 'fireworks', triggerBy: nickname });
-  } else if (lower === '!rave' || lower === '!quay') {
-    broadcast('trigger_effect', { effect: 'rave', triggerBy: nickname });
-  }
-  // 6. Hiệu ứng âm thanh DJ: !coi, !siren, !bass
-  else if (lower === '!coi' || lower === '!horn') {
-    broadcast('trigger_effect', { effect: 'airhorn', triggerBy: nickname });
-  } else if (lower === '!siren') {
-    broadcast('trigger_effect', { effect: 'siren', triggerBy: nickname });
-  } else if (lower === '!bass') {
-    broadcast('trigger_effect', { effect: 'bassdrop', triggerBy: nickname });
   }
 
     // Broadcast chat message for dancer speech bubble & overlay chat log
