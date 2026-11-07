@@ -53,7 +53,6 @@
     char2: [],
     char3: [],
     human_male: [],
-    human_female: [],
     speaker: null,
     discoLight: null
   };
@@ -62,7 +61,7 @@
 
   // Preload character frame sequences (Only cats: 14 + 13 + 14 = 41 frames)
   function preloadAssets(callback) {
-    let toLoad = 14 + 13 + 14 + 14 + 1; // 56 assets total (including 14 gogo dancer frames)
+    let toLoad = 14 + 13 + 14 + 1; // 42 assets total (Cats & Speaker, Gogo Dancers are 100% Smooth Vector)
     let loaded = 0;
     let finished = false;
 
@@ -109,14 +108,7 @@
       img.onerror = checkDone;
       spriteCache.char3.push(img);
     }
-    // 2 Sexy Stage Gogo Dancers: 14 frames PNG
-    for (let i = 1; i <= 14; i++) {
-      const img = new Image();
-      img.src = `/assets/characters/human_female/${i}.png?v=gogo1`;
-      img.onload = checkDone;
-      img.onerror = checkDone;
-      spriteCache.human_female.push(img);
-    }
+
 
     // Speaker texture
     const spk = new Image();
@@ -1921,125 +1913,568 @@
 
 
   // =========================================================================
-  // 2 SEXY CYBER STAGE GOGO DANCERS FLANKING RESIDENT DJ
-  // Left: Neon Pink Rave Girl | Right: Electric Cyan Rave Girl (Mirrored)
-  // Perfectly synchronized to EDM Bass Drops & Grooves!
+  // 2 SEXY CYBER RAVE GOGO DANCERS FLANKING RESIDENT DJ
+  // 100% Procedural Vector Style matching Resident DJ Sanoo!
+  // Butter-Smooth 60 FPS Kinematics, Hourglass Curve, Cyber Visor & Flowing Hair
+  // Left: Neon Pink Rave Babe | Right: Electric Cyan Rave Babe (Mirrored)
   // =========================================================================
   function drawGogoDancers(ctx, now, beatEngine) {
-    const frames = spriteCache.human_female;
-    if (!frames || frames.length === 0) return;
-
     const stageY = H * 0.36; // 691.2
-    const podiumY = stageY + 68; // 759.2 (Top of stage platform wing)
-    const leftX = 235;
-    const rightX = W - 235; // 845
+    const podiumY = stageY + 70; // 761.2 (Top surface of elevated stage wing)
+    const leftX = 230;
+    const rightX = W - 230; // 850
 
-    // 1. Calculate dynamic frame index from beatEngine
-    const totalFrames = frames.length; // 14
-    let frameIdx = 0;
-    const danceCycle = beatEngine.danceCycle || 0; // 0..1 over 2 beats
-    const isFastDrop = (beatEngine.bassLevel > 0.45) || (beatEngine.bpm >= 140);
+    const bass = beatEngine.bassLevel || 0;
+    const beatPhase = beatEngine.beatPhase || 0;
+    const danceCycle = beatEngine.danceCycle || 0;
+    const hype = Math.max(0, Math.min(1.0, (bass - 0.15) / 0.70));
+    const isDrop = beatEngine.isBassActive || hype > 0.35;
+    const kickSnap = Math.pow(Math.max(0, 1.0 - beatPhase * 2.2), 2.2) * (isDrop ? 1 : 0.2);
 
-    if (!beatEngine.isBassActive || beatEngine.danceEnergy < 0.18) {
-      // Chill mode: smooth swing curve across 14 frames
-      const swing = (Math.sin((danceCycle - 0.25) * Math.PI * 2) + 1) * 0.5;
-      frameIdx = Math.floor(swing * totalFrames) % totalFrames;
-    } else if (isFastDrop) {
-      // Fast-Cut Rave Keyframe snap on bass drop
-      const half = (danceCycle * 2) % 1.0;
-      const side = danceCycle < 0.5 ? 0 : 1;
-      const snap = Math.pow(half, 0.65);
-      const keys0 = [0, 2, 4, 6];
-      const keys1 = [6, 8, 10, 12];
-      const arr = side === 0 ? keys0 : keys1;
-      const kIdx = Math.min(arr.length - 1, Math.floor(snap * arr.length));
-      frameIdx = arr[kIdx];
-    } else {
-      // Regular beat groove
-      const swing = (Math.sin((danceCycle - 0.25) * Math.PI * 2) + 1) * 0.5;
-      frameIdx = Math.floor(swing * totalFrames) % totalFrames;
-    }
+    // 1. Smooth 60 FPS Kinematics (Zero choppy frames, 100% fluid vector physics!)
+    const bobY = Math.sin(beatPhase * Math.PI) * (4 + hype * 16);
+    const hipSway = Math.sin(danceCycle * Math.PI * 2) * (7 + hype * 15);
+    const torsoTilt = Math.sin(danceCycle * Math.PI * 2) * 0.08;
+    const hairLag = Math.sin((danceCycle - 0.12) * Math.PI * 2) * (10 + hype * 18);
 
-    const img = frames[frameIdx % totalFrames];
-    if (!img || !img.complete || img.naturalWidth === 0) return;
-
-    // 2. Dynamic beat bounce & body physics
-    const kickSnap = Math.pow(Math.max(0, 1.0 - beatEngine.beatPhase * 2.2), 2.2) * (beatEngine.isBassActive ? 1 : 0.2);
-    const bounceY = Math.sin(beatEngine.beatPhase * Math.PI) * (4 + beatEngine.bassLevel * 14);
-    const squash = 1.0 - Math.sin(beatEngine.beatPhase * Math.PI) * (0.04 + beatEngine.bassLevel * 0.08);
-    const sway = Math.sin(danceCycle * Math.PI * 2) * (0.04 + beatEngine.bassLevel * 0.08);
-
-    const dancerScale = 0.66;
-    const footY = 275; // exact foot baseline in 320x320 PNG
-    const bodyCX = 160;
-
-    // Draw Left Girl (Pink) and Right Girl (Cyan, Mirrored)
     const dancersConfig = [
-      { x: leftX, y: podiumY, flip: 1, glowColor: '#ff007f', ringColor: '#ff007f' },
-      { x: rightX, y: podiumY, flip: -1, glowColor: '#00f0ff', ringColor: '#00f0ff' }
+      {
+        x: leftX,
+        y: podiumY,
+        flip: 1, // Facing inward / right toward DJ
+        themeColor: '#ff007f', // Neon Pink
+        secondaryColor: '#ffe600',
+        hairColor: '#d946ef',
+        hairHighlight: '#f472b6',
+        topColor: '#ff007f'
+      },
+      {
+        x: rightX,
+        y: podiumY,
+        flip: -1, // Facing inward / left toward DJ (Mirrored)
+        themeColor: '#00f0ff', // Electric Cyan
+        secondaryColor: '#00ff88',
+        hairColor: '#06b6d4',
+        hairHighlight: '#67e8f9',
+        topColor: '#00f0ff'
+      }
     ];
 
     dancersConfig.forEach(cfg => {
       ctx.save();
       ctx.translate(cfg.x, cfg.y);
 
-      // A. Elevated Stage Podium Base (Metallic Cylinder with Neon Glow Rim)
+      // =====================================================================
+      // 1. ELEVATED STAGE PODIUM (Beneath Feet)
+      // =====================================================================
+      // A. Under-Podium Glow Spotlight Wash
       ctx.save();
-      // Under-podium glow halo
       ctx.globalCompositeOperation = 'lighter';
-      const haloGrad = ctx.createRadialGradient(0, 8, 5, 0, 8, 55);
-      haloGrad.addColorStop(0, cfg.glowColor);
+      const haloGrad = ctx.createRadialGradient(0, 8, 5, 0, 8, 65);
+      haloGrad.addColorStop(0, cfg.themeColor);
       haloGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = haloGrad;
-      ctx.globalAlpha = 0.35 + beatEngine.bassLevel * 0.35;
+      ctx.globalAlpha = 0.35 + bass * 0.35;
       ctx.beginPath();
-      ctx.ellipse(0, 8, 65, 20, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 8, 70, 22, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
-      // Podium 3D cylinder body
-      ctx.fillStyle = '#0a0d18';
+      // B. 3D Metallic Cylinder Base
+      ctx.fillStyle = '#080a14';
       ctx.beginPath();
-      ctx.ellipse(0, 12, 44, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 14, 48, 15, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Podium top face
-      ctx.fillStyle = '#16192e';
+      // C. Podium Top Face with Neon Rim
+      ctx.fillStyle = '#141829';
       ctx.beginPath();
-      ctx.ellipse(0, 0, 44, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 48, 15, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = cfg.ringColor;
-      ctx.lineWidth = 2.5 + kickSnap * 1.5;
-      ctx.shadowColor = cfg.ringColor;
-      ctx.shadowBlur = 8 + kickSnap * 8;
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.lineWidth = 3 + kickSnap * 2;
+      ctx.shadowColor = cfg.themeColor;
+      ctx.shadowBlur = 10 + kickSnap * 12;
       ctx.stroke();
 
-      // B. Contact Floor Shadow
+      // D. Feet Contact Shadow
       ctx.beginPath();
-      ctx.ellipse(0, -2, 28, 8, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.ellipse(0, -2, 32, 9, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
       ctx.fill();
 
-      // C. Dancer Character with Squash, Bounce, and Sway
+      // =====================================================================
+      // 2. DANCER BODY HIERARCHY (From Feet Upward in Clean Vector Curves)
+      // =====================================================================
       ctx.save();
-      ctx.translate(0, -bounceY);
-      ctx.rotate(sway * cfg.flip);
-      ctx.scale(cfg.flip * (1 / squash) * dancerScale, squash * dancerScale);
+      ctx.scale(cfg.flip, 1);
 
-      // Draw 320x320 PNG centered on foot contact
-      ctx.drawImage(img, -bodyCX, -footY, 320, 320);
+      // Hips & Waist coordinates
+      const hipX = hipSway * 0.55;
+      const hipY = -92 - bobY;
 
-      // D. Glowstick Flare Accent on heavy kick hits
-      if (beatEngine.isBassActive && beatEngine.bassLevel > 0.4) {
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = (beatEngine.bassLevel - 0.3) * 0.7;
-        ctx.fillStyle = cfg.ringColor;
+      // Chest & Shoulder coordinates
+      const chestX = hipSway * 0.30;
+      const chestY = -124 - bobY;
+
+      // Head coordinates
+      const headX = hipSway * 0.15;
+      const headY = -160 - bobY;
+
+      // -------------------------------------------------------------------
+      // 2.1 Sexy Thigh-High Platform Boots & Legs
+      // -------------------------------------------------------------------
+      [-1, 1].forEach(side => {
+        const footX = side * 14;
+        // Platform high-heel boot sole
+        ctx.fillStyle = '#0a0d18';
+        ctx.fillRect(footX - 7, -8, 14, 8);
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(footX - 7, -8, 14, 8);
+
+        // Neon glowing sole rim
+        ctx.fillStyle = cfg.themeColor;
+        ctx.fillRect(footX - 7, -2, 14, 2);
+
+        // Knee position
+        const kneeX = footX * 0.8 + hipX * 0.25;
+        const kneeY = -60 - bobY * 0.3;
+
+        // Thigh-high Boot shaft (Sleek dark vinyl with neon accents)
         ctx.beginPath();
-        // Lightstick hand positions
-        ctx.arc(-bodyCX + 60, -footY + 80, 22 * beatEngine.bassLevel, 0, Math.PI * 2);
-        ctx.arc(-bodyCX + 180, -footY + 160, 22 * beatEngine.bassLevel, 0, Math.PI * 2);
+        ctx.moveTo(footX - 6, -8);
+        ctx.lineTo(kneeX - 7, kneeY);
+        ctx.lineTo(kneeX + 7, kneeY);
+        ctx.lineTo(footX + 6, -8);
+        ctx.closePath();
+        ctx.fillStyle = '#111322';
         ctx.fill();
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Neon boot strap / buckle
+        ctx.beginPath();
+        ctx.moveTo(kneeX - 7, kneeY + 8);
+        ctx.lineTo(kneeX + 7, kneeY + 8);
+        ctx.strokeStyle = cfg.secondaryColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Exposed Smooth Thigh (Skin tone #ffdd99 matching DJ Sanoo)
+        ctx.beginPath();
+        ctx.moveTo(kneeX - 6, kneeY);
+        ctx.quadraticCurveTo(kneeX - 4 + side * 2, (kneeY + hipY) * 0.5, hipX + side * 10, hipY);
+        ctx.lineTo(hipX + side * 3, hipY);
+        ctx.quadraticCurveTo(kneeX + 1, (kneeY + hipY) * 0.5, kneeX + 6, kneeY);
+        ctx.closePath();
+        ctx.fillStyle = '#ffdd99';
+        ctx.fill();
+        ctx.strokeStyle = '#e2b876';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      });
+
+      // -------------------------------------------------------------------
+      // 2.2 Mini Pleated Rave Skirt / Cyber Hotpants
+      // -------------------------------------------------------------------
+      ctx.save();
+      ctx.translate(hipX, hipY);
+      ctx.rotate(torsoTilt * 0.6);
+
+      // Skirt body (flared hourglass)
+      ctx.beginPath();
+      ctx.moveTo(-16, -12);
+      ctx.lineTo(16, -12);
+      ctx.lineTo(21, 6);
+      ctx.lineTo(-21, 6);
+      ctx.closePath();
+      ctx.fillStyle = '#0f111a';
+      ctx.fill();
+      ctx.strokeStyle = '#22283a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Glowing Neon Hem Trim
+      ctx.beginPath();
+      ctx.moveTo(-21, 6);
+      ctx.lineTo(21, 6);
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.lineWidth = 3 + kickSnap * 1.5;
+      ctx.shadowColor = cfg.themeColor;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+
+      // Glowing Cyber Belt
+      ctx.beginPath();
+      ctx.moveTo(-16, -10);
+      ctx.lineTo(16, -10);
+      ctx.strokeStyle = cfg.secondaryColor;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Belt buckle badge
+      ctx.beginPath();
+      ctx.arc(0, -10, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      // -------------------------------------------------------------------
+      // 2.3 Slender Waist & Exposed Midriff
+      // -------------------------------------------------------------------
+      ctx.beginPath();
+      ctx.moveTo(hipX - 14, hipY - 12);
+      ctx.quadraticCurveTo(chestX - 9, (hipY + chestY) * 0.5, chestX - 13, chestY + 6);
+      ctx.lineTo(chestX + 13, chestY + 6);
+      ctx.quadraticCurveTo(chestX + 9, (hipY + chestY) * 0.5, hipX + 14, hipY - 12);
+      ctx.closePath();
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#e2b876';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Cute navel / piercing dot
+      ctx.beginPath();
+      ctx.arc((hipX + chestX) * 0.5, (hipY + chestY) * 0.5 + 2, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#d99a5e';
+      ctx.fill();
+
+      // -------------------------------------------------------------------
+      // 2.4 Sexy Halter-Neck Rave Crop Top & Bustline
+      // -------------------------------------------------------------------
+      ctx.save();
+      ctx.translate(chestX, chestY);
+      ctx.rotate(torsoTilt * 0.9);
+
+      // Sweetheart crop top bust
+      ctx.beginPath();
+      ctx.moveTo(-14, 6);
+      ctx.lineTo(14, 6);
+      ctx.quadraticCurveTo(15, -8, 8, -13);
+      ctx.quadraticCurveTo(0, -6, -8, -13);
+      ctx.quadraticCurveTo(-15, -8, -14, 6);
+      ctx.closePath();
+      ctx.fillStyle = '#111322';
+      ctx.fill();
+
+      // Color panel inside crop top
+      ctx.beginPath();
+      ctx.moveTo(-11, 4);
+      ctx.lineTo(11, 4);
+      ctx.quadraticCurveTo(12, -6, 7, -10);
+      ctx.quadraticCurveTo(0, -4, -7, -10);
+      ctx.quadraticCurveTo(-12, -6, -11, 4);
+      ctx.closePath();
+      ctx.fillStyle = cfg.topColor;
+      ctx.fill();
+
+      // Top outer neon stroke
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.lineWidth = 2.2;
+      ctx.shadowColor = cfg.themeColor;
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+
+      // Halter neck straps to neck
+      ctx.beginPath();
+      ctx.moveTo(-7, -10);
+      ctx.lineTo(-3, -19);
+      ctx.moveTo(7, -10);
+      ctx.lineTo(3, -19);
+      ctx.strokeStyle = '#0f111a';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Neon Choker collar
+      ctx.beginPath();
+      ctx.moveTo(-6, -19);
+      ctx.lineTo(6, -19);
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -19, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      // -------------------------------------------------------------------
+      // 2.5 Cute Anime Cyber Face & Visor (Matching DJ Sanoo)
+      // -------------------------------------------------------------------
+      ctx.save();
+      ctx.translate(headX, headY);
+
+      // Flowing Back Hair (Twin Ponytails behind head)
+      ctx.save();
+      [-1, 1].forEach(side => {
+        const ponyAnchorX = side * 14;
+        const ponyAnchorY = -8;
+        const ponyTipX = ponyAnchorX + (side * 18) + (hairLag * 0.7);
+        const ponyTipY = ponyAnchorY + 44 + (bobY * 0.3);
+
+        ctx.beginPath();
+        ctx.moveTo(ponyAnchorX - 4, ponyAnchorY);
+        ctx.quadraticCurveTo(ponyAnchorX + side * 15, ponyAnchorY + 22, ponyTipX, ponyTipY);
+        ctx.quadraticCurveTo(ponyAnchorX + side * 5, ponyAnchorY + 28, ponyAnchorX + 4, ponyAnchorY + 6);
+        ctx.closePath();
+        ctx.fillStyle = cfg.hairColor;
+        ctx.fill();
+        ctx.strokeStyle = cfg.hairHighlight;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Glowing hair ribbon / band
+        ctx.beginPath();
+        ctx.arc(ponyAnchorX, ponyAnchorY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = cfg.themeColor;
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // Face Base (Smooth Anime Jawline)
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffdd99';
+      ctx.fill();
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Rosy Anime Cheeks (Blush)
+      ctx.beginPath();
+      ctx.ellipse(-9, 5, 4, 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(9, 5, 4, 2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 100, 150, 0.45)';
+      ctx.fill();
+
+      // Cute Smile
+      ctx.beginPath();
+      ctx.arc(0, 5, 7, 0.15 * Math.PI, 0.85 * Math.PI, false);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Cyber Visor / Glasses (Identical style to DJ!)
+      const visW = 34;
+      const visH = 14;
+      const visX = -visW / 2;
+      const visY = -5;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(visX, visY, visW, visH, 4);
+      else ctx.rect(visX, visY, visW, visH);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.strokeStyle = cfg.themeColor;
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      // Mini Equalizer Bars inside Visor
+      for (let b = 0; b < 3; b++) {
+        const bx = visX + 6 + b * 8;
+        const bH = 2 + Math.sin(now * 0.02 + b) * 3 + bass * 4;
+        ctx.fillStyle = cfg.secondaryColor;
+        ctx.fillRect(bx, visY + visH - 3 - bH, 5, bH);
+      }
+
+      // Cat-Ear Headphones on Top of Head
+      [-1, 1].forEach(side => {
+        // Ear cups
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(side * 17 - (side > 0 ? 0 : 5), -6, 5, 16, 2);
+        else ctx.rect(side * 17 - (side > 0 ? 0 : 5), -6, 5, 16);
+        ctx.fillStyle = '#1e2233';
+        ctx.fill();
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Neon Cat Ears
+        ctx.beginPath();
+        ctx.moveTo(side * 8, -16);
+        ctx.lineTo(side * 17, -29);
+        ctx.lineTo(side * 19, -13);
+        ctx.closePath();
+        ctx.fillStyle = '#111322';
+        ctx.fill();
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = cfg.themeColor;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+      });
+
+      // Front Bangs Hair
+      ctx.beginPath();
+      ctx.arc(0, -8, 18, Math.PI * 1.05, Math.PI * 1.95);
+      ctx.lineTo(8, -4);
+      ctx.lineTo(0, -6);
+      ctx.lineTo(-8, -4);
+      ctx.closePath();
+      ctx.fillStyle = cfg.hairColor;
+      ctx.fill();
+      ctx.strokeStyle = cfg.hairHighlight;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.restore();
+
+      // -------------------------------------------------------------------
+      // 2.6 Dynamic 60 FPS Dancing Arms & Lightsticks
+      // -------------------------------------------------------------------
+      const shoulderLY = chestY - 10;
+      const shoulderRY = chestY - 10;
+      const shoulderLX = chestX - 16;
+      const shoulderRX = chestX + 16;
+
+      if (isDrop) {
+        // 🔥 BASS RAVE MODE: 1 Tay giơ cao quẫy Lightstick dứt khoát, 1 tay chống hông / uốn lượn
+        const pumpProgress = Math.sin(beatPhase * Math.PI);
+        const pumpY = pumpProgress * 28;
+
+        // Right Arm (Outer): Raised high pumping glowing rave lightstick!
+        const rHandX = shoulderRX + 20 + Math.sin(now * 0.003) * 6;
+        const rHandY = headY - 32 - pumpY;
+
+        ctx.beginPath();
+        ctx.moveTo(shoulderRX, shoulderLY);
+        ctx.quadraticCurveTo(shoulderRX + 18, shoulderLY - 10, rHandX, rHandY);
+        ctx.strokeStyle = '#ffdd99';
+        ctx.lineWidth = 6.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Hand
+        ctx.beginPath();
+        ctx.arc(rHandX, rHandY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffdd99';
+        ctx.fill();
+
+        // Neon Wristband
+        ctx.beginPath();
+        ctx.arc(rHandX, rHandY + 3, 4, 0, Math.PI * 2);
+        ctx.fillStyle = cfg.themeColor;
+        ctx.fill();
+
+        // Glowing Rave Lightstick in hand!
+        const stickAngle = -Math.PI * 0.25 + Math.sin(now * 0.005) * 0.15;
+        const stickLen = 38;
+        const stickX2 = rHandX + Math.cos(stickAngle) * stickLen;
+        const stickY2 = rHandY + Math.sin(stickAngle) * stickLen;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(rHandX, rHandY);
+        ctx.lineTo(stickX2, stickY2);
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = cfg.themeColor;
+        ctx.shadowBlur = 14 + kickSnap * 12;
+        ctx.stroke();
+
+        // Core white filament
+        ctx.beginPath();
+        ctx.moveTo(rHandX, rHandY);
+        ctx.lineTo(stickX2, stickY2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Tip sparkle star on kick
+        if (kickSnap > 0.4) {
+          drawSparkleStar(ctx, stickX2, stickY2, 8 + kickSnap * 6, '#ffffff', cfg.themeColor);
+        }
+        ctx.restore();
+
+        // Left Arm (Inner): Sexy hand placed on hip or dancing
+        const lHandX = hipX - 16;
+        const lHandY = hipY - 6;
+        const lElbowX = shoulderLX - 12;
+        const lElbowY = (shoulderLY + lHandY) * 0.5 + 4;
+
+        ctx.beginPath();
+        ctx.moveTo(shoulderLX, shoulderLY);
+        ctx.quadraticCurveTo(lElbowX, lElbowY, lHandX, lHandY);
+        ctx.strokeStyle = '#ffdd99';
+        ctx.lineWidth = 6.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(lHandX, lHandY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffdd99';
+        ctx.fill();
+
+        // Neon Wristband
+        ctx.beginPath();
+        ctx.arc(lHandX, lHandY - 2, 4, 0, Math.PI * 2);
+        ctx.fillStyle = cfg.secondaryColor;
+        ctx.fill();
+
+      } else {
+        // 🎧 CHILL / GROOVE MODE: Uốn lượn hông, tay vung que sáng mềm mại figure-8
+        const waveAngle = danceCycle * Math.PI * 2;
+        const lHandX = shoulderLX - 8 + Math.cos(waveAngle) * 14;
+        const lHandY = shoulderLY + 18 + Math.sin(waveAngle) * 8;
+
+        const rHandX = shoulderRX + 8 - Math.cos(waveAngle) * 14;
+        const rHandY = shoulderRY + 18 - Math.sin(waveAngle) * 8;
+
+        // Left Arm
+        ctx.beginPath();
+        ctx.moveTo(shoulderLX, shoulderLY);
+        ctx.quadraticCurveTo(shoulderLX - 8, shoulderLY + 10, lHandX, lHandY);
+        ctx.strokeStyle = '#ffdd99';
+        ctx.lineWidth = 6.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(lHandX, lHandY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffdd99';
+        ctx.fill();
+
+        // Right Arm
+        ctx.beginPath();
+        ctx.moveTo(shoulderRX, shoulderRY);
+        ctx.quadraticCurveTo(shoulderRX + 8, shoulderRY + 10, rHandX, rHandY);
+        ctx.strokeStyle = '#ffdd99';
+        ctx.lineWidth = 6.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(rHandX, rHandY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffdd99';
+        ctx.fill();
+
+        // Glowing lightstick held in right hand waving smoothly
+        const stickAngle = -Math.PI * 0.35 + Math.sin(waveAngle) * 0.3;
+        const stickLen = 30;
+        const stickX2 = rHandX + Math.cos(stickAngle) * stickLen;
+        const stickY2 = rHandY + Math.sin(stickAngle) * stickLen;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(rHandX, rHandY);
+        ctx.lineTo(stickX2, stickY2);
+        ctx.strokeStyle = cfg.themeColor;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = cfg.themeColor;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(rHandX, rHandY);
+        ctx.lineTo(stickX2, stickY2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
         ctx.restore();
       }
 
