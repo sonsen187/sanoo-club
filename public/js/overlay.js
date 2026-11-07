@@ -663,10 +663,6 @@
     ctx.quadraticCurveTo(0, 0, -radius, 0);
     ctx.quadraticCurveTo(0, 0, 0, -radius);
     ctx.closePath();
-    if (glowColor) {
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = radius * 1.6;
-    }
     ctx.fillStyle = fillColor || '#ffffff';
     ctx.fill();
     ctx.restore();
@@ -966,10 +962,7 @@
         ctx.beginPath();
         ctx.arc(0, 0, drawWidth * 0.5, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 230, 0, 0.22)';
-        ctx.shadowColor = '#ffe600';
-        ctx.shadowBlur = 25;
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
 
       // 2. Draw character sprite (centered at origin)
@@ -980,8 +973,7 @@
         ctx.save();
         ctx.globalAlpha = this.kickImpulse * 0.7;
         ctx.fillStyle = '#00ff88';
-        ctx.shadowColor = '#00ff88';
-        ctx.shadowBlur = 25;
+        
         ctx.beginPath();
         ctx.arc(-drawWidth * 0.28, -drawHeight * 0.12, 16 * this.kickImpulse, 0, Math.PI * 2);
         ctx.arc(drawWidth * 0.28, -drawHeight * 0.12, 16 * this.kickImpulse, 0, Math.PI * 2);
@@ -1040,15 +1032,10 @@
       ctx.fillStyle = tagBg;
       ctx.strokeStyle = tagBorder;
       ctx.lineWidth = (this.vipRank > 0) ? 2.5 : 2;
-      if (tagGlow) {
-        ctx.shadowColor = tagGlow;
-        ctx.shadowBlur = 14;
-      }
       ctx.beginPath();
       ctx.roundRect(-tagWidth / 2, tagY, tagWidth, tagHeight, 8);
       ctx.fill();
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
       // Name Text
       ctx.fillStyle = tagTextCol;
@@ -1320,12 +1307,7 @@
       ctx.beginPath();
       ctx.arc(px, 133, isChaserActive ? 8 : 5, 0, Math.PI * 2);
       ctx.fillStyle = parColor;
-      if (isChaserActive) {
-        ctx.shadowColor = parColor;
-        ctx.shadowBlur = 15;
-      }
       ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
     // LED Screen boundaries (Center Upper Stage Visualizer)
@@ -1334,10 +1316,7 @@
     const borderColor = stageLighting.getCurrentColor();
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 4;
-    ctx.shadowColor = borderColor;
-    ctx.shadowBlur = 14 + beatEngine.bassLevel * 18;
     ctx.strokeRect(sx, sy, sw, sh);
-    ctx.shadowBlur = 0;
 
     // Clip graphics strictly inside the LED wall
     ctx.save();
@@ -1368,8 +1347,7 @@
       ctx.strokeStyle = ringColor;
       ctx.globalAlpha = ringAlpha;
       ctx.lineWidth = 2 + beatEngine.bassLevel * 3;
-      ctx.shadowColor = ringColor;
-      ctx.shadowBlur = 10;
+      
       ctx.beginPath();
       for (let a = 0; a < 8; a++) {
         const ang = a * (Math.PI / 4) + (now * 0.0006);
@@ -1445,8 +1423,6 @@
       ctx.font = '900 38px "Rajdhani", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.shadowColor = stageLighting.getCurrentColor(0);
-      ctx.shadowBlur = 24;
       ctx.fillStyle = '#ffe600';
       ctx.fillText(slogan, 0, 0);
       ctx.lineWidth = 2;
@@ -1457,8 +1433,7 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#00f0ff';
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 14;
+      
       ctx.fillText('🎧 SANOO CLUB RESIDENT DJ • GROOVE SESSION 🎧', cx, sy + 65);
 
       // Rolling sine soundwave in chill mode
@@ -1561,10 +1536,7 @@
       ctx.arc(sx, sy, s.size * (0.8 + beatEngine.bassLevel * 0.5), 0, Math.PI * 2);
       const sparkleColor = stageLighting.getCurrentColor(s.colorOffset);
       ctx.fillStyle = sparkleColor;
-      ctx.shadowColor = sparkleColor;
-      ctx.shadowBlur = 10;
       ctx.fill();
-      ctx.shadowBlur = 0;
     });
 
     // 3. Stage Platform Base (Firmly connecting DJ stage to dance floor)
@@ -1644,10 +1616,7 @@
       ctx.beginPath();
       ctx.arc(rHandX, rHandY + 6, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#ff007f';
-      ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 12;
       ctx.fill();
-      ctx.shadowBlur = 0;
 
       // Peace / Rave finger sign
       ctx.lineWidth = 4.5;
@@ -1682,10 +1651,7 @@
       ctx.beginPath();
       ctx.arc(lHandX, lHandY + 6, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#00f0ff';
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 12;
       ctx.fill();
-      ctx.shadowBlur = 0;
 
       // Left hand peace sign
       ctx.lineWidth = 4.5;
@@ -1831,10 +1797,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = stageLighting.getCurrentColor(0);
-    ctx.shadowBlur = 12;
     ctx.fillText('★ SANOO CLUB • RESIDENT DJ ★', W / 2, tableY + 95);
-    ctx.shadowBlur = 0;
 
     // Bottom Soundwave line across table
     ctx.beginPath();
@@ -2050,8 +2013,6 @@
       ctx.ellipse(r.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
       ctx.strokeStyle = r.color;
       ctx.lineWidth = 5 * (1 - progress * 0.5);
-      ctx.shadowColor = r.color;
-      ctx.shadowBlur = 18;
       ctx.globalAlpha = r.alpha * 0.9;
       ctx.stroke();
       ctx.restore();
@@ -2129,10 +2090,7 @@
     ctx.ellipse(cx, topPlatformY, topTier.rx, topTier.ry, 0, 0, Math.PI * 2);
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2.5;
-    ctx.shadowColor = colors.rimColor;
-    ctx.shadowBlur = 14 + beatEngine.bassLevel * 16;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     ctx.restore();
 
     // D. Front Metallic Engraved Plaque on base wall
@@ -2148,13 +2106,10 @@
     ctx.fillStyle = bGrad;
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
-    ctx.shadowColor = colors.rimColor;
-    ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.roundRect(cx - badgeW / 2, badgeY, badgeW, badgeH, 6);
     ctx.fill();
     ctx.stroke();
-    ctx.shadowBlur = 0;
 
     // Plaque Text
     ctx.fillStyle = colors.badgeTextColor;
@@ -2413,10 +2368,7 @@
       ctx.beginPath();
       ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
       ctx.fillStyle = `hsla(${m.hue}, 90%, 65%, ${m.alpha * (0.35 + beatEngine.bassLevel * 0.55)})`;
-      ctx.shadowColor = `hsla(${m.hue}, 90%, 65%, 0.8)`;
-      ctx.shadowBlur = 8;
       ctx.fill();
-      ctx.shadowBlur = 0;
     });
 
     ctx.restore(); // Restore normal blend mode
@@ -2531,8 +2483,6 @@
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fillStyle = p.color;
       ctx.globalAlpha = p.alpha;
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 24;
       ctx.fill();
     }
 
@@ -2553,8 +2503,6 @@
       ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       ctx.fillStyle = `${p.color}${p.alpha * 0.75})`;
       ctx.globalAlpha = p.alpha;
-      ctx.shadowColor = 'rgba(0, 240, 255, 0.45)';
-      ctx.shadowBlur = 20;
       ctx.fill();
     }
     ctx.restore();
