@@ -62,7 +62,7 @@
 
   // Preload character frame sequences (Only cats: 14 + 13 + 14 = 41 frames)
   function preloadAssets(callback) {
-    let toLoad = 14 + 13 + 14 + 1; // 42 assets total
+    let toLoad = 14 + 13 + 14 + 14 + 1; // 56 assets total (including 14 gogo dancer frames)
     let loaded = 0;
     let finished = false;
 
@@ -109,6 +109,15 @@
       img.onerror = checkDone;
       spriteCache.char3.push(img);
     }
+    // 2 Sexy Stage Gogo Dancers: 14 frames PNG
+    for (let i = 1; i <= 14; i++) {
+      const img = new Image();
+      img.src = `/assets/characters/human_female/${i}.png?v=gogo1`;
+      img.onload = checkDone;
+      img.onerror = checkDone;
+      spriteCache.human_female.push(img);
+    }
+
     // Speaker texture
     const spk = new Image();
     spk.src = '/assets/textures/speaker.png';
@@ -1910,6 +1919,136 @@
     ctx.restore();
   }
 
+
+  // =========================================================================
+  // 2 SEXY CYBER STAGE GOGO DANCERS FLANKING RESIDENT DJ
+  // Left: Neon Pink Rave Girl | Right: Electric Cyan Rave Girl (Mirrored)
+  // Perfectly synchronized to EDM Bass Drops & Grooves!
+  // =========================================================================
+  function drawGogoDancers(ctx, now, beatEngine) {
+    const frames = spriteCache.human_female;
+    if (!frames || frames.length === 0) return;
+
+    const stageY = H * 0.36; // 691.2
+    const podiumY = stageY + 68; // 759.2 (Top of stage platform wing)
+    const leftX = 235;
+    const rightX = W - 235; // 845
+
+    // 1. Calculate dynamic frame index from beatEngine
+    const totalFrames = frames.length; // 14
+    let frameIdx = 0;
+    const danceCycle = beatEngine.danceCycle || 0; // 0..1 over 2 beats
+    const isFastDrop = (beatEngine.bassLevel > 0.45) || (beatEngine.bpm >= 140);
+
+    if (!beatEngine.isBassActive || beatEngine.danceEnergy < 0.18) {
+      // Chill mode: smooth swing curve across 14 frames
+      const swing = (Math.sin((danceCycle - 0.25) * Math.PI * 2) + 1) * 0.5;
+      frameIdx = Math.floor(swing * totalFrames) % totalFrames;
+    } else if (isFastDrop) {
+      // Fast-Cut Rave Keyframe snap on bass drop
+      const half = (danceCycle * 2) % 1.0;
+      const side = danceCycle < 0.5 ? 0 : 1;
+      const snap = Math.pow(half, 0.65);
+      const keys0 = [0, 2, 4, 6];
+      const keys1 = [6, 8, 10, 12];
+      const arr = side === 0 ? keys0 : keys1;
+      const kIdx = Math.min(arr.length - 1, Math.floor(snap * arr.length));
+      frameIdx = arr[kIdx];
+    } else {
+      // Regular beat groove
+      const swing = (Math.sin((danceCycle - 0.25) * Math.PI * 2) + 1) * 0.5;
+      frameIdx = Math.floor(swing * totalFrames) % totalFrames;
+    }
+
+    const img = frames[frameIdx % totalFrames];
+    if (!img || !img.complete || img.naturalWidth === 0) return;
+
+    // 2. Dynamic beat bounce & body physics
+    const kickSnap = Math.pow(Math.max(0, 1.0 - beatEngine.beatPhase * 2.2), 2.2) * (beatEngine.isBassActive ? 1 : 0.2);
+    const bounceY = Math.sin(beatEngine.beatPhase * Math.PI) * (4 + beatEngine.bassLevel * 14);
+    const squash = 1.0 - Math.sin(beatEngine.beatPhase * Math.PI) * (0.04 + beatEngine.bassLevel * 0.08);
+    const sway = Math.sin(danceCycle * Math.PI * 2) * (0.04 + beatEngine.bassLevel * 0.08);
+
+    const dancerScale = 0.66;
+    const footY = 275; // exact foot baseline in 320x320 PNG
+    const bodyCX = 160;
+
+    // Draw Left Girl (Pink) and Right Girl (Cyan, Mirrored)
+    const dancersConfig = [
+      { x: leftX, y: podiumY, flip: 1, glowColor: '#ff007f', ringColor: '#ff007f' },
+      { x: rightX, y: podiumY, flip: -1, glowColor: '#00f0ff', ringColor: '#00f0ff' }
+    ];
+
+    dancersConfig.forEach(cfg => {
+      ctx.save();
+      ctx.translate(cfg.x, cfg.y);
+
+      // A. Elevated Stage Podium Base (Metallic Cylinder with Neon Glow Rim)
+      ctx.save();
+      // Under-podium glow halo
+      ctx.globalCompositeOperation = 'lighter';
+      const haloGrad = ctx.createRadialGradient(0, 8, 5, 0, 8, 55);
+      haloGrad.addColorStop(0, cfg.glowColor);
+      haloGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = haloGrad;
+      ctx.globalAlpha = 0.35 + beatEngine.bassLevel * 0.35;
+      ctx.beginPath();
+      ctx.ellipse(0, 8, 65, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Podium 3D cylinder body
+      ctx.fillStyle = '#0a0d18';
+      ctx.beginPath();
+      ctx.ellipse(0, 12, 44, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Podium top face
+      ctx.fillStyle = '#16192e';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 44, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = cfg.ringColor;
+      ctx.lineWidth = 2.5 + kickSnap * 1.5;
+      ctx.shadowColor = cfg.ringColor;
+      ctx.shadowBlur = 8 + kickSnap * 8;
+      ctx.stroke();
+
+      // B. Contact Floor Shadow
+      ctx.beginPath();
+      ctx.ellipse(0, -2, 28, 8, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fill();
+
+      // C. Dancer Character with Squash, Bounce, and Sway
+      ctx.save();
+      ctx.translate(0, -bounceY);
+      ctx.rotate(sway * cfg.flip);
+      ctx.scale(cfg.flip * (1 / squash) * dancerScale, squash * dancerScale);
+
+      // Draw 320x320 PNG centered on foot contact
+      ctx.drawImage(img, -bodyCX, -footY, 320, 320);
+
+      // D. Glowstick Flare Accent on heavy kick hits
+      if (beatEngine.isBassActive && beatEngine.bassLevel > 0.4) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = (beatEngine.bassLevel - 0.3) * 0.7;
+        ctx.fillStyle = cfg.ringColor;
+        ctx.beginPath();
+        // Lightstick hand positions
+        ctx.arc(-bodyCX + 60, -footY + 80, 22 * beatEngine.bassLevel, 0, Math.PI * 2);
+        ctx.arc(-bodyCX + 180, -footY + 160, 22 * beatEngine.bassLevel, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.restore();
+      ctx.restore();
+    });
+  }
+
+
   // Draw DJ Booth Platform, Disco Mirror Ball, Superstar Resident DJ, Pioneer Mixer & Vibrating Speakers
   function drawDJStage(now) {
     const stageY = H * 0.36;
@@ -2354,6 +2493,9 @@
     });
 
     ctx.restore();
+
+    // 5.5. 2 Sexy Stage Gogo Dancers on Left and Right Wings
+    drawGogoDancers(ctx, now, beatEngine);
 
     // 6. Concert Speakers Left and Right
     const spkScale = 1.0 + (beatEngine.isBeatHit ? 0.06 * beatEngine.danceEnergy : 0);
