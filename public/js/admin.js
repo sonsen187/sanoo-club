@@ -226,10 +226,19 @@
     if (!playlistBody) return;
     playlistBody.innerHTML = '';
 
+    const musicCardTitle = document.getElementById('music-card-title');
+    if (musicCardTitle && tracks) {
+      musicCardTitle.textContent = `PHÒNG ĐIỀU KHIỂN ÂM NHẠC DJ (${tracks.length} BÀI)`;
+    }
+
     tracks.forEach((track, i) => {
+      // Find actual index in main playlist array
+      const actualIndex = playlist.findIndex(t => t.id === track.id);
+      const targetIndex = actualIndex !== -1 ? actualIndex : i;
+
       const tr = document.createElement('tr');
-      tr.id = `track-row-${track.id - 1}`;
-      if (track.id - 1 === currentTrackIndex) tr.className = 'active';
+      tr.id = `track-row-${targetIndex}`;
+      if (targetIndex === currentTrackIndex) tr.className = 'active';
 
       const bpmBadge = track.bpm ? `<span style="display:inline-block; margin-left: 8px; background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: bold;">${track.bpm} BPM</span>` : '';
       tr.innerHTML = `
@@ -241,7 +250,8 @@
       `;
 
       tr.addEventListener('click', () => {
-        sendWS('track_select', { index: track.id - 1, requestedBy: 'Admin' });
+        sendWS('track_select', { index: targetIndex, requestedBy: 'Admin' });
+        showToast(`🎵 Đang phát bài #${track.id}: ${track.title}`);
       });
 
       playlistBody.appendChild(tr);

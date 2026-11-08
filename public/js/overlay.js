@@ -4749,7 +4749,8 @@
   // Audio track ended -> auto play next
   audioElement.addEventListener('ended', () => {
     if (playlist.length > 0) {
-      const nextIdx = (playlist.indexOf(currentTrack) + 1) % playlist.length;
+      const curIdx = playlist.findIndex(t => t.id === (currentTrack && currentTrack.id));
+      const nextIdx = curIdx !== -1 ? (curIdx + 1) % playlist.length : 0;
       playTrack(playlist[nextIdx]);
     }
   });
