@@ -165,6 +165,10 @@ function processGift(giftEvent) {
   const nickname = giftEvent.nickname || username;
   const avatar = extractTikTokAvatar(giftEvent);
   const giftName = giftEvent.giftName || 'Gift';
+  const giftPictureUrl = giftEvent.giftPictureUrl || 
+                         (giftEvent.giftDetails && giftEvent.giftDetails.giftImage) || 
+                         giftEvent.giftImage || 
+                         giftEvent.giftUrl || '';
   const repeatCount = giftEvent.repeatCount || 1;
   const diamondCount = (giftEvent.diamondCount || 1) * repeatCount;
 
@@ -219,6 +223,7 @@ function processGift(giftEvent) {
     nickname,
     avatar,
     giftName,
+    giftPictureUrl,
     repeatCount,
     diamondCount,
     fxType,
@@ -483,6 +488,7 @@ function handleClientMessage(msg, ws) {
         nickname: data.nickname || data.username || 'VIP Quẩy',
         avatar: data.avatar || '',
         giftName: data.giftName || 'Hoa hồng',
+        giftPictureUrl: data.giftPictureUrl || '',
         repeatCount: data.repeatCount || 1,
         diamondCount: data.diamondCount || 1
       });

@@ -1385,33 +1385,28 @@
     });
   }
 
-  // Show Gift Notification Banner
+  // Gift Celebration on DJ Screen (Replaces old popup card)
+  let activeDJScreenGift = null;
+
+  function triggerDJScreenGift(gift) {
+    if (!gift) return;
+    const now = performance.now();
+    activeDJScreenGift = {
+      username: gift.username || '',
+      nickname: gift.nickname || gift.username || 'Đại Gia',
+      avatar: gift.avatar || '',
+      giftName: gift.giftName || 'Quà Tặng VIP',
+      giftPictureUrl: gift.giftPictureUrl || gift.giftImage || '',
+      repeatCount: gift.repeatCount || 1,
+      diamondCount: gift.diamondCount || 1,
+      fxType: gift.fxType || 'cheer',
+      startTime: now,
+      expiry: now + 6000 // Display for 6 seconds on DJ Screen
+    };
+  }
+
   function showGiftBanner(gift) {
-    const bannerContainer = document.getElementById('gift-alert-slot');
-    if (!bannerContainer) return;
-
-    bannerContainer.innerHTML = '';
-    const card = document.createElement('div');
-    card.className = 'gift-alert-card';
-
-    const avatarHtml = gift.avatar
-      ? `<div class="gift-avatar" style="background-image: url('${gift.avatar}')"></div>`
-      : `<div class="gift-avatar" style="background: #ff007f; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px;">🎁</div>`;
-
-    card.innerHTML = `
-      ${avatarHtml}
-      <div class="gift-details">
-        <div class="gift-sender">${gift.nickname || gift.username}</div>
-        <div class="gift-action">Tặng ${gift.giftName} x${gift.repeatCount} (${gift.diamondCount} 💎)</div>
-      </div>
-    `;
-
-    bannerContainer.appendChild(card);
-    setTimeout(() => {
-      if (card.parentNode === bannerContainer) {
-        bannerContainer.removeChild(card);
-      }
-    }, 4200);
+    triggerDJScreenGift(gift);
   }
 
   // Main Render Loop
@@ -1745,6 +1740,375 @@
     ctx.restore();
   }
 
+  function getGiftIcon(giftName) {
+    if (!giftName || typeof giftName !== 'string') return '🎁';
+    const lower = giftName.toLowerCase();
+    if (lower.includes('sư tử') || lower.includes('lion')) return '🦁';
+    if (lower.includes('du thuyền') || lower.includes('thuyền') || lower.includes('yacht')) return '🛥️';
+    if (lower.includes('siêu xe') || lower.includes('xe') || lower.includes('car')) return '🏎️';
+    if (lower.includes('hoa hồng') || lower.includes('hoa') || lower.includes('rose')) return '🌹';
+    if (lower.includes('trái tim') || lower.includes('tim') || lower.includes('heart')) return '💖';
+    if (lower.includes('súng tiền') || lower.includes('tiền') || lower.includes('money')) return '💸';
+    if (lower.includes('bánh rán') || lower.includes('bánh') || lower.includes('donut')) return '🍩';
+    if (lower.includes('pháo hoa') || lower.includes('pháo') || lower.includes('firework')) return '🎆';
+    if (lower.includes('vương miện') || lower.includes('crown')) return '👑';
+    if (lower.includes('kim cương') || lower.includes('diamond')) return '💎';
+    if (lower.includes('cocktail') || lower.includes('rượu') || lower.includes('bia')) return '🍸';
+    if (lower.includes('tên lửa') || lower.includes('rocket')) return '🚀';
+    if (lower.includes('mèo') || lower.includes('cat')) return '🐱';
+    return '🎁';
+  }
+
+  // Draw Gift Showcase on DJ Screen (Temporarily replaces 3 Top VIPs)
+  function drawDJScreenGiftShowcase(ctx, sx, sy, sw, sh, now, beatEngine, gift) {
+    const age = now - gift.startTime;
+    const duration = gift.expiry - gift.startTime;
+    if (age > duration) {
+      activeDJScreenGift = null;
+      return;
+    }
+
+    // Smooth Pop-in scale (first 250ms) and fade-out (last 600ms)
+    let popScale = 1.0;
+    if (age < 250) {
+      const p = age / 250;
+      popScale = 0.6 + 0.4 * Math.sin(p * Math.PI * 0.5);
+    }
+    const alpha = age > (duration - 600) ? Math.max(0, (duration - age) / 600) : 1.0;
+
+    const bass = beatEngine.bassLevel || 0;
+    const beatPhase = beatEngine.beatPhase || 0;
+    const kickSnap = Math.pow(Math.max(0, 1.0 - beatPhase * 2.2), 2.2) * (beatEngine.isBassActive ? 1 : 0.2);
+
+    const cx = sx + sw / 2;
+    const bobY = -kickSnap * 10;
+    const bounceScale = 1.0 + kickSnap * 0.14 + bass * 0.08;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // 1. Ambient Golden & Neon Magenta Radial Wash behind showcase
+    const giftGlow = ctx.createRadialGradient(cx, sy + sh * 0.48, 30, cx, sy + sh * 0.48, sw * 0.52);
+    giftGlow.addColorStop(0, `rgba(255, 0, 128, ${0.32 + bass * 0.22})`);
+    giftGlow.addColorStop(0.5, `rgba(255, 215, 0, ${0.22 + kickSnap * 0.20})`);
+    giftGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = giftGlow;
+    ctx.fillRect(sx, sy, sw, sh);
+
+    // 2. Animated Header Bar on LED Screen
+    ctx.save();
+    const headerY = sy + 30;
+    const headerPulse = 1.0 + kickSnap * 0.05;
+    ctx.translate(cx, headerY);
+    ctx.scale(headerPulse, headerPulse);
+
+    const headerW = 460;
+    const headerH = 32;
+    const headerGrad = ctx.createLinearGradient(-headerW / 2, 0, headerW / 2, 0);
+    headerGrad.addColorStop(0, '#ff007f');
+    headerGrad.addColorStop(0.5, '#ffe600');
+    headerGrad.addColorStop(1, '#ff007f');
+
+    ctx.fillStyle = 'rgba(12, 6, 24, 0.88)';
+    ctx.strokeStyle = headerGrad;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(-headerW / 2, -headerH / 2, headerW, headerH, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = '900 16px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 8;
+    ctx.fillText('🎁 ĐẠI GIA TẶNG QUÀ SANOO CLUB 🎁', 0, 1);
+    ctx.restore();
+
+    // Coordinates for Duo Showcase (Gifter Left, Gift Right)
+    const gx = cx - 165;
+    const qx = cx + 165;
+    const gy = sy + 180 + bobY;
+    const qy = sy + 180 + bobY;
+
+    // -------------------------------------------------------------------------
+    // 3. GIFTER AVATAR & NAME (LEFT SIDE)
+    // -------------------------------------------------------------------------
+    ctx.save();
+    ctx.translate(gx, gy);
+    ctx.scale(popScale, popScale);
+    ctx.translate(-gx, -gy);
+
+    const avR = 56 * bounceScale;
+
+    // Subwoofer concentric shockwaves from avatar
+    for (let w = 1; w <= 2; w++) {
+      const waveProg = ((now * 0.002 * (beatEngine.bpm / 120) + w * 0.45) % 1.0);
+      const waveR = avR + waveProg * 58;
+      const waveAlpha = (1.0 - waveProg) * (0.35 + bass * 0.45 + kickSnap * 0.35);
+      ctx.beginPath();
+      ctx.arc(gx, gy, waveR, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffe600';
+      ctx.globalAlpha = waveAlpha * alpha;
+      ctx.lineWidth = 2 + kickSnap * 2;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = alpha;
+
+    // 16 Audio Visualizer Equalizer Spikes around Gifter
+    for (let k = 0; k < 16; k++) {
+      const ang = k * (Math.PI * 2 / 16) + (now * 0.0008);
+      const spikeLen = 4 + Math.sin(now * 0.015 + k) * 3 + kickSnap * 10 + bass * 7;
+      const x1 = gx + Math.cos(ang) * (avR + 3);
+      const y1 = gy + Math.sin(ang) * (avR + 3);
+      const x2 = gx + Math.cos(ang) * (avR + 3 + spikeLen);
+      const y2 = gy + Math.sin(ang) * (avR + 3 + spikeLen);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    }
+
+    // Outer Glowing Border Ring
+    ctx.beginPath();
+    ctx.arc(gx, gy, avR, 0, Math.PI * 2);
+    ctx.fillStyle = '#100a26';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3.5;
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Draw Gifter Avatar image
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(gx, gy, avR - 3, 0, Math.PI * 2);
+    ctx.clip();
+
+    let gifterLoaded = false;
+    if (gift.avatar) {
+      const item = getOrLoadAvatarImage(gift.avatar);
+      if (item && item.loaded && !item.error) {
+        ctx.drawImage(item.img, gx - avR, gy - avR, avR * 2, avR * 2);
+        gifterLoaded = true;
+      }
+    }
+    if (!gifterLoaded) {
+      // Elegant VIP Profile Avatar Gradient
+      const grad = ctx.createLinearGradient(gx - avR, gy - avR, gx + avR, gy + avR);
+      grad.addColorStop(0, '#ffe600');
+      grad.addColorStop(1, '#ff6600');
+      ctx.fillStyle = grad;
+      ctx.fillRect(gx - avR, gy - avR, avR * 2, avR * 2);
+
+      ctx.fillStyle = '#0a0d1e';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${Math.floor(avR * 0.7)}px "Rajdhani", sans-serif`;
+      const initial = (gift.nickname || gift.username || 'VIP').substring(0, 2).toUpperCase();
+      ctx.fillText(initial, gx, gy);
+    }
+    ctx.restore();
+
+    // Crown on Top of Avatar
+    ctx.font = `${Math.floor(26 * bounceScale)}px "Segoe UI Emoji", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 10;
+    ctx.fillText('👑', gx, gy - avR - 14);
+    ctx.shadowBlur = 0;
+
+    // Gifter Name Capsule
+    const nameY = gy + avR + 22;
+    const namePillW = 210;
+    const namePillH = 34;
+
+    ctx.fillStyle = 'rgba(14, 8, 28, 0.92)';
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(gx - namePillW / 2, nameY - namePillH / 2, namePillW, namePillH, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 18px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 6;
+    ctx.fillText(gift.nickname || gift.username, gx, nameY);
+    ctx.shadowBlur = 0;
+
+    ctx.font = 'bold 11px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('💎 NGƯỜI TẶNG QUÀ 💎', gx, nameY + 22);
+
+    ctx.restore();
+
+    // -------------------------------------------------------------------------
+    // 4. CENTER CONNECTING ENERGY BEAM
+    // -------------------------------------------------------------------------
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(gx + avR + 10, gy);
+    ctx.lineTo(qx - avR - 10, qy);
+    const beamGrad = ctx.createLinearGradient(gx + avR + 10, gy, qx - avR - 10, qy);
+    beamGrad.addColorStop(0, '#ffd700');
+    beamGrad.addColorStop(0.5, '#ffffff');
+    beamGrad.addColorStop(1, '#ff007f');
+    ctx.strokeStyle = beamGrad;
+    ctx.lineWidth = 3 + kickSnap * 3;
+    ctx.stroke();
+
+    // Repeat Count Badge in Dead Center
+    ctx.save();
+    ctx.translate(cx, gy);
+    ctx.scale(1.0 + kickSnap * 0.15, 1.0 + kickSnap * 0.15);
+    const countBadgeW = 76;
+    const countBadgeH = 34;
+    ctx.fillStyle = 'rgba(255, 0, 128, 0.9)';
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(-countBadgeW / 2, -countBadgeH / 2, countBadgeW, countBadgeH, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = '900 22px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 8;
+    ctx.fillText(`x${gift.repeatCount}`, 0, 1);
+    ctx.restore();
+    ctx.restore();
+
+    // -------------------------------------------------------------------------
+    // 5. GIFT IMAGE & DETAILS (RIGHT SIDE)
+    // -------------------------------------------------------------------------
+    ctx.save();
+    ctx.translate(qx, qy);
+    ctx.scale(popScale, popScale);
+    ctx.translate(-qx, -qy);
+
+    const giftR = 60 * bounceScale;
+
+    // Rotating Star Halo around Gift
+    const starCount = 8;
+    for (let s = 0; s < starCount; s++) {
+      const sAng = s * (Math.PI * 2 / starCount) + (now * 0.0015);
+      const sxStar = qx + Math.cos(sAng) * (giftR + 12);
+      const syStar = qy + Math.sin(sAng) * (giftR + 12);
+      ctx.beginPath();
+      ctx.arc(sxStar, syStar, 2.5 + kickSnap * 2, 0, Math.PI * 2);
+      ctx.fillStyle = (s % 2 === 0) ? '#ffe600' : '#ff007f';
+      ctx.fill();
+    }
+
+    // Outer Frame for Gift
+    ctx.beginPath();
+    ctx.arc(qx, qy, giftR, 0, Math.PI * 2);
+    const giftBgGrad = ctx.createRadialGradient(qx, qy, 10, qx, qy, giftR);
+    giftBgGrad.addColorStop(0, '#380b3d');
+    giftBgGrad.addColorStop(1, '#0e0416');
+    ctx.fillStyle = giftBgGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#ff007f';
+    ctx.lineWidth = 3.5;
+    ctx.shadowColor = '#ff007f';
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Render Gift Image or High-res Icon
+    let giftImgLoaded = false;
+    if (gift.giftPictureUrl) {
+      const gItem = getOrLoadAvatarImage(gift.giftPictureUrl);
+      if (gItem && gItem.loaded && !gItem.error) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(qx, qy, giftR - 4, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(gItem.img, qx - giftR * 0.85, qy - giftR * 0.85, giftR * 1.7, giftR * 1.7);
+        ctx.restore();
+        giftImgLoaded = true;
+      }
+    }
+    if (!giftImgLoaded) {
+      const icon = getGiftIcon(gift.giftName);
+      ctx.font = `${Math.floor(70 * bounceScale)}px "Segoe UI Emoji", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#ffe600';
+      ctx.shadowBlur = 14;
+      ctx.fillText(icon, qx, qy + 4);
+      ctx.shadowBlur = 0;
+    }
+
+    // Gift Name Capsule
+    const giftNameY = qy + giftR + 22;
+    const giftPillW = 210;
+    const giftPillH = 34;
+
+    ctx.fillStyle = 'rgba(28, 6, 26, 0.92)';
+    ctx.strokeStyle = '#ff007f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(qx - giftPillW / 2, giftNameY - giftPillH / 2, giftPillW, giftPillH, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 18px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#ffe600';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ff007f';
+    ctx.shadowBlur = 6;
+    ctx.fillText(gift.giftName, qx, giftNameY);
+    ctx.shadowBlur = 0;
+
+    ctx.font = 'bold 12px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText(`✨ ${gift.diamondCount} 💎 ✨`, qx, giftNameY + 22);
+
+    ctx.restore();
+
+    // -------------------------------------------------------------------------
+    // 6. BOTTOM MARQUEE BAR (INSIDE LED SCREEN)
+    // -------------------------------------------------------------------------
+    ctx.save();
+    const bottomY = sy + sh - 28;
+    const barW = Math.min(sw - 60, 620);
+    const barH = 30;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - barW / 2, bottomY - barH / 2, barW, barH, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 15px "Rajdhani", sans-serif';
+    ctx.fillStyle = '#00f0ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 6;
+    ctx.fillText(`✨ CẢM ƠN ${gift.nickname.toUpperCase()} ĐÃ TẶNG ${gift.giftName.toUpperCase()} x${gift.repeatCount}! ✨`, cx, bottomY);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
   function drawDJScreenTop3VIP(ctx, sx, sy, sw, sh, now, beatEngine) {
     const vips = getTop3VIPUsers();
     const cx = sx + sw / 2;
@@ -1925,8 +2289,13 @@
       ctx.fillRect(bx, by - 3, barW, 2);
     }
 
-    // 4. TOP 3 VIP AVATARS & NAMES WITH BASS BEAT FX ON DJ SCREEN
-    drawDJScreenTop3VIP(ctx, sx, sy, sw, sh, now, beatEngine);
+    // 4. TOP 3 VIP AVATARS OR ACTIVE GIFT SHOWCASE ON DJ SCREEN
+    if (activeDJScreenGift && now < activeDJScreenGift.expiry) {
+      drawDJScreenGiftShowcase(ctx, sx, sy, sw, sh, now, beatEngine, activeDJScreenGift);
+    } else {
+      activeDJScreenGift = null;
+      drawDJScreenTop3VIP(ctx, sx, sy, sw, sh, now, beatEngine);
+    }
 
     // 5. Strobe Flash on Bass Hits
     if (stageLighting.flashIntensity > 0.08) {
@@ -4019,7 +4388,7 @@
         break;
 
       case 'gift':
-        showGiftBanner(data);
+        triggerDJScreenGift(data);
         sfx.playGiftChime();
         // Trigger stage FX depending on gift level
         if (data.fxType === 'mega_rave') triggerRave();
@@ -4042,7 +4411,6 @@
         break;
 
       case 'chat':
-        appendChatFeed(data);
         addSpeechBubble(data.username, data.nickname, data.comment);
         break;
 
