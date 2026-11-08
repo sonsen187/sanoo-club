@@ -1,4 +1,5 @@
 const express = require('express');
+const ProfanityFilter = require('./public/js/profanity-filter.js');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');

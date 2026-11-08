@@ -1356,8 +1356,13 @@
   // Active Speech Bubble floating directly above dancer's head/nametag
   function addSpeechBubble(username, nickname, text) {
     if (!text || typeof text !== 'string') return;
-    const cleanText = text.trim();
-    if (!cleanText) return;
+    const rawClean = text.trim();
+    if (!rawClean) return;
+
+    // Apply Client-Side Profanity Filter (Double defense against TikTok ban)
+    const cleanText = (typeof ProfanityFilter !== 'undefined' && ProfanityFilter.clean)
+      ? ProfanityFilter.clean(rawClean)
+      : rawClean;
 
     let targetDancer = findDancerByAnyName(username, nickname);
 
@@ -4023,6 +4028,69 @@
     });
   }
 
+  // Word Wrapping Helper for Speech Bubbles (Max 3 lines, truncate with ... on overflow)
+  function wrapSpeechBubbleText(ctx, text, maxLineWidth = 270, maxLines = 3) {
+    if (!text || typeof text !== 'string') return [text || ''];
+    const clean = text.trim();
+    if (!clean) return [''];
+
+    const words = clean.split(/\s+/);
+    const lines = [];
+    let curLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const testLine = curLine ? (curLine + ' ' + word) : word;
+      const testWidth = ctx.measureText(testLine).width;
+
+      if (testWidth <= maxLineWidth) {
+        curLine = testLine;
+      } else {
+        if (curLine) {
+          lines.push(curLine);
+          curLine = '';
+        }
+
+        // If we reached the final allowed line (line 3):
+        if (lines.length === maxLines - 1) {
+          let remaining = words.slice(i).join(' ');
+          if (ctx.measureText(remaining).width <= maxLineWidth) {
+            lines.push(remaining);
+          } else {
+            while (remaining.length > 0 && ctx.measureText(remaining + '...').width > maxLineWidth) {
+              remaining = remaining.slice(0, -1).trimEnd();
+            }
+            lines.push((remaining || '') + '...');
+          }
+          return lines;
+        }
+
+        // If a single word is wider than maxLineWidth
+        if (ctx.measureText(word).width > maxLineWidth) {
+          let piece = '';
+          for (const c of word) {
+            if (ctx.measureText(piece + c).width <= maxLineWidth) {
+              piece += c;
+            } else {
+              lines.push(piece);
+              piece = c;
+              if (lines.length === maxLines - 1) break;
+            }
+          }
+          curLine = piece;
+        } else {
+          curLine = word;
+        }
+      }
+    }
+
+    if (curLine && lines.length < maxLines) {
+      lines.push(curLine);
+    }
+
+    return lines;
+  }
+
   // Draw Speech Bubbles Floating Perfectly Above Dancer Heads & Nametags
   function drawSpeechBubbles(now) {
     const curTime = (now && now > 0) ? now : performance.now();
@@ -4075,15 +4143,18 @@
       ctx.save();
       ctx.globalAlpha = alpha;
 
-      // Typography
-      const fontSize = sb.text.length > 25 ? 18 : 20;
+      // Typography & Multi-line Wrapping (Max 3 lines, overflow with ...)
+      const fontSize = 18;
       ctx.font = `bold ${fontSize}px "Be Vietnam Pro", sans-serif`;
-      const textMetrics = ctx.measureText(sb.text);
-      const textW = textMetrics.width;
 
-      const padX = 22;
-      const bw = Math.min(Math.max(textW + padX * 2, 72), 400);
-      const bh = fontSize > 18 ? 44 : 40;
+      const maxLineWidth = 270;
+      const lines = wrapSpeechBubbleText(ctx, sb.text, maxLineWidth, 3);
+      const maxTextW = Math.max(...lines.map(l => ctx.measureText(l).width));
+
+      const padX = 20;
+      const bw = Math.min(Math.max(maxTextW + padX * 2, 72), 340);
+      const lineH = 24;
+      const bh = 38 + (lines.length - 1) * lineH;
 
       // Speech bubble placement: sits above nametag
       const pointerTipY = screenY - headTopOffset;
@@ -4142,12 +4213,20 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(tailX - 7, bubbleBottomY - 2.5, 14, 4);
 
-      // Text inside bubble (Bold, crisp dark charcoal)
+      // Text inside bubble (Bold, crisp dark charcoal, multi-line aware)
       ctx.fillStyle = '#0a0d1e';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = `bold ${fontSize}px "Be Vietnam Pro", sans-serif`;
-      ctx.fillText(sb.text, bx, bubbleTopY + bh / 2 + 1);
+
+      if (lines.length === 1) {
+        ctx.fillText(lines[0], bx, bubbleTopY + bh / 2 + 1);
+      } else {
+        const startY = bubbleTopY + (bh - (lines.length - 1) * lineH) / 2;
+        for (let li = 0; li < lines.length; li++) {
+          ctx.fillText(lines[li], bx, startY + li * lineH);
+        }
+      }
 
       ctx.restore();
     }
