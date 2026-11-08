@@ -1338,18 +1338,50 @@
     });
   }
 
-  // Active Speech Bubble
+  // Helper to find dancer by any username or nickname variant
+  function findDancerByAnyName(username, nickname) {
+    if (!dancers || dancers.length === 0) return null;
+    const u = (username || '').toLowerCase().trim();
+    const n = (nickname || '').toLowerCase().trim();
+    return dancers.find(d => {
+      const du = (d.username || '').toLowerCase().trim();
+      const dn = (d.nickname || '').toLowerCase().trim();
+      const did = (d.id || '').toLowerCase().trim();
+      return (du && (du === u || du === n)) ||
+             (dn && (dn === u || dn === n)) ||
+             (did && (did === u || did === n));
+    });
+  }
+
+  // Active Speech Bubble floating directly above dancer's head/nametag
   function addSpeechBubble(username, nickname, text) {
-    const targetDancer = dancers.find(d => d.username === username || d.nickname === nickname);
+    if (!text || typeof text !== 'string') return;
+    const cleanText = text.trim();
+    if (!cleanText) return;
+
+    let targetDancer = findDancerByAnyName(username, nickname);
+
+    // Remove any existing active bubble for this user to avoid overlapping clutter
+    for (let i = speechBubbles.length - 1; i >= 0; i--) {
+      const b = speechBubbles[i];
+      if ((b.username && b.username.toLowerCase() === (username || '').toLowerCase()) ||
+          (b.nickname && b.nickname.toLowerCase() === (nickname || '').toLowerCase())) {
+        speechBubbles.splice(i, 1);
+      }
+    }
+
+    const defaultX = targetDancer ? targetDancer.x : 0.5;
+    const defaultY = targetDancer ? targetDancer.y : 0.75;
+
     speechBubbles.push({
-      username,
-      nickname,
-      text,
-      x: targetDancer ? targetDancer.x : 0.5,
-      y: targetDancer ? targetDancer.y : 0.7,
+      username: username || '',
+      nickname: nickname || username || '',
+      text: cleanText,
+      x: defaultX,
+      y: defaultY,
       targetDancer,
       createdAt: performance.now(),
-      duration: 4000
+      duration: 5000 // 5 seconds duration
     });
   }
 
@@ -3622,55 +3654,131 @@
     });
   }
 
-  // Draw Speech Bubbles
+  // Draw Speech Bubbles Floating Perfectly Above Dancer Heads & Nametags
   function drawSpeechBubbles(now) {
-    const curTime = now || performance.now();
+    const curTime = (now && now > 0) ? now : performance.now();
+
     for (let i = speechBubbles.length - 1; i >= 0; i--) {
       const sb = speechBubbles[i];
       const age = curTime - sb.createdAt;
-      if (age < 0 || age > sb.duration) {
+
+      // Only expire when age exceeds full duration.
+      // (Never expire when age < 0 due to sub-millisecond RAF timestamp jitter!)
+      if (age > sb.duration) {
         speechBubbles.splice(i, 1);
         continue;
       }
+      const safeAge = Math.max(0, age);
 
-      // Track dancer location if bound
-      if (sb.targetDancer) {
-        sb.x = sb.targetDancer.x;
-        sb.y = sb.targetDancer.y;
+      // Dynamically locate / re-bind dancer if not already bound
+      if (!sb.targetDancer) {
+        sb.targetDancer = findDancerByAnyName(sb.username, sb.nickname);
       }
 
-      const bx = sb.x * W;
-      const by = sb.y * H - 120;
-      // Smooth fade out in the last 800ms
-      const alpha = age > (sb.duration - 800) ? Math.max(0, (sb.duration - age) / 800) : 1;
+      // Calculate exact visual anchor position on screen
+      let screenX, screenY, headTopOffset, isVip = 0;
+      if (sb.targetDancer) {
+        const d = sb.targetDancer;
+        const totalYOffset = (d.jumpOffset || 0) + (d.bounceY || 0);
+        screenX = d.x * W;
+        screenY = d.y * H - totalYOffset;
+        const scale = d.scale || 0.5;
+        const standardHeadHeight = 102 * (scale * 1.1);
+        const tagHeight = (d.vipRank === 1) ? 42 : ((d.vipRank === 2 || d.vipRank === 3) ? 36 : 31);
+        headTopOffset = standardHeadHeight + tagHeight + 10;
+        isVip = d.vipRank || 0;
+      } else {
+        screenX = sb.x * W;
+        screenY = sb.y * H;
+        headTopOffset = 105;
+      }
+
+      // Pop-in spring animation (0 to 1 over first 180ms)
+      let popScale = 1;
+      if (safeAge < 180) {
+        const p = safeAge / 180;
+        popScale = 0.5 + 0.5 * Math.sin(p * Math.PI * 0.5);
+      }
+
+      // Smooth fade-out in the last 600ms
+      const alpha = safeAge > (sb.duration - 600) ? Math.max(0, (sb.duration - safeAge) / 600) : 1;
 
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.font = 'bold 22px "Be Vietnam Pro", sans-serif';
-      const textMetrics = ctx.measureText(sb.text);
-      const bw = Math.min(Math.max(textMetrics.width + 30, 140), 360);
-      const bh = 45;
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      ctx.strokeStyle = '#ff007f';
+      // Typography
+      const fontSize = sb.text.length > 25 ? 18 : 20;
+      ctx.font = `bold ${fontSize}px "Be Vietnam Pro", sans-serif`;
+      const textMetrics = ctx.measureText(sb.text);
+      const textW = textMetrics.width;
+
+      const padX = 22;
+      const bw = Math.min(Math.max(textW + padX * 2, 72), 400);
+      const bh = fontSize > 18 ? 44 : 40;
+
+      // Speech bubble placement: sits above nametag
+      const pointerTipY = screenY - headTopOffset;
+      const bubbleBottomY = pointerTipY - 10;
+      const bubbleTopY = bubbleBottomY - bh;
+      const bx = Math.max(bw / 2 + 15, Math.min(W - bw / 2 - 15, screenX));
+
+      // Border and glow color by VIP tier
+      let strokeColor = '#ff007f'; // Neon Pink for crowd
+      let glowColor = 'rgba(255, 0, 127, 0.45)';
+      if (isVip === 1) {
+        strokeColor = '#ffd700'; // Gold for Top 1
+        glowColor = 'rgba(255, 215, 0, 0.65)';
+      } else if (isVip === 2) {
+        strokeColor = '#00f0ff'; // Cyan for Top 2
+        glowColor = 'rgba(0, 240, 255, 0.55)';
+      } else if (isVip === 3) {
+        strokeColor = '#ff9100'; // Amber for Top 3
+        glowColor = 'rgba(255, 145, 0, 0.55)';
+      }
+
+      ctx.translate(bx, bubbleBottomY);
+      ctx.scale(popScale, popScale);
+      ctx.translate(-bx, -bubbleBottomY);
+
+      // Outer Neon Glow
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 12;
+
+      // White Speech Bubble Body
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(bx - bw / 2, by - bh, bw, bh, 14);
+      ctx.roundRect(bx - bw / 2, bubbleTopY, bw, bh, 14);
       ctx.fill();
       ctx.stroke();
 
-      // Speech bubble pointer
-      ctx.beginPath();
-      ctx.moveTo(bx - 10, by);
-      ctx.lineTo(bx, by + 12);
-      ctx.lineTo(bx + 10, by);
-      ctx.fillStyle = '#ff007f';
-      ctx.fill();
+      // Reset shadow for tail & text
+      ctx.shadowBlur = 0;
 
-      // Text inside bubble
+      // Bubble Pointer pointing down to nametag
+      const tailX = Math.max(bx - bw / 2 + 18, Math.min(bx + bw / 2 - 18, screenX));
+      ctx.beginPath();
+      ctx.moveTo(tailX - 9, bubbleBottomY - 1);
+      ctx.lineTo(tailX, pointerTipY);
+      ctx.lineTo(tailX + 9, bubbleBottomY - 1);
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Mask inner tail seam
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(tailX - 7, bubbleBottomY - 2.5, 14, 4);
+
+      // Text inside bubble (Bold, crisp dark charcoal)
       ctx.fillStyle = '#0a0d1e';
       ctx.textAlign = 'center';
-      ctx.fillText(sb.text, bx, by - 14);
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${fontSize}px "Be Vietnam Pro", sans-serif`;
+      ctx.fillText(sb.text, bx, bubbleTopY + bh / 2 + 1);
 
       ctx.restore();
     }
