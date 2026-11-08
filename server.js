@@ -652,23 +652,30 @@ app.get('/api/tts', (req, res) => {
     return fetchGoogleTTS(text, cacheKey, res);
   }
 
-  // Attempt Microsoft Edge Neural TTS (Ultra Natural Human-like AI Voice)
+  // Attempt Microsoft Edge Neural TTS via dedicated scripts/tts_engine.py
   try {
+    const scriptPath = path.join(__dirname, 'scripts', 'tts_engine.py');
     const pyProc = spawn('python', [
-      '-m', 'edge_tts',
-      '-t', text,
-      '-v', edgeVoice,
-      `--rate=${rateStr}`,
-      `--pitch=${pitchStr}`,
-      '--write-media', '-'
+      scriptPath,
+      text,
+      edgeVoice,
+      rateStr,
+      pitchStr
     ], {
       env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }
     });
 
     const chunks = [];
+    const errChunks = [];
     pyProc.stdout.on('data', chunk => chunks.push(chunk));
+    pyProc.stderr.on('data', chunk => errChunks.push(chunk));
+
+    const timeoutTimer = setTimeout(() => {
+      try { pyProc.kill(); } catch (_) {}
+    }, 5500);
 
     pyProc.on('close', code => {
+      clearTimeout(timeoutTimer);
       if (code === 0 && chunks.length > 0) {
         const buffer = Buffer.concat(chunks);
         if (ttsCache.size > 350) {
@@ -681,16 +688,21 @@ app.get('/api/tts', (req, res) => {
           res.set({
             'Content-Type': 'audio/mpeg',
             'Content-Length': buffer.length,
+            'X-TTS-Engine': 'Edge-Neural',
             'Cache-Control': 'public, max-age=86400'
           });
           return res.end(buffer);
         }
       } else {
+        const errMsg = Buffer.concat(errChunks).toString().trim();
+        console.warn(`[TTS] Edge Neural failed (code ${code}): ${errMsg}. Falling back to Google TTS.`);
         fetchGoogleTTS(text, cacheKey, res);
       }
     });
 
-    pyProc.on('error', () => {
+    pyProc.on('error', err => {
+      clearTimeout(timeoutTimer);
+      console.warn(`[TTS] Python spawn error: ${err.message}. Falling back to Google TTS.`);
       fetchGoogleTTS(text, cacheKey, res);
     });
   } catch (err) {

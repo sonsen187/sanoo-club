@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-11-08T14:36:00.128Z",
-  "totalCoins": 1285,
-  "totalGifts": 136,
+  "updatedAt": "2026-11-08T14:53:14.334Z",
+  "totalCoins": 31284,
+  "totalGifts": 137,
   "topGifters": {
     "yến_nhi_579": {
       "username": "yến_nhi_579",
@@ -484,6 +484,13 @@
       "nickname": "Nam_Sanoo_766",
       "avatar": "",
       "coins": 5,
+      "giftsCount": 1
+    },
+    "Trum_SanBay": {
+      "username": "Trum_SanBay",
+      "nickname": "Trum_SanBay",
+      "avatar": "",
+      "coins": 29999,
       "giftsCount": 1
     }
   }

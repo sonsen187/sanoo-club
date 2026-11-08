@@ -819,6 +819,9 @@
   const btnVoiceMale = document.getElementById('btn-voice-male');
   const btnVoiceGoogle = document.getElementById('btn-voice-google');
   const ttsVoiceSelect = document.getElementById('tts-voice-select');
+  const btnPreviewTTS = document.getElementById('btn-preview-tts');
+  const ttsPreviewBadge = document.getElementById('tts-preview-badge');
+  let currentPreviewAudio = null;
 
   const ttsVolumeSlider = document.getElementById('tts-volume-slider');
   const ttsVolVal = document.getElementById('tts-vol-val');
@@ -1017,6 +1020,77 @@
   if (btnVoiceFemale) btnVoiceFemale.addEventListener('click', () => selectVoiceStyle('female_hype'));
   if (btnVoiceMale) btnVoiceMale.addEventListener('click', () => selectVoiceStyle('male_deep'));
   if (btnVoiceGoogle) btnVoiceGoogle.addEventListener('click', () => selectVoiceStyle('google'));
+
+  // Live Audio Preview on Admin Page (Direct audio feedback)
+  if (btnPreviewTTS) {
+    btnPreviewTTS.addEventListener('click', async () => {
+      if (currentPreviewAudio) {
+        currentPreviewAudio.pause();
+        currentPreviewAudio = null;
+      }
+
+      const samplePhrases = {
+        female_hype: 'Cháy lên nào anh em ơi, quẩy bung nóc phòng bay!',
+        male_deep: 'Bái phục đại gia, gọi tên trùm sàn bay!',
+        google: 'Chào mừng bạn đến với sàn nhạc DJ Club.'
+      };
+
+      const phrase = samplePhrases[ttsState.style] || samplePhrases.female_hype;
+      const url = `/api/tts?text=${encodeURIComponent(phrase)}&voice=${encodeURIComponent(ttsState.style || 'female_hype')}&speed=${ttsState.speed || 1.20}&pitch=${ttsState.pitch || 0}`;
+
+      if (ttsPreviewBadge) {
+        ttsPreviewBadge.textContent = '🟡 Đang tải audio...';
+        ttsPreviewBadge.style.color = '#ffd700';
+      }
+      btnPreviewTTS.disabled = true;
+
+      try {
+        const audio = new Audio(url);
+        currentPreviewAudio = audio;
+        audio.volume = Math.min(1.0, ttsState.volume || 1.0);
+
+        audio.oncanplay = () => {
+          if (ttsPreviewBadge) {
+            ttsPreviewBadge.textContent = '🟢 Đang phát thử...';
+            ttsPreviewBadge.style.color = 'var(--neon-green)';
+          }
+        };
+
+        audio.onended = () => {
+          btnPreviewTTS.disabled = false;
+          currentPreviewAudio = null;
+          if (ttsPreviewBadge) {
+            ttsPreviewBadge.textContent = '⚪ Sẵn sàng';
+            ttsPreviewBadge.style.color = '#a0aec0';
+          }
+        };
+
+        audio.onerror = (e) => {
+          console.error('Audio preview error:', e);
+          btnPreviewTTS.disabled = false;
+          currentPreviewAudio = null;
+          if (ttsPreviewBadge) {
+            ttsPreviewBadge.textContent = '🔴 Lỗi phát';
+            ttsPreviewBadge.style.color = '#ff4d4d';
+          }
+          showToast('⚠️ Không thể phát âm thanh nghe thử. Kiểm tra kết nối mạng!');
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+        }
+      } catch (err) {
+        console.error('Preview error:', err);
+        btnPreviewTTS.disabled = false;
+        if (ttsPreviewBadge) {
+          ttsPreviewBadge.textContent = '🔴 Lỗi phát';
+          ttsPreviewBadge.style.color = '#ff4d4d';
+        }
+        showToast('⚠️ Lỗi: ' + err.message);
+      }
+    });
+  }
 
   // 1. Volume Slider
   if (ttsVolumeSlider) {

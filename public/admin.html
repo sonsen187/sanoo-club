@@ -189,8 +189,14 @@
           <!-- GIỚI TÍNH & PHONG CÁCH GIỌNG (NAM / NỮ / ROBOT) -->
           <div style="margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-              <span>🎭 Chọn Giới Tính & Giọng Đọc:</span>
-              <span id="tts-voice-label" style="color: var(--neon-cyan); font-weight: 700;">Hoài My (Nữ Hype)</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span>🎭 Giới Tính & Giọng Đọc:</span>
+                <span id="tts-voice-label" style="color: var(--neon-cyan); font-weight: 700;">Hoài My (Nữ Hype)</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="tts-preview-badge" style="font-size: 10px; color: #a0aec0; padding: 2px 6px; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">⚪ Sẵn sàng</span>
+                <button id="btn-preview-tts" class="btn btn-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 700; background: linear-gradient(90deg, #ff007f, #00f0ff); border: none; white-space: nowrap; border-radius: 6px; cursor: pointer;">🔊 Nghe Thử Giọng</button>
+              </div>
             </div>
             <div class="button-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
               <button id="btn-voice-female" class="fx-btn active-audio-mode" data-voice="female_hype" style="padding: 8px 6px; font-size: 12px; font-weight: 700; border-color: var(--neon-cyan);">

@@ -455,42 +455,70 @@
       this._processNextInQueue();
     }
 
-    // Play TTS via /api/tts decoded directly into Web Audio DSP Graph
+    // Play TTS via /api/tts decoded directly into Web Audio DSP Graph with HTML5 Audio & Web Speech fallbacks
     async _playServerAudioDSP(text) {
-      if (!this.ctx) return false;
-      try {
-        if (this.ctx.state === 'suspended') {
-          await this.ctx.resume();
+      if (!this.ctx && typeof window !== 'undefined') {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          try {
+            this.ctx = new AudioContext();
+            this._setupAudioDSP();
+          } catch (_) {}
         }
-
-        const encoded = encodeURIComponent(text);
-        const res = await fetch(`/api/tts?text=${encoded}&voice=${encodeURIComponent(this.style || 'female_hype')}&speed=${this.playbackRate || 1.20}&pitch=${this.pitch || 0}`);
-        if (!res.ok) throw new Error('TTS server status ' + res.status);
-
-        const arrayBuffer = await res.arrayBuffer();
-        const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
-
-        return new Promise((resolve) => {
-          const source = this.ctx.createBufferSource();
-          source.buffer = audioBuffer;
-
-          // Natural cadence: Server edge_tts already handles rate & pitch natively!
-          // Only time-stretch for legacy Google TTS fallback
-          source.playbackRate.value = (this.style === 'google') ? (this.playbackRate || 1.20) : 1.0;
-
-          if (this.micHighpass) {
-            source.connect(this.micHighpass);
-          } else {
-            source.connect(this.ctx.destination);
-          }
-
-          source.onended = () => resolve(true);
-          source.start();
-        });
-      } catch (err) {
-        console.warn('Server TTS DSP failed, falling back to Web Speech API:', err.message);
-        return false;
       }
+
+      const encoded = encodeURIComponent(text);
+      const url = `/api/tts?text=${encoded}&voice=${encodeURIComponent(this.style || 'female_hype')}&speed=${this.playbackRate || 1.20}&pitch=${this.pitch || 0}`;
+
+      // Tier 1: Web Audio DSP Graph (Mic Compressor + Reverb + Triplet Delay)
+      if (this.ctx) {
+        try {
+          if (this.ctx.state === 'suspended') {
+            await this.ctx.resume();
+          }
+          const res = await fetch(url);
+          if (res.ok) {
+            const arrayBuffer = await res.arrayBuffer();
+            const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
+
+            return await new Promise((resolve) => {
+              const source = this.ctx.createBufferSource();
+              source.buffer = audioBuffer;
+              source.playbackRate.value = (this.style === 'google') ? (this.playbackRate || 1.20) : 1.0;
+
+              if (this.micHighpass) {
+                source.connect(this.micHighpass);
+              } else {
+                source.connect(this.ctx.destination);
+              }
+
+              source.onended = () => resolve(true);
+              source.onerror = () => resolve(false);
+              source.start();
+            });
+          }
+        } catch (dspErr) {
+          console.warn('[TTS] Web Audio DSP decode failed, falling back to HTML5 Audio:', dspErr.message);
+        }
+      }
+
+      // Tier 2 Fallback: Native HTML5 Audio Element (Direct hardware audio decoding, zero decode issues)
+      try {
+        const audioSuccess = await new Promise((resolve) => {
+          const audio = new Audio(url);
+          audio.volume = Math.min(1.0, this.volume);
+          audio.onended = () => resolve(true);
+          audio.onerror = () => resolve(false);
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => resolve(false));
+          }
+        });
+        if (audioSuccess) return true;
+      } catch (_) {}
+
+      // Tier 3 Fallback: Browser Web Speech API
+      return this._playWebSpeech(text);
     }
 
     // Fallback: Browser Web Speech API
