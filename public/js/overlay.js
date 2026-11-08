@@ -1617,10 +1617,10 @@
       }
     }
 
-    // 2. Fill missing ranks from VIP podium dancers
+    // 2. Fill missing ranks from VIP podium dancers ONLY if they actually have gift points
     for (let r = 1; r <= 3; r++) {
       if (!result.some(v => v.rank === r)) {
-        const d = (dancers || []).find(dancer => dancer.vipRank === r);
+        const d = (dancers || []).find(dancer => dancer.vipRank === r && (dancer.score || 0) > 0);
         if (d) {
           result.push({
             rank: r,
@@ -1841,7 +1841,7 @@
       ctx.font = `bold ${cfg.rank === 1 ? 12 : 11}px "Rajdhani", sans-serif`;
       ctx.fillStyle = cfg.themeColor;
       ctx.shadowBlur = 0;
-      ctx.fillText(`💎 ${formatVipCoins(vip.coins)}`, curX, pillY + pillH * 0.75 + 2);
+      ctx.fillText(`${formatVipCoins(vip.coins)}`, curX, pillY + pillH * 0.75 + 2);
     }
     ctx.restore();
 
@@ -3887,20 +3887,8 @@
       }
     }
 
-    // 2. Ensure Top 1, 2, 3 podiums are always occupied by dancers!
-    for (let rank = 1; rank <= 3; rank++) {
-      const hasRank = dancers.some(d => d.vipRank === rank);
-      if (!hasRank) {
-        const available = dancers.filter(d => !assigned.has(d));
-        if (available.length > 0) {
-          available.sort((a, b) => (b.score || 0) - (a.score || 0));
-          const chosen = available[0];
-          chosen.vipRank = rank;
-          chosen.isVip = true;
-          assigned.add(chosen);
-        }
-      }
-    }
+    // 2. Podiums are reserved exclusively for Top Gifters
+    // (If no gifters yet, podiums stay pristine waiting for donors)
 
     // 3. Anchor VIPs precisely to stand in the DEAD CENTER of each podium platform
     dancers.forEach(d => {
@@ -4450,7 +4438,7 @@
         item.innerHTML = `
           <span class="vip-rank">${medals[i]}</span>
           <span class="vip-name">${g.nickname || g.username}</span>
-          <span class="vip-coins">${g.coins}💎</span>
+          <span class="vip-coins">${(g.coins || 0).toLocaleString()}</span>
         `;
       } else {
         item.innerHTML = `
@@ -4461,6 +4449,15 @@
       }
       listEl.appendChild(item);
     }
+
+    // Save to browser LocalStorage for persistent leaderboard
+    try {
+      if (topGifters && topGifters.length > 0) {
+        localStorage.setItem('sanoo_club_top_gifters', JSON.stringify(topGifters));
+      } else {
+        localStorage.removeItem('sanoo_club_top_gifters');
+      }
+    } catch (e) {}
 
     // Update VIP flag and synchronize podium positions on dancers
     syncVIPRanksAndPodiums();
@@ -4591,8 +4588,35 @@
         }
         break;
 
-      case 'top_gifters':
+            case 'top_gifters':
         updateTopGiftersUI(data);
+        if (window.ClubTTSMC) {
+          window.ClubTTSMC.onTopGiftersUpdate(data);
+        }
+        break;
+
+      case 'live_session_reset':
+      case 'reset_top_gifters':
+        topGifters = [];
+        try {
+          localStorage.removeItem('sanoo_club_top_gifters');
+        } catch (e) {}
+        updateTopGiftersUI([]);
+        giftQueue = [];
+        isProcessingGift = false;
+        currentGiftAnnouncement = null;
+        currentGiftFx = null;
+        if (dancers && dancers.length > 0) {
+          dancers.forEach(d => {
+            d.vipRank = 0;
+            d.isVip = false;
+          });
+          syncVIPRanksAndPodiums();
+        }
+        if (window.ClubTTSMC) {
+          window.ClubTTSMC.onTopGiftersUpdate([]);
+        }
+        console.log('[Overlay] Live session & Leaderboard reset.');
         break;
 
       case 'chat':
@@ -4780,6 +4804,19 @@
   }
 
   // Initialization: Start graphics & network immediately without blocking
+  // Restore Top Gifters from localStorage immediately to avoid UI flash
+  try {
+    const savedTop = localStorage.getItem('sanoo_club_top_gifters');
+    if (savedTop) {
+      const parsed = JSON.parse(savedTop);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        updateTopGiftersUI(parsed);
+      }
+    }
+  } catch (err) {
+    console.warn('[Storage] Could not restore top gifters:', err);
+  }
+
   initLasers();
   setupWebSocket();
   requestAnimationFrame(renderLoop);

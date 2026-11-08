@@ -510,7 +510,12 @@
     // 2. TOP 3 VIP PODIUM ANNOUNCEMENTS (CONCISE: ~2.0s)
     // ==========================================================================
     onTopGiftersUpdate(topGifters) {
-      if (!this.enabled || !Array.isArray(topGifters) || topGifters.length === 0) return;
+      if (!this.enabled) return;
+      if (!Array.isArray(topGifters) || topGifters.length === 0) {
+        this.lastTop3Usernames = [null, null, null];
+        this.isInitialTopLoad = true;
+        return;
+      }
 
       const curTop1 = topGifters[0];
       const curTop2 = topGifters[1];

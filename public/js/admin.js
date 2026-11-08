@@ -107,6 +107,14 @@
         updateTikTokStatus(data);
         break;
 
+      case 'live_session_reset':
+      case 'reset_top_gifters':
+        updateVIPList([]);
+        try {
+          localStorage.removeItem('sanoo_club_top_gifters');
+        } catch (e) {}
+        break;
+
       case 'top_gifters':
         updateVIPList(Array.isArray(data) ? data : []);
         break;
@@ -207,7 +215,7 @@
           <span style="color: #fff; font-weight: 600;">${v.nickname || v.username}</span>
         </div>
         <div style="font-family: 'Rajdhani', sans-serif; font-weight: 800; color: #ffe600; font-size: 14px;">
-          ${(v.coins || 0).toLocaleString()} Xu
+          ${(v.coins || 0).toLocaleString()}
         </div>
       `;
       vipLiveList.appendChild(row);
@@ -471,14 +479,25 @@
     });
   });
 
+  function handleResetLiveSession() {
+    if (confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN ĐẶT LẠI PHIÊN LIVE?\n\n- Toàn bộ Bảng Xếp Hạng & Bục VIP sẽ trở về ban đầu.\n- Điểm quà tặng đã lưu trong Local Storage & server sẽ được xóa sạch.\n- Sẵn sàng vinh danh các đại gia mới cho phiên livestream này!')) {
+      sendWS('reset_live_session');
+      try {
+        localStorage.removeItem('sanoo_club_top_gifters');
+      } catch (e) {}
+      updateVIPList([]);
+      showToast('🔄 Đã đặt lại thành công! Bảng Xếp Hạng sẵn sàng cho Phiên Live mới.');
+    }
+  }
+
+  const btnResetNav = document.getElementById('btn-reset-session-nav');
+  if (btnResetNav) {
+    btnResetNav.addEventListener('click', handleResetLiveSession);
+  }
+
   const btnResetVipCard = document.getElementById('btn-reset-vip-card');
   if (btnResetVipCard) {
-    btnResetVipCard.addEventListener('click', () => {
-      if (confirm('Bạn có chắc muốn đặt lại toàn bộ Bảng Xếp Hạng & Bục VIP?')) {
-        sendWS('reset_top_gifters');
-        showToast('🧹 Đã reset Bảng Xếp Hạng và Bục VIP về ban đầu');
-      }
-    });
+    btnResetVipCard.addEventListener('click', handleResetLiveSession);
   }
 
   // ---------------------------------------------------------------------------

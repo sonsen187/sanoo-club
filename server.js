@@ -90,6 +90,50 @@ function getTopGiftersList(limit = 5) {
     .slice(0, limit);
 }
 
+// ---------------------------------------------------------------------------
+// LOCAL STORAGE & PERSISTENCE FOR LEADERBOARD (BXH TOP ĐẠI GIA)
+// ---------------------------------------------------------------------------
+const DATA_DIR = path.join(__dirname, 'data');
+const TOP_GIFTERS_FILE = path.join(DATA_DIR, 'top_gifters.json');
+
+function loadTopGiftersFromDisk() {
+  try {
+    if (fs.existsSync(TOP_GIFTERS_FILE)) {
+      const raw = fs.readFileSync(TOP_GIFTERS_FILE, 'utf8');
+      const saved = JSON.parse(raw);
+      if (saved && typeof saved.topGifters === 'object') {
+        state.topGifters = saved.topGifters;
+        if (typeof saved.totalCoins === 'number') state.stats.totalCoins = saved.totalCoins;
+        if (typeof saved.totalGifts === 'number') state.stats.totalGifts = saved.totalGifts;
+        console.log(`[Storage] Restored ${Object.keys(state.topGifters).length} top gifters from local storage file.`);
+      }
+    }
+  } catch (err) {
+    console.error('[Storage] Error reading top_gifters.json:', err.message);
+  }
+}
+
+function saveTopGiftersToDisk() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const dataToSave = {
+      updatedAt: new Date().toISOString(),
+      totalCoins: state.stats.totalCoins,
+      totalGifts: state.stats.totalGifts,
+      topGifters: state.topGifters
+    };
+    fs.writeFileSync(TOP_GIFTERS_FILE, JSON.stringify(dataToSave, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[Storage] Error saving top_gifters.json:', err.message);
+  }
+}
+
+// Restore top gifters on server initialization
+loadTopGiftersFromDisk();
+
+
 // Helper to robustly extract TikTok Avatar from various live event structures
 function extractTikTokAvatar(event) {
   if (!event) return '';
@@ -218,6 +262,7 @@ function processGift(giftEvent) {
   state.topGifters[username].giftsCount += repeatCount;
   state.stats.totalCoins += diamondCount;
   state.stats.totalGifts += repeatCount;
+  saveTopGiftersToDisk();
 
   // Add/ensure dancer is on floor
   if (state.settings.autoJoinOnGift) {
@@ -681,11 +726,25 @@ function handleClientMessage(msg, ws) {
       broadcast('dancers_cleared', {});
       break;
 
+    case 'reset_live_session':
     case 'reset_top_gifters':
       state.topGifters = {};
       state.stats.totalCoins = 0;
       state.stats.totalGifts = 0;
+      for (const id of Object.keys(state.dancers)) {
+        if (id.includes('Đại_Gia') || id.includes('Thiếu_Gia') || id.includes('Công_Tử') || id.startsWith('vip_')) {
+          delete state.dancers[id];
+        } else {
+          state.dancers[id].score = 0;
+          state.dancers[id].vipRank = 0;
+        }
+      }
+      state.stats.activeDancers = Object.keys(state.dancers).length;
+      saveTopGiftersToDisk();
       broadcast('top_gifters', []);
+      broadcast('dancers_sync', state.dancers);
+      broadcast('live_session_reset', { timestamp: Date.now() });
+      console.log('[Live Session] Leaderboard & VIP Podiums reset. Local storage cleared.');
       break;
 
     // Auto Interaction & Comment Simulator
