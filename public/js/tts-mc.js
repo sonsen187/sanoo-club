@@ -66,7 +66,7 @@
       if (audioElement) this.audioElement = audioElement;
 
       if (!this.ctx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const AudioContext = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
         if (AudioContext) {
           try { this.ctx = new AudioContext(); } catch (e) {}
         }
@@ -468,7 +468,7 @@
     // Fallback: Browser Web Speech API
     _playWebSpeech(text) {
       return new Promise((resolve) => {
-        if (!('speechSynthesis' in window)) {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
           resolve(false);
           return;
         }
