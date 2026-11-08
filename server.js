@@ -179,7 +179,13 @@ function downloadYouTubeTrack(url) {
   return new Promise((resolve, reject) => {
     const pyScript = path.join(__dirname, 'scripts', 'download_youtube.py');
     const proc = spawn('python', ['-X', 'utf8', pyScript, url, YT_DIR], {
-      env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }
+      env: {
+        ...process.env,
+        PYTHONIOENCODING: 'utf-8',
+        PYTHONUTF8: '1',
+        LANG: 'en_US.UTF-8',
+        LC_ALL: 'en_US.UTF-8'
+      }
     });
 
     let stdout = '';
@@ -189,23 +195,35 @@ function downloadYouTubeTrack(url) {
     proc.stderr.on('data', chunk => { stderr += chunk.toString('utf8'); });
 
     proc.on('close', code => {
-      // First attempt to extract structured JSON from last line of output
-      try {
-        const lines = stdout.trim().split('\n');
-        const lastLine = lines[lines.length - 1];
-        if (lastLine) {
-          const data = JSON.parse(lastLine);
-          if (data && data.success) {
-            return resolve(data);
-          }
-          if (data && data.error) {
-            return reject(new Error(data.error));
-          }
+      // Search lines backwards for valid JSON result
+      let parsedData = null;
+      const combined = stdout.trim() + '\n' + stderr.trim();
+      const lines = combined.split(/\r?\n/);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].trim();
+        if (line.startsWith('{') && line.endsWith('}')) {
+          try {
+            const data = JSON.parse(line);
+            if (data && typeof data.success === 'boolean') {
+              parsedData = data;
+              break;
+            }
+          } catch (_) {}
         }
-      } catch (_) {}
+      }
+
+      if (parsedData) {
+        if (parsedData.success) {
+          return resolve(parsedData);
+        }
+        if (parsedData.error) {
+          return reject(new Error(parsedData.error));
+        }
+      }
 
       if (code !== 0) {
-        return reject(new Error(stderr || stdout || 'Lỗi khi tải bài hát từ YouTube'));
+        const fallbackMsg = (stderr || stdout || 'Lỗi khi tải bài hát từ YouTube').trim();
+        return reject(new Error(fallbackMsg));
       }
       reject(new Error('Dữ liệu YouTube trả về không hợp lệ: ' + stdout));
     });

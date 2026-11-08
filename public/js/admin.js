@@ -952,10 +952,14 @@
       setYtLoading(false);
       let errMsg = err.message || 'Lỗi khi xử lý YouTube';
       try {
-        const parsed = JSON.parse(errMsg);
-        if (parsed && parsed.error) errMsg = parsed.error;
+        const jsonMatch = errMsg.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed && parsed.error) errMsg = parsed.error;
+        }
       } catch (_) {}
-      alert('Không thể tải bài hát từ link YouTube này:\n' + errMsg);
+      errMsg = errMsg.replace(/^Error:\s*/i, '').trim();
+      alert('Không thể tải bài hát từ link YouTube này:\n\n' + errMsg);
     }
   }
 
