@@ -4924,9 +4924,6 @@
       case 'gift':
         triggerDJScreenGift(data);
         sfx.playGiftChime();
-        if (window.TTSMCManager) {
-          TTSMCManager.onGift(data);
-        }
         // Trigger stage FX depending on gift level
         if (data.fxType === 'mega_rave') triggerRave();
         else if (data.fxType === 'fireworks') triggerFireworks();

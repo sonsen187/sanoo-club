@@ -258,42 +258,84 @@
       this.isPlaying = false;
     }
 
-    // Formulates concise thank you sentence and speaks it, resolving when done
+    // Tra ve cau cam on ngan gon theo gia tri qua (KHONG doc ten qua, dung chat MC club)
+    getGiftThankYouSentence(nickname, diamondCount = 0, count = 1, fxType = 'sparkles') {
+      const cleanNick = (nickname || 'bạn').trim();
+      const totalCoins = Math.max(diamondCount * (count > 1 ? count : 1), diamondCount);
+
+      // TANG 4: Sieu qua khung (>= 5,000 xu, vi du Du Thuyen 9,999 xu, Su Tu 29,999 xu...)
+      if (totalCoins >= 5000) {
+        const phrases = [
+          `Bái phục đại gia ${cleanNick}! Đẳng cấp vũ trụ!`,
+          `Chao đảo sàn nhảy! Cảm ơn trùm đại gia ${cleanNick}!`,
+          `Đại địa chấn! Cảm ơn đại gia ${cleanNick} quá khủng!`,
+          `Cả sàn nâng ly chúc mừng đại gia ${cleanNick}!`,
+          `Quá khét đại gia ${cleanNick} ơi! Đỉnh của chóp!`
+        ];
+        return phrases[Math.floor(Math.random() * phrases.length)];
+      }
+
+      // TANG 3: Qua to / Dai gia (500 - 4,999 xu, vi du Sung Tien 500 xu, Vuong Mien, Thien Nga...)
+      if (totalCoins >= 500 || fxType === 'mega_rave') {
+        const phrases = [
+          `Úi xời đại gia ${cleanNick}! Đẳng cấp quá sếp ơi!`,
+          `Cháy sàn luôn! Cảm ơn đại gia ${cleanNick}!`,
+          `Đẳng cấp đại gia! Cảm ơn sếp ${cleanNick}!`,
+          `Khét mù sàn nhảy! Cảm ơn đại gia ${cleanNick}!`,
+          `Cảm ơn đại gia ${cleanNick}, quẩy tung nóc nhà!`,
+          `Quá đỉnh đại gia ${cleanNick} ơi! Lên là lên!`
+        ];
+        return phrases[Math.floor(Math.random() * phrases.length)];
+      }
+
+      // TANG 2: Qua vua / Qua xin (50 - 499 xu)
+      if (totalCoins >= 50 || fxType === 'flame' || fxType === 'fireworks') {
+        const phrases = [
+          `Cảm ơn sếp ${cleanNick} quá đã!`,
+          `Khét lẹt! Cảm ơn sếp ${cleanNick}!`,
+          `Lên luôn! Cảm ơn ${cleanNick} nha!`,
+          `Quá bốc! Cảm ơn ${cleanNick}!`,
+          `Cảm ơn ${cleanNick}, quẩy hết nấc luôn!`,
+          `Đỉnh chóp! Cảm ơn sếp ${cleanNick}!`,
+          `Cảm ơn ${cleanNick}, quẩy cháy sàn nào!`
+        ];
+        return phrases[Math.floor(Math.random() * phrases.length)];
+      }
+
+      // COMBO Qua nho (Ban lien tiep nhieu lan):
+      if (count > 2) {
+        const phrases = [
+          `Cảm ơn ${cleanNick} bắn tay quá đã!`,
+          `1 2 3! Cảm ơn ${cleanNick} tiếp lửa đều tay!`,
+          `Quá nhiệt tình! Cảm ơn ${cleanNick} nha!`
+        ];
+        return phrases[Math.floor(Math.random() * phrases.length)];
+      }
+
+      // TANG 1: Qua nho (< 50 xu, vi du Hoa hong 1 xu, Trai tim 5 xu...)
+      // Sieu ngan gon (~1.0s), khong doc ten qua, khong lan at nhac san
+      const smallPhrases = [
+        `Cảm ơn ${cleanNick} nhé!`,
+        `Cảm ơn ${cleanNick} nhiều nha!`,
+        `Cảm ơn ${cleanNick} lên đồ!`,
+        `Cảm ơn sếp ${cleanNick} nha!`,
+        `Yeah! Cảm ơn ${cleanNick}!`,
+        `Cảm ơn ${cleanNick}, quẩy lên nào!`,
+        `Cảm ơn ${cleanNick} ủng hộ nha!`
+      ];
+      return smallPhrases[Math.floor(Math.random() * smallPhrases.length)];
+    }
+
+    // Formulates concise thank you sentence without gift name and speaks it in sequence
     async speakGiftAsync(gift) {
       if (!this.enabled || !gift) return;
 
       const nickname = gift.nickname || gift.username || 'Bạn';
-      const giftName = gift.giftName || 'quà';
       const count = gift.repeatCount || 1;
       const diamondCount = gift.diamondCount || 0;
       const fxType = gift.fxType || 'sparkles';
 
-      let sentence = '';
-      if (diamondCount >= 70 || fxType === 'mega_rave' || fxType === 'flame') {
-        const vipPhrases = [
-          `Úi xời đại gia ${nickname} nổ ${giftName}! Quá đỉnh!`,
-          `Đẳng cấp đại gia! Cảm ơn sếp ${nickname} ${giftName}!`,
-          `Khét lẹt! Cảm ơn đại gia ${nickname} nổ ${giftName}!`
-        ];
-        sentence = vipPhrases[Math.floor(Math.random() * vipPhrases.length)];
-      } else if (count > 1) {
-        const comboPhrases = [
-          `1 2 3! Cảm ơn ${nickname} combo ${count} ${giftName}!`,
-          `Khét mù! Cảm ơn sếp ${nickname} ${count} ${giftName}!`,
-          `Đỉnh quá! Cảm ơn ${nickname} ${count} ${giftName}!`
-        ];
-        sentence = comboPhrases[Math.floor(Math.random() * comboPhrases.length)];
-      } else {
-        const singlePhrases = [
-          `Cảm ơn sếp ${nickname} tặng ${giftName}!`,
-          `Khét lẹt! Cảm ơn ${nickname}!`,
-          `Lên luôn! Cảm ơn sếp ${nickname}!`,
-          `Cảm ơn ${nickname} ${giftName} nhé!`,
-          `Quá đỉnh! Cảm ơn ${nickname}!`
-        ];
-        sentence = singlePhrases[Math.floor(Math.random() * singlePhrases.length)];
-      }
-
+      const sentence = this.getGiftThankYouSentence(nickname, diamondCount, count, fxType);
       return this.speakDirectAsync(sentence);
     }
 
@@ -468,42 +510,11 @@
       if (!entry) return;
       this.giftBuffer.delete(userKey);
 
-      const { nickname, giftName, count, diamondCount, fxType } = entry;
-      let sentence = '';
-
-      // High-tier VIP gift announcement (Short & Punchy: ~2.5s)
-      if (diamondCount >= 70 || fxType === 'mega_rave' || fxType === 'flame') {
-        const vipPhrases = [
-          `Úi xời đại gia ${nickname} nổ ${giftName}! Quá đỉnh!`,
-          `Đẳng cấp đại gia! Cảm ơn sếp ${nickname} ${giftName}!`,
-          `Khét lẹt! Cảm ơn đại gia ${nickname} nổ ${giftName}!`
-        ];
-        sentence = vipPhrases[Math.floor(Math.random() * vipPhrases.length)];
-        this.speak(sentence, true);
-        return;
-      }
-
-      // Combo gifts (Short & Punchy: ~2.0s)
-      if (count > 1) {
-        const comboPhrases = [
-          `1 2 3! Cảm ơn ${nickname} combo ${count} ${giftName}!`,
-          `Khét mù! Cảm ơn sếp ${nickname} ${count} ${giftName}!`,
-          `Đỉnh quá! Cảm ơn ${nickname} ${count} ${giftName}!`
-        ];
-        sentence = comboPhrases[Math.floor(Math.random() * comboPhrases.length)];
-      } else {
-        // Single gift (Ultra Short: ~1.2s - 1.5s)
-        const singlePhrases = [
-          `Cảm ơn sếp ${nickname} tặng ${giftName}!`,
-          `Khét lẹt! Cảm ơn ${nickname}!`,
-          `Lên luôn! Cảm ơn sếp ${nickname}!`,
-          `Cảm ơn ${nickname} ${giftName} nhé!`,
-          `Quá đỉnh! Cảm ơn ${nickname}!`
-        ];
-        sentence = singlePhrases[Math.floor(Math.random() * singlePhrases.length)];
-      }
-
-      this.speak(sentence, false);
+      const { nickname, count, diamondCount, fxType } = entry;
+      const sentence = this.getGiftThankYouSentence(nickname, diamondCount, count, fxType);
+      const totalCoins = Math.max(diamondCount * (count > 1 ? count : 1), diamondCount);
+      const isPriority = totalCoins >= 500 || fxType === 'mega_rave';
+      this.speak(sentence, isPriority);
     }
 
     // ==========================================================================

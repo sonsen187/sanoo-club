@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-11-08T09:30:43.650Z",
-  "totalCoins": 44718,
-  "totalGifts": 138,
+  "updatedAt": "2026-11-08T09:34:15.037Z",
+  "totalCoins": 45815,
+  "totalGifts": 167,
   "topGifters": {
     "bảo_bass_732": {
       "username": "bảo_bass_732",
@@ -520,6 +520,111 @@
       "avatar": "",
       "coins": 2,
       "giftsCount": 2
+    },
+    "cô_nàng_genz_332": {
+      "username": "cô_nàng_genz_332",
+      "nickname": "Cô_Nàng_GenZ_332",
+      "avatar": "",
+      "coins": 30,
+      "giftsCount": 1
+    },
+    "yến_nhi_376": {
+      "username": "yến_nhi_376",
+      "nickname": "Yến_Nhi_376",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "hương_dance_551": {
+      "username": "hương_dance_551",
+      "nickname": "Hương_Dance_551",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "hoàng_tử_nhạc_215": {
+      "username": "hoàng_tử_nhạc_215",
+      "nickname": "Hoàng_Tử_Nhạc_215",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "mai_rave_530": {
+      "username": "mai_rave_530",
+      "nickname": "Mai_Rave_530",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "an_nhiên_596": {
+      "username": "an_nhiên_596",
+      "nickname": "An_Nhiên_596",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "tiến_dubstep_921": {
+      "username": "tiến_dubstep_921",
+      "nickname": "Tiến_Dubstep_921",
+      "avatar": "",
+      "coins": 500,
+      "giftsCount": 1
+    },
+    "vũ_quẩy_493": {
+      "username": "vũ_quẩy_493",
+      "nickname": "Vũ_Quẩy_493",
+      "avatar": "",
+      "coins": 30,
+      "giftsCount": 1
+    },
+    "hà_dance_662": {
+      "username": "hà_dance_662",
+      "nickname": "Hà_Dance_662",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "cô_nàng_genz_785": {
+      "username": "cô_nàng_genz_785",
+      "nickname": "Cô_Nàng_GenZ_785",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "nam_sanoo_476": {
+      "username": "nam_sanoo_476",
+      "nickname": "Nam_Sanoo_476",
+      "avatar": "",
+      "coins": 500,
+      "giftsCount": 1
+    },
+    "trang_club_531": {
+      "username": "trang_club_531",
+      "nickname": "Trang_Club_531",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "nam_sanoo_649": {
+      "username": "nam_sanoo_649",
+      "nickname": "Nam_Sanoo_649",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "phương_baby_934": {
+      "username": "phương_baby_934",
+      "nickname": "Phương_Baby_934",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "lan_ngọc_932": {
+      "username": "lan_ngọc_932",
+      "nickname": "Lan_Ngọc_932",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
     }
   }
 }
