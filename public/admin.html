@@ -118,7 +118,12 @@
                 <span style="font-size: 16px;">▶️</span>
                 <span>PHÁT NHẠC TỪ LINK YOUTUBE (TỰ ĐỘNG ĐỒNG BỘ OVERLAY & BASS):</span>
               </div>
-              <span id="yt-status-badge" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #a0aec0;">Sẵn sàng</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btn-yt-clear-all" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px; border: 1px solid rgba(255,100,100,0.35); color: #ff9999; background: rgba(255,0,0,0.1);" title="Xóa tất cả các bài hát đã thêm từ YouTube">
+                  🧹 Xóa hết nhạc YouTube
+                </button>
+                <span id="yt-status-badge" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #a0aec0;">Sẵn sàng</span>
+              </div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <input type="text" id="yt-url-input" class="form-control" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); border-color: rgba(255, 68, 68, 0.4); color: #fff;" placeholder="Dán link YouTube (https://www.youtube.com/watch?v=... hoặc youtu.be/...)">

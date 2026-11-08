@@ -177,31 +177,36 @@ function saveCustomYouTubeTracks() {
 function downloadYouTubeTrack(url) {
   return new Promise((resolve, reject) => {
     const pyScript = path.join(__dirname, 'scripts', 'download_youtube.py');
-    const proc = spawn('python', [pyScript, url, YT_DIR], {
-      env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+    const proc = spawn('python', ['-X', 'utf8', pyScript, url, YT_DIR], {
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }
     });
 
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', chunk => { stdout += chunk.toString(); });
-    proc.stderr.on('data', chunk => { stderr += chunk.toString(); });
+    proc.stdout.on('data', chunk => { stdout += chunk.toString('utf8'); });
+    proc.stderr.on('data', chunk => { stderr += chunk.toString('utf8'); });
 
     proc.on('close', code => {
-      if (code !== 0) {
-        return reject(new Error(stderr || stdout || 'Lỗi khi tải bài hát từ YouTube'));
-      }
+      // First attempt to extract structured JSON from last line of output
       try {
         const lines = stdout.trim().split('\n');
         const lastLine = lines[lines.length - 1];
-        const data = JSON.parse(lastLine);
-        if (!data.success) {
-          return reject(new Error(data.error || 'Không thể xử lý link YouTube'));
+        if (lastLine) {
+          const data = JSON.parse(lastLine);
+          if (data && data.success) {
+            return resolve(data);
+          }
+          if (data && data.error) {
+            return reject(new Error(data.error));
+          }
         }
-        resolve(data);
-      } catch (err) {
-        reject(new Error('Dữ liệu YouTube trả về không hợp lệ: ' + stdout));
+      } catch (_) {}
+
+      if (code !== 0) {
+        return reject(new Error(stderr || stdout || 'Lỗi khi tải bài hát từ YouTube'));
       }
+      reject(new Error('Dữ liệu YouTube trả về không hợp lệ: ' + stdout));
     });
   });
 }
@@ -696,6 +701,91 @@ app.post('/api/youtube/add', async (req, res) => {
     console.error('[YouTube Error]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+
+app.post('/api/youtube/delete', (req, res) => {
+  const { id, youtubeId } = req.body;
+  const trackIdx = playlist.findIndex(t => (id !== undefined && t.id === Number(id)) || (youtubeId && t.youtubeId === youtubeId));
+
+  if (trackIdx === -1) {
+    return res.status(404).json({ success: false, error: 'Không tìm thấy bài hát cần xóa' });
+  }
+
+  const trackToDelete = playlist[trackIdx];
+  if (!trackToDelete.isYouTube) {
+    return res.status(400).json({ success: false, error: 'Chỉ có thể xóa các bài hát được thêm từ YouTube' });
+  }
+
+  playlist.splice(trackIdx, 1);
+
+  playlist.forEach((t, i) => {
+    t.id = i + 1;
+  });
+
+  try {
+    const filePath = path.join(__dirname, 'public', 'assets', 'music', trackToDelete.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`[YouTube] Deleted audio file: ${trackToDelete.filename}`);
+    }
+  } catch (err) {
+    console.warn('[YouTube] Could not delete file:', err.message);
+  }
+
+  saveCustomYouTubeTracks();
+
+  if (state.currentTrackIndex === trackIdx) {
+    if (playlist.length > 0) {
+      state.currentTrackIndex = state.currentTrackIndex % playlist.length;
+      state.isPlaying = true;
+      broadcast('track_change', {
+        track: playlist[state.currentTrackIndex],
+        index: state.currentTrackIndex,
+        requestedBy: 'System'
+      });
+    } else {
+      state.isPlaying = false;
+      broadcast('track_state', { isPlaying: false });
+    }
+  } else if (state.currentTrackIndex > trackIdx) {
+    state.currentTrackIndex--;
+  }
+
+  broadcast('playlist_updated', playlist);
+  res.json({ success: true, deletedTrack: trackToDelete, playlistCount: playlist.length });
+});
+
+app.post('/api/youtube/clear', (req, res) => {
+  const toDelete = playlist.filter(t => t.isYouTube);
+  playlist = playlist.filter(t => !t.isYouTube);
+
+  playlist.forEach((t, i) => {
+    t.id = i + 1;
+  });
+
+  toDelete.forEach(track => {
+    try {
+      const filePath = path.join(__dirname, 'public', 'assets', 'music', track.filename);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } catch (e) {}
+  });
+
+  saveCustomYouTubeTracks();
+
+  if (state.currentTrackIndex >= playlist.length) {
+    state.currentTrackIndex = 0;
+  }
+  if (playlist.length > 0) {
+    broadcast('track_change', {
+      track: playlist[state.currentTrackIndex],
+      index: state.currentTrackIndex,
+      requestedBy: 'System'
+    });
+  }
+
+  broadcast('playlist_updated', playlist);
+  res.json({ success: true, count: toDelete.length });
 });
 
 // WebSocket Connection Handler

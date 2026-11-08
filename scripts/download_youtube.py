@@ -23,7 +23,8 @@ def process_youtube(url, output_dir):
     ydl_opts_info = {
         'quiet': True,
         'no_warnings': True,
-        'noprogress': True
+        'noprogress': True,
+        'encoding': 'utf-8'
     }
     
     with yt_dlp.YoutubeDL(ydl_opts_info) as ydl:
@@ -63,7 +64,8 @@ def process_youtube(url, output_dir):
         }],
         'quiet': True,
         'no_warnings': True,
-        'noprogress': True
+        'noprogress': True,
+        'encoding': 'utf-8'
     }
     
     with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:

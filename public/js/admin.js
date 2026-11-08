@@ -247,18 +247,32 @@
 
       const bpmBadge = track.bpm ? `<span style="display:inline-block; margin-left: 8px; background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: bold;">${track.bpm} BPM</span>` : '';
       const ytBadge = track.isYouTube ? `<span style="display:inline-block; margin-left: 6px; background: rgba(255, 0, 0, 0.25); color: #ff4d4d; border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold;">🔴 YouTube</span>` : '';
+      const deleteBtn = track.isYouTube ? `
+        <button class="btn btn-danger btn-sm btn-del-yt" data-id="${track.id}" style="padding: 3px 8px; font-size: 11px; margin-left: 6px; background: rgba(255, 68, 68, 0.25); border: 1px solid rgba(255, 68, 68, 0.6); color: #ff9999;" title="Xóa bài hát YouTube này">🗑️ Xóa</button>
+      ` : '';
+
       tr.innerHTML = `
         <td style="width: 50px;">#${track.id}</td>
         <td>${track.title} ${bpmBadge}${ytBadge}</td>
-        <td style="width: 80px; text-align: right;">
+        <td style="width: 120px; text-align: right; white-space: nowrap;">
           <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">▶ Phát</button>
+          ${deleteBtn}
         </td>
       `;
 
-      tr.addEventListener('click', () => {
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-del-yt')) return;
         sendWS('track_select', { index: targetIndex, requestedBy: 'Admin' });
         showToast(`🎵 Đang phát bài #${track.id}: ${track.title}`);
       });
+
+      const delBtnEl = tr.querySelector('.btn-del-yt');
+      if (delBtnEl) {
+        delBtnEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteYouTubeTrack(track);
+        });
+      }
 
       playlistBody.appendChild(tr);
     });
@@ -936,7 +950,12 @@
       }
     } catch (err) {
       setYtLoading(false);
-      alert('Không thể tải bài hát từ link YouTube này:\n' + err.message);
+      let errMsg = err.message || 'Lỗi khi xử lý YouTube';
+      try {
+        const parsed = JSON.parse(errMsg);
+        if (parsed && parsed.error) errMsg = parsed.error;
+      } catch (_) {}
+      alert('Không thể tải bài hát từ link YouTube này:\n' + errMsg);
     }
   }
 
@@ -951,6 +970,51 @@
       if (e.key === 'Enter') {
         e.preventDefault();
         handleYouTubeAction('play');
+      }
+    });
+  }
+
+  // Delete single YouTube track
+  async function deleteYouTubeTrack(track) {
+    if (!confirm(`Bạn có chắc muốn XÓA bài hát YouTube này khỏi danh sách?\n\n#${track.id} ${track.title}`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/youtube/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: track.id, youtubeId: track.youtubeId })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Lỗi khi xóa bài hát');
+      }
+      showToast(`🗑️ Đã xóa bài hát YouTube: ${track.title}`);
+    } catch (err) {
+      alert('Không thể xóa bài hát: ' + err.message);
+    }
+  }
+
+  // Clear all YouTube tracks button
+  const btnYtClearAll = document.getElementById('btn-yt-clear-all');
+  if (btnYtClearAll) {
+    btnYtClearAll.addEventListener('click', async () => {
+      const ytCount = playlist.filter(t => t.isYouTube).length;
+      if (ytCount === 0) {
+        alert('Hiện không có bài hát YouTube nào trong danh sách!');
+        return;
+      }
+      if (confirm(`Bạn có chắc muốn xóa TOÀN BỘ ${ytCount} bài hát đã thêm từ YouTube và đưa danh sách về mặc định (53 bài)?`)) {
+        try {
+          const res = await fetch('/api/youtube/clear', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`🧹 Đã xóa toàn bộ ${data.count} bài hát YouTube khỏi playlist!`);
+          }
+        } catch (err) {
+          alert('Lỗi khi xóa: ' + err.message);
+        }
       }
     });
   }
