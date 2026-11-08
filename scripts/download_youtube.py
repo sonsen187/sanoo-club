@@ -1,12 +1,25 @@
 import sys
 import os
 import json
+
+# Force UTF-8 encoding on Windows standard streams to avoid 'charmap' errors
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 import yt_dlp
 
 def process_youtube(url, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     
-    # Extract info
+    # Extract info without downloading
     ydl_opts_info = {
         'quiet': True,
         'no_warnings': True,
@@ -87,7 +100,7 @@ def process_youtube(url, output_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print(json.dumps({"success": False, "error": "Usage: python download_youtube.py <url> <output_dir>"}))
+        print(json.dumps({"success": False, "error": "Usage: python download_youtube.py <url> <output_dir>"}, ensure_ascii=True))
         sys.exit(1)
         
     url = sys.argv[1]
@@ -95,7 +108,7 @@ if __name__ == '__main__':
     
     try:
         res = process_youtube(url, out_dir)
-        print(json.dumps(res, ensure_ascii=False))
+        print(json.dumps(res, ensure_ascii=True))
     except Exception as e:
-        print(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False))
+        print(json.dumps({"success": False, "error": str(e)}, ensure_ascii=True))
         sys.exit(1)

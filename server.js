@@ -177,7 +177,9 @@ function saveCustomYouTubeTracks() {
 function downloadYouTubeTrack(url) {
   return new Promise((resolve, reject) => {
     const pyScript = path.join(__dirname, 'scripts', 'download_youtube.py');
-    const proc = spawn('python', [pyScript, url, YT_DIR]);
+    const proc = spawn('python', [pyScript, url, YT_DIR], {
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+    });
 
     let stdout = '';
     let stderr = '';
