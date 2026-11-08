@@ -774,7 +774,7 @@
   if (btnTestGiftTTS) {
     btnTestGiftTTS.addEventListener('click', () => {
       sendWS('tts_speak', {
-        text: 'Lên luônnn! Cảm ơn sếp Minh Rave đã nổ Hoa Hồng cực khét! Rót chén rượu mời sếp nào anh em ơi!',
+        text: 'Khét lẹt! Cảm ơn sếp Minh Rave tặng Hoa Hồng!',
         priority: true
       });
       showToast('Đang phát thử: Cảm ơn tặng quà');
@@ -784,7 +784,7 @@
   if (btnTestTopTTS) {
     btnTestTopTTS.addEventListener('click', () => {
       sendWS('tts_speak', {
-        text: 'Trật tự nào anh em ơiii! Bảng vàng đại gia chính thức đổi chủ! Chào đón sếp lớn Minh Rave bước lên ngai vàng Top 1! Quá đẳng cấp!',
+        text: 'Chúc mừng sếp Minh Rave lên đỉnh Top 1 bục vàng!',
         priority: true
       });
       showToast('Đang phát thử: Vinh danh Top 1');
