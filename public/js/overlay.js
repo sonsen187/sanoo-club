@@ -1723,11 +1723,11 @@
 
     // 1. Sleek Cyber Header Bar inside LED screen
     ctx.save();
-    const headerY = sy + 30;
+    const headerY = sy + 22;
     const headerPulse = 1.0 + kickSnap * 0.06;
     ctx.translate(cx, headerY);
     ctx.scale(headerPulse, headerPulse);
-    ctx.font = '900 17px "Rajdhani", sans-serif';
+    ctx.font = '900 16px "Rajdhani", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     if (beatEngine.isBassActive) {
@@ -1744,17 +1744,11 @@
     ctx.restore();
 
     // 2. Positions of the 3 Avatars on the DJ Screen:
-    // Top 1: Center, elevated (cx, sy + 112)
-    // Top 2: Left (cx - 195, sy + 128)
-    // Top 3: Right (cx + 195, sy + 128)
-    // Noticeably BIGGER & BOLDER Avatars on DJ screen:
-    // Top 1: baseR = 58 (Diameter 116px, pulses to 138px!)
-    // Top 2: baseR = 48 (Diameter 96px, pulses to 114px!)
-    // Top 3: baseR = 46 (Diameter 92px, pulses to 109px!)
+    // Placed comfortably in middle portion, generous breathing room below header
     const configs = [
-      { rank: 1, x: cx, y: sy + 104, baseR: 58, themeColor: '#ffe600', borderColor: '#ffea00', medal: '🥇' },
-      { rank: 2, x: cx - 215, y: sy + 118, baseR: 48, themeColor: '#00f0ff', borderColor: '#38bdf8', medal: '🥈' },
-      { rank: 3, x: cx + 215, y: sy + 118, baseR: 46, themeColor: '#ff8c00', borderColor: '#fb923c', medal: '🥉' }
+      { rank: 1, x: cx, y: sy + 172, baseR: 58, themeColor: '#ffe600', borderColor: '#ffea00', medal: '🥇' },
+      { rank: 2, x: cx - 215, y: sy + 185, baseR: 48, themeColor: '#00f0ff', borderColor: '#38bdf8', medal: '🥈' },
+      { rank: 3, x: cx + 215, y: sy + 185, baseR: 46, themeColor: '#ff8c00', borderColor: '#fb923c', medal: '🥉' }
     ];
 
     configs.forEach(cfg => {
