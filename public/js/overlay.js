@@ -658,8 +658,103 @@
     ctx.restore();
   }
 
+  // Utility to draw an 8-pointed royal celestial star flare (for Top 1 Emperor)
+  function drawSparkleStar8(ctx, x, y, radius, colorOuter, colorCore, rotAngle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotAngle || 0);
 
-  // 3D Beat-Synced Orbiting Celestial Rings & Energy Orbs for VIP Top 1, 2, 3
+    // 1. Center soft radial glow
+    const grad = ctx.createRadialGradient(0, 0, 1, 0, 0, radius * 0.7);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.35, colorOuter || '#ffe600');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. 4 Main Cardinal Spikes (Long & Piercing)
+    ctx.fillStyle = colorCore || '#ffffff';
+    for (let i = 0; i < 2; i++) {
+      ctx.save();
+      ctx.rotate(i * Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, -radius);
+      ctx.quadraticCurveTo(radius * 0.08, 0, 0, radius);
+      ctx.quadraticCurveTo(-radius * 0.08, 0, 0, -radius);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 3. 4 Diagonal Spikes
+    const diagR = radius * 0.52;
+    for (let i = 0; i < 2; i++) {
+      ctx.save();
+      ctx.rotate(Math.PI / 4 + i * Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, -diagR);
+      ctx.quadraticCurveTo(diagR * 0.09, 0, 0, diagR);
+      ctx.quadraticCurveTo(-diagR * 0.09, 0, 0, -diagR);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  // Utility to draw a Cyber Sci-Fi Anamorphic Lens Flare (for Top 2 Cyber Overlord)
+  function drawCyberSciFiFlare(ctx, x, y, radius, colorOuter) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Anamorphic horizontal laser streak
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 2.4, radius * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vertical sharp streak
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 0.12, radius * 1.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cyan soft glow
+    const grad = ctx.createRadialGradient(0, 0, 1, 0, 0, radius * 0.8);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.4, colorOuter || '#00f0ff');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Utility to draw jumping golden plasma lightning sparks (for Top 1 Emperor)
+  function drawPlasmaSparks(ctx, x1, y1, x2, y2, seed, color, width) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    const steps = 4;
+    for (let s = 1; s < steps; s++) {
+      const t = s / steps;
+      const jitter = (Math.sin(seed * 11.7 + s * 4.3) * 2 - 1) * 7;
+      const nx = -(y2 - y1);
+      const ny = (x2 - x1);
+      const len = Math.hypot(nx, ny) || 1;
+      ctx.lineTo(x1 + (x2 - x1) * t + (nx / len) * jitter, y1 + (y2 - y1) * t + (ny / len) * jitter);
+    }
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+
+  // 3D Beat-Synced Orbiting Celestial Gyroscopic Rings & Energy Orbs for VIP Top 1, 2, 3
   function drawVIPOrbitEffect(ctx, vipRank, catCenterY, catVisualW, curNow, beatEngine, kickImpulse, isFrontPass) {
     if (!vipRank || vipRank < 1 || vipRank > 3) return;
 
@@ -677,165 +772,421 @@
     const beatPhase = (beatEngine && beatEngine.beatPhase !== undefined) ? beatEngine.beatPhase : 0;
     const kickSnap = Math.pow(Math.max(0, 1.0 - beatPhase * 2.2), 2.2);
 
-    let orbCount = 4;
-    let baseAngle = orbitAngle;
-    let dir = 1;
-    let tilt = -0.22;
-    let rx = catVisualW * 0.92 * (1.0 + bass * 0.15 + kick * 0.08);
-    let ry = catVisualW * 0.38 * (1.0 + bass * 0.12);
-    let ringOuterColor = 'rgba(255, 230, 0, 0.45)';
-    let ringCoreColor = 'rgba(255, 255, 200, 0.90)';
-    let orbOuterColor = '#ffe600';
-    let orbCoreColor = '#ffffff';
-    let orbBaseSize = 7.5;
-
-    if (vipRank === 1) {
-      // TOP 1: Imperial Gold (4 Celestial Sun Gems, Clockwise, Tilted -13°)
-      orbCount = 4;
-      dir = 1;
-      tilt = -0.22;
-      rx = catVisualW * 0.92 * (1.0 + bass * 0.16 + kick * 0.08);
-      ry = catVisualW * 0.38 * (1.0 + bass * 0.12);
-      baseAngle = orbitAngle;
-      ringOuterColor = `rgba(255, 215, 0, ${0.45 + bass * 0.35 + kickSnap * 0.20})`;
-      ringCoreColor = `rgba(255, 255, 220, ${0.80 + bass * 0.20})`;
-      orbOuterColor = '#ffe600';
-      orbCoreColor = '#ffffff';
-      orbBaseSize = 8.0;
-    } else if (vipRank === 2) {
-      // TOP 2: Electric Cyan Diamond (3 Cyber Diamonds, Counter-Clockwise, Tilted +13°)
-      orbCount = 3;
-      dir = -1;
-      tilt = 0.22;
-      rx = catVisualW * 0.86 * (1.0 + bass * 0.14 + kick * 0.07);
-      ry = catVisualW * 0.35 * (1.0 + bass * 0.10);
-      baseAngle = -orbitAngle;
-      ringOuterColor = `rgba(0, 240, 255, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
-      ringCoreColor = `rgba(215, 250, 255, ${0.80 + bass * 0.20})`;
-      orbOuterColor = '#00f0ff';
-      orbCoreColor = '#ffffff';
-      orbBaseSize = 6.8;
-    } else if (vipRank === 3) {
-      // TOP 3: Warm Amber Flame (3 Bronze Fire Orbs, Clockwise, Tilted -9°)
-      orbCount = 3;
-      dir = 1;
-      tilt = -0.16;
-      rx = catVisualW * 0.80 * (1.0 + bass * 0.12 + kick * 0.06);
-      ry = catVisualW * 0.32 * (1.0 + bass * 0.09);
-      baseAngle = orbitAngle + Math.PI;
-      ringOuterColor = `rgba(255, 140, 0, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
-      ringCoreColor = `rgba(255, 235, 170, ${0.75 + bass * 0.25})`;
-      orbOuterColor = '#ff8c00';
-      orbCoreColor = '#ffffff';
-      orbBaseSize = 6.2;
-    }
-
-    // 1. Draw Ring Segment (Back Arc: PI -> 2PI in back pass; Front Arc: 0 -> PI in front pass)
-    ctx.save();
-    ctx.beginPath();
     const startArc = isFrontPass ? 0 : Math.PI;
     const endArc = isFrontPass ? Math.PI : Math.PI * 2;
-    ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
 
-    // Outer Neon Glow (expands on kick drum spike)
-    ctx.lineWidth = (isFrontPass ? 4.0 : 2.5) + bass * 2.5 + kickSnap * 2.0;
-    ctx.strokeStyle = ringOuterColor;
-    ctx.stroke();
+    // =========================================================================
+    // 👑 TOP 1: CELESTIAL SUN EMPEROR (TỐI THƯỢNG - NGẦU NHẤT SÀN)
+    // =========================================================================
+    if (vipRank === 1) {
+      // 1. DUAL 3D CELESTIAL GYROSCOPE RINGS (Vòng Hỗn Thiên Tam Tầng Đan Chéo)
+      const tilt1 = -0.24; // Main ring tilted -14° (Clockwise)
+      const tilt2 = 0.38;  // Cross-gyro ring tilted +22° (Counter-Clockwise)
 
-    // Core Bright Filament
-    ctx.beginPath();
-    ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
-    ctx.lineWidth = (isFrontPass ? 1.8 : 1.0) + bass * 0.8 + kickSnap * 0.6;
-    ctx.strokeStyle = ringCoreColor;
-    ctx.stroke();
-    ctx.restore();
+      const rx1 = catVisualW * 1.05 * (1.0 + bass * 0.18 + kick * 0.10);
+      const ry1 = catVisualW * 0.42 * (1.0 + bass * 0.14);
+      const rx2 = catVisualW * 0.88 * (1.0 + bass * 0.15 + kick * 0.08);
+      const ry2 = catVisualW * 0.34 * (1.0 + bass * 0.10);
 
-    // 2. Draw Orbiting Orbs and Comet Trails
-    const cosTilt = Math.cos(tilt);
-    const sinTilt = Math.sin(tilt);
+      const baseAngle1 = orbitAngle;
+      const baseAngle2 = -orbitAngle * 0.82 + 1.2;
 
-    for (let i = 0; i < orbCount; i++) {
-      const orbAngle = baseAngle + (i * (Math.PI * 2 / orbCount));
-      const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const isFront = Math.sin(normAngle) >= 0;
+      // --- RING 1: Main Imperial Solar Ring ---
+      ctx.save();
+      // A. Outer Intense Sun Aura
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx1, ry1, tilt1, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 8.0 : 4.5) + bass * 5.0 + kickSnap * 4.0;
+      ctx.strokeStyle = `rgba(255, 195, 0, ${0.40 + bass * 0.40 + kickSnap * 0.25})`;
+      ctx.stroke();
 
-      // Only draw during matching pass (back pass: behind cat; front pass: in front of cat)
-      if (isFront !== isFrontPass) continue;
+      // B. Core Golden Laser Filament
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx1, ry1, tilt1, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 2.8 : 1.6) + bass * 1.2 + kickSnap * 0.8;
+      ctx.strokeStyle = `rgba(255, 255, 220, ${0.85 + bass * 0.15})`;
+      ctx.stroke();
 
-      const z = Math.sin(normAngle); // -1 (deep behind) to +1 (front center)
-      const depthScale = 1.0 + z * 0.30; // 0.70x in back to 1.30x in front
+      // C. Flowing Celestial Rune Darts (Animated moving segments)
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx1, ry1, tilt1, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 3.5 : 2.0) + kickSnap * 1.5;
+      ctx.setLineDash([22, 14, 45, 14, 12, 14]);
+      ctx.lineDashOffset = -orbitAngle * 45;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.85 + kickSnap * 0.15})`;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
 
-      // A. Comet Motion Trail (stretches dynamically with high rotation speed!)
-      const trailSpacing = 0.05 + Math.min(0.12, orbitSpeed * 0.009);
-      for (let t = 3; t >= 1; t--) {
-        const trailAngle = orbAngle - dir * (t * trailSpacing);
-        const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-        if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
-          const tu = rx * Math.cos(trailAngle);
-          const tv = ry * Math.sin(trailAngle);
-          const tx = tu * cosTilt - tv * sinTilt;
-          const ty = catCenterY + tu * sinTilt + tv * cosTilt;
-          const trailAlpha = (1 - t / 4) * (0.35 + bass * 0.45);
-          const trailR = orbBaseSize * depthScale * (1 - t * 0.22);
+      // --- RING 2: Inner Platinum-Gold Gyro Cross-Ring (Counter-Rotating) ---
+      ctx.save();
+      // Outer Plasma Glow
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx2, ry2, tilt2, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 5.5 : 3.0) + bass * 3.5 + kickSnap * 2.5;
+      ctx.strokeStyle = `rgba(255, 230, 110, ${0.35 + bass * 0.35})`;
+      ctx.stroke();
 
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(tx, ty, Math.max(1, trailR), 0, Math.PI * 2);
-          ctx.fillStyle = ringOuterColor;
-          ctx.globalAlpha = trailAlpha;
-          ctx.fill();
-          ctx.restore();
-        }
+      // Fine Segmented Tech-Rune Dash
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx2, ry2, tilt2, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 2.0 : 1.2) + bass * 0.8;
+      ctx.setLineDash([10, 10]);
+      ctx.lineDashOffset = orbitAngle * 35;
+      ctx.strokeStyle = `rgba(255, 255, 235, ${0.80 + bass * 0.20})`;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // --- RING 3: Base Shockwave Ripple on Floor (Trùng Phục Đáy khi nhịp Kick nổ) ---
+      if (isFrontPass && (kickSnap > 0.15 || bass > 0.5)) {
+        ctx.save();
+        const shockR = kickSnap * 0.5 + bass * 0.2;
+        const rx3 = catVisualW * (0.85 + shockR * 0.55);
+        const ry3 = catVisualW * 0.26 * (1.0 + shockR * 0.35);
+        ctx.beginPath();
+        ctx.ellipse(0, catCenterY + catVisualW * 0.42, rx3, ry3, 0, 0, Math.PI * 2);
+        ctx.lineWidth = 3.0 * kickSnap + 1.0;
+        ctx.strokeStyle = `rgba(255, 215, 0, ${kickSnap * 0.75})`;
+        ctx.stroke();
+        ctx.restore();
       }
 
-      // B. Main Orbiting Orb Coordinates
-      const u = rx * Math.cos(orbAngle);
-      const v = ry * Math.sin(orbAngle);
-      const ox = u * cosTilt - v * sinTilt;
-      const oy = catCenterY + u * sinTilt + v * cosTilt;
-      const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.22 + kickSnap * 0.15);
+      // --- 2. ORBITING CELESTIAL SUN ORBS ON RING 1 (5 Major Orbs) ---
+      const orbCount1 = 5;
+      const orbBaseSize1 = 9.5;
+      const cosTilt1 = Math.cos(tilt1);
+      const sinTilt1 = Math.sin(tilt1);
+      let ring1Orb0Coords = null;
 
-      ctx.save();
-      // Outer Soft Radiant Glow (pulses with kick snap)
-      const haloR = curSize * 2.8 * (1.0 + bass * 0.35 + kickSnap * 0.25);
-      const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.25, ox, oy, haloR);
-      haloGrad.addColorStop(0, orbOuterColor);
-      haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = haloGrad;
-      ctx.beginPath();
-      ctx.arc(ox, oy, haloR, 0, Math.PI * 2);
-      ctx.fill();
+      for (let i = 0; i < orbCount1; i++) {
+        const orbAngle = baseAngle1 + (i * (Math.PI * 2 / orbCount1));
+        const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isFront = Math.sin(normAngle) >= 0;
+        if (isFront !== isFrontPass) continue;
 
-      // Core Solid Shape
-      if (vipRank === 2) {
-        // Top 2: Diamond Crystal Shape (Rhombus)
+        const z = Math.sin(normAngle);
+        const depthScale = 1.0 + z * 0.35; // 0.65x back to 1.35x front
+
+        // A. Extended Stardust Comet Trail (5 motes)
+        const trailSpacing = 0.045 + Math.min(0.12, orbitSpeed * 0.008);
+        for (let t = 4; t >= 1; t--) {
+          const trailAngle = orbAngle - (t * trailSpacing);
+          const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
+            const tu = rx1 * Math.cos(trailAngle);
+            const tv = ry1 * Math.sin(trailAngle);
+            const tx = tu * cosTilt1 - tv * sinTilt1;
+            const ty = catCenterY + tu * sinTilt1 + tv * cosTilt1;
+            const trailAlpha = (1 - t / 5) * (0.45 + bass * 0.45 + kickSnap * 0.2);
+            const trailR = orbBaseSize1 * depthScale * (1 - t * 0.18);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(tx, ty, Math.max(1.2, trailR), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 200, 0, ${trailAlpha})`;
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        // B. Main Sun Orb
+        const u = rx1 * Math.cos(orbAngle);
+        const v = ry1 * Math.sin(orbAngle);
+        const ox = u * cosTilt1 - v * sinTilt1;
+        const oy = catCenterY + u * sinTilt1 + v * cosTilt1;
+        const curSize = orbBaseSize1 * depthScale * (1.0 + bass * 0.25 + kickSnap * 0.20);
+        if (i === 0) ring1Orb0Coords = { x: ox, y: oy };
+
         ctx.save();
-        ctx.translate(ox, oy);
-        ctx.rotate(Math.PI / 4 + curNow * 0.003);
+        // Radiant Multi-Layer Solar Corona
+        const haloR = curSize * 3.4 * (1.0 + bass * 0.40 + kickSnap * 0.30);
+        const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.2, ox, oy, haloR);
+        haloGrad.addColorStop(0, '#ffffff');
+        haloGrad.addColorStop(0.25, '#ffe600');
+        haloGrad.addColorStop(0.65, 'rgba(255, 140, 0, 0.45)');
+        haloGrad.addColorStop(1, 'rgba(255, 90, 0, 0)');
+        ctx.fillStyle = haloGrad;
         ctx.beginPath();
-        const dR = curSize * 1.15;
-        ctx.rect(-dR * 0.7, -dR * 0.7, dR * 1.4, dR * 1.4);
-        ctx.fillStyle = orbCoreColor;
-        ctx.shadowColor = orbOuterColor;
-        ctx.shadowBlur = 10;
+        ctx.arc(ox, oy, haloR, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
-      } else {
-        // Top 1 & Top 3: Luminous Sphere
+
+        // Solid Core Sun
         ctx.beginPath();
         ctx.arc(ox, oy, curSize, 0, Math.PI * 2);
-        ctx.fillStyle = orbCoreColor;
-        ctx.shadowColor = orbOuterColor;
-        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffe600';
+        ctx.shadowBlur = 18;
         ctx.fill();
+
+        // Royal 8-Pointed Celestial Star Flare on Front Pass
+        if (isFrontPass) {
+          const starRadius = (curSize * 2.2 + Math.sin(curNow * 0.015 + i) * 3) * (1.0 + bass * 0.45 + kickSnap * 0.35);
+          drawSparkleStar8(ctx, ox, oy, starRadius, '#ffe600', '#ffffff', curNow * 0.004 + i);
+        }
+        ctx.restore();
       }
 
-      // Sparkle Cross Flare on Front Pass (bright specular concert reflection)
-      if (isFrontPass) {
-        const starRadius = (curSize * 1.6 + Math.sin(curNow * 0.012 + i) * 2.5) * (1.0 + bass * 0.4 + kickSnap * 0.3);
-        drawSparkleStar(ctx, ox, oy, starRadius, '#ffffff', orbOuterColor);
+      // --- 3. SATELLITE CRYSTALS ON RING 2 (2 Diamond Sparks) ---
+      const satCount = 2;
+      const satBaseSize = 6.0;
+      const cosTilt2 = Math.cos(tilt2);
+      const sinTilt2 = Math.sin(tilt2);
+      let ring2Sat0Coords = null;
+
+      for (let j = 0; j < satCount; j++) {
+        const satAngle = baseAngle2 + (j * Math.PI);
+        const normSat = ((satAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isSatFront = Math.sin(normSat) >= 0;
+        if (isSatFront !== isFrontPass) continue;
+
+        const sz = Math.sin(normSat);
+        const sDepth = 1.0 + sz * 0.30;
+        const su = rx2 * Math.cos(satAngle);
+        const sv = ry2 * Math.sin(satAngle);
+        const sx = su * cosTilt2 - sv * sinTilt2;
+        const sy = catCenterY + su * sinTilt2 + sv * cosTilt2;
+        const sSize = satBaseSize * sDepth * (1.0 + bass * 0.20 + kickSnap * 0.15);
+        if (j === 0) ring2Sat0Coords = { x: sx, y: sy };
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sx, sy, sSize * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 200, 0.35)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(sx, sy, sSize, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#fff5a0';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.restore();
       }
+
+      // --- 4. DANCING PLASMA LIGHTNING ARCS (Tia Sét Hoàng Kim) ---
+      if (isFrontPass && ring1Orb0Coords && ring2Sat0Coords && (bass > 0.25 || kickSnap > 0.25)) {
+        drawPlasmaSparks(ctx, ring1Orb0Coords.x, ring1Orb0Coords.y, ring2Sat0Coords.x, ring2Sat0Coords.y, curNow * 0.01, '#ffffff', 2.0);
+        drawPlasmaSparks(ctx, ring1Orb0Coords.x, ring1Orb0Coords.y, ring2Sat0Coords.x, ring2Sat0Coords.y, curNow * 0.01 + 1, 'rgba(255, 220, 50, 0.8)', 4.0);
+      }
+
+    // =========================================================================
+    // 💎 TOP 2: CYBER MATRIX OVERLORD (BÁ VƯƠNG CÔNG NGHỆ ĐIỆN TỬ)
+    // =========================================================================
+    } else if (vipRank === 2) {
+      const tilt1 = 0.22;
+      const tilt2 = -0.28;
+      const rx1 = catVisualW * 0.90 * (1.0 + bass * 0.16 + kick * 0.08);
+      const ry1 = catVisualW * 0.36 * (1.0 + bass * 0.12);
+      const rx2 = catVisualW * 0.74 * (1.0 + bass * 0.12 + kick * 0.06);
+      const ry2 = catVisualW * 0.28 * (1.0 + bass * 0.09);
+
+      const baseAngle1 = -orbitAngle;
+      const baseAngle2 = orbitAngle * 0.85 + 0.6;
+
+      // Outer Cyan Neon Ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx1, ry1, tilt1, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 6.0 : 3.5) + bass * 3.5 + kickSnap * 2.5;
+      ctx.strokeStyle = `rgba(0, 240, 255, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx1, ry1, tilt1, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 2.2 : 1.4) + bass * 0.8;
+      ctx.setLineDash([20, 8, 8, 8]);
+      ctx.lineDashOffset = -orbitAngle * 35;
+      ctx.strokeStyle = `rgba(215, 250, 255, ${0.85 + bass * 0.15})`;
+      ctx.stroke();
+      ctx.setLineDash([]);
       ctx.restore();
+
+      // Inner Violet Tech Ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx2, ry2, tilt2, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 3.5 : 2.0) + bass * 2.0;
+      ctx.strokeStyle = `rgba(180, 0, 255, ${0.35 + bass * 0.30})`;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx2, ry2, tilt2, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 1.6 : 1.0);
+      ctx.setLineDash([12, 12]);
+      ctx.lineDashOffset = orbitAngle * 25;
+      ctx.strokeStyle = 'rgba(255, 120, 255, 0.75)';
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // 4 Hovering Cyber Crystals (Rhombus Diamonds)
+      const orbCount = 4;
+      const orbBaseSize = 8.0;
+      const cosTilt = Math.cos(tilt1);
+      const sinTilt = Math.sin(tilt1);
+
+      for (let i = 0; i < orbCount; i++) {
+        const orbAngle = baseAngle1 + (i * (Math.PI * 2 / orbCount));
+        const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isFront = Math.sin(normAngle) >= 0;
+        if (isFront !== isFrontPass) continue;
+
+        const z = Math.sin(normAngle);
+        const depthScale = 1.0 + z * 0.30;
+
+        // Laser motion trails
+        const trailSpacing = 0.05 + Math.min(0.12, orbitSpeed * 0.008);
+        for (let t = 3; t >= 1; t--) {
+          const trailAngle = orbAngle + (t * trailSpacing); // dir = -1
+          const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
+            const tu = rx1 * Math.cos(trailAngle);
+            const tv = ry1 * Math.sin(trailAngle);
+            const tx = tu * cosTilt - tv * sinTilt;
+            const ty = catCenterY + tu * sinTilt + tv * cosTilt;
+            const trailAlpha = (1 - t / 4) * (0.35 + bass * 0.45);
+            const trailR = orbBaseSize * depthScale * (1 - t * 0.22);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(tx, ty, Math.max(1, trailR), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 240, 255, ${trailAlpha})`;
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        const u = rx1 * Math.cos(orbAngle);
+        const v = ry1 * Math.sin(orbAngle);
+        const ox = u * cosTilt - v * sinTilt;
+        const oy = catCenterY + u * sinTilt + v * cosTilt;
+        const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.22 + kickSnap * 0.16);
+
+        ctx.save();
+        // Cyan soft halo
+        const haloR = curSize * 2.8 * (1.0 + bass * 0.35 + kickSnap * 0.25);
+        const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.2, ox, oy, haloR);
+        haloGrad.addColorStop(0, '#00f0ff');
+        haloGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(ox, oy, haloR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rhombus Crystal (Self-Rotating)
+        ctx.translate(ox, oy);
+        ctx.rotate(Math.PI / 4 + curNow * 0.004);
+        ctx.beginPath();
+        const dR = curSize * 1.2;
+        ctx.rect(-dR * 0.7, -dR * 0.7, dR * 1.4, dR * 1.4);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
+        ctx.fill();
+
+        // Anamorphic Sci-Fi Lens Flare
+        if (isFrontPass) {
+          drawCyberSciFiFlare(ctx, 0, 0, curSize * 1.6, '#00f0ff');
+        }
+        ctx.restore();
+      }
+
+    // =========================================================================
+    // 🔥 TOP 3: PHOENIX FLAME WARRIOR (DŨNG SĨ HỎA DIỆM)
+    // =========================================================================
+    } else if (vipRank === 3) {
+      const tilt = -0.16;
+      const rx = catVisualW * 0.82 * (1.0 + bass * 0.14 + kick * 0.07);
+      const ry = catVisualW * 0.33 * (1.0 + bass * 0.10);
+      const baseAngle = orbitAngle + Math.PI;
+
+      // Outer Molten Lava Glow
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 5.5 : 3.0) + bass * 3.0 + kickSnap * 2.0;
+      ctx.strokeStyle = `rgba(255, 100, 0, ${0.40 + bass * 0.35 + kickSnap * 0.20})`;
+      ctx.stroke();
+
+      // Core Fire Gold Wire
+      ctx.beginPath();
+      ctx.ellipse(0, catCenterY, rx, ry, tilt, startArc, endArc);
+      ctx.lineWidth = (isFrontPass ? 2.0 : 1.2) + bass * 0.8;
+      ctx.strokeStyle = `rgba(255, 230, 160, ${0.80 + bass * 0.20})`;
+      ctx.stroke();
+      ctx.restore();
+
+      // 3 Blazing Fire Meteors
+      const orbCount = 3;
+      const orbBaseSize = 7.5;
+      const cosTilt = Math.cos(tilt);
+      const sinTilt = Math.sin(tilt);
+
+      for (let i = 0; i < orbCount; i++) {
+        const orbAngle = baseAngle + (i * (Math.PI * 2 / orbCount));
+        const normAngle = ((orbAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isFront = Math.sin(normAngle) >= 0;
+        if (isFront !== isFrontPass) continue;
+
+        const z = Math.sin(normAngle);
+        const depthScale = 1.0 + z * 0.30;
+
+        // Flaming tail with rising ember sparks
+        const trailSpacing = 0.05 + Math.min(0.12, orbitSpeed * 0.009);
+        for (let t = 3; t >= 1; t--) {
+          const trailAngle = orbAngle - (t * trailSpacing);
+          const trailNorm = ((trailAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          if ((Math.sin(trailNorm) >= 0) === isFrontPass) {
+            const tu = rx * Math.cos(trailAngle);
+            const tv = ry * Math.sin(trailAngle);
+            const tx = tu * cosTilt - tv * sinTilt;
+            const floatEmber = Math.sin(curNow * 0.01 + t) * 4;
+            const ty = catCenterY + tu * sinTilt + tv * cosTilt - floatEmber;
+            const trailAlpha = (1 - t / 4) * (0.35 + bass * 0.45);
+            const trailR = orbBaseSize * depthScale * (1 - t * 0.22);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(tx, ty, Math.max(1, trailR), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 120, 0, ${trailAlpha})`;
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        const u = rx * Math.cos(orbAngle);
+        const v = ry * Math.sin(orbAngle);
+        const ox = u * cosTilt - v * sinTilt;
+        const oy = catCenterY + u * sinTilt + v * cosTilt;
+        const curSize = orbBaseSize * depthScale * (1.0 + bass * 0.22 + kickSnap * 0.15);
+
+        ctx.save();
+        // Fiery Ember Corona
+        const haloR = curSize * 3.0 * (1.0 + bass * 0.35 + kickSnap * 0.25);
+        const haloGrad = ctx.createRadialGradient(ox, oy, curSize * 0.2, ox, oy, haloR);
+        haloGrad.addColorStop(0, '#fff3a8');
+        haloGrad.addColorStop(0.3, '#ff8c00');
+        haloGrad.addColorStop(1, 'rgba(255, 50, 0, 0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(ox, oy, haloR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Molten Lava Core
+        ctx.beginPath();
+        ctx.arc(ox, oy, curSize, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ff6600';
+        ctx.shadowBlur = 14;
+        ctx.fill();
+
+        if (isFrontPass) {
+          const starRadius = (curSize * 1.8 + Math.sin(curNow * 0.012 + i) * 2.5) * (1.0 + bass * 0.4 + kickSnap * 0.3);
+          drawSparkleStar(ctx, ox, oy, starRadius, '#ffffff', '#ff8c00');
+        }
+        ctx.restore();
+      }
     }
 
     ctx.restore();
