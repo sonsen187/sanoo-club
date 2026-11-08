@@ -141,6 +141,11 @@
         updateDancersCount(0);
         break;
 
+      case 'playlist_updated':
+        playlist = data || [];
+        renderPlaylist(playlist);
+        break;
+
       case 'track_change':
         currentTrackIndex = data.index;
         isPlaying = true;
@@ -241,9 +246,10 @@
       if (targetIndex === currentTrackIndex) tr.className = 'active';
 
       const bpmBadge = track.bpm ? `<span style="display:inline-block; margin-left: 8px; background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: bold;">${track.bpm} BPM</span>` : '';
+      const ytBadge = track.isYouTube ? `<span style="display:inline-block; margin-left: 6px; background: rgba(255, 0, 0, 0.25); color: #ff4d4d; border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold;">🔴 YouTube</span>` : '';
       tr.innerHTML = `
         <td style="width: 50px;">#${track.id}</td>
-        <td>${track.title} ${bpmBadge}</td>
+        <td>${track.title} ${bpmBadge}${ytBadge}</td>
         <td style="width: 80px; text-align: right;">
           <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">▶ Phát</button>
         </td>
@@ -862,3 +868,89 @@
 
   setupWebSocket();
 })();
+
+
+  // ---------------------------------------------------------------------------
+  // YOUTUBE LINK AUDIO PLAYER & FETCHER
+  // ---------------------------------------------------------------------------
+  const ytUrlInput = document.getElementById('yt-url-input');
+  const btnYtPlayNow = document.getElementById('btn-yt-play-now');
+  const btnYtAddPlaylist = document.getElementById('btn-yt-add-playlist');
+  const ytLoadingIndicator = document.getElementById('yt-loading-indicator');
+  const ytLoadingText = document.getElementById('yt-loading-text');
+  const ytStatusBadge = document.getElementById('yt-status-badge');
+
+  function setYtLoading(loading, message = '') {
+    if (ytLoadingIndicator) {
+      ytLoadingIndicator.style.display = loading ? 'flex' : 'none';
+      if (ytLoadingText && message) ytLoadingText.textContent = message;
+    }
+    if (btnYtPlayNow) btnYtPlayNow.disabled = loading;
+    if (btnYtAddPlaylist) btnYtAddPlaylist.disabled = loading;
+    if (ytStatusBadge) {
+      ytStatusBadge.textContent = loading ? 'Đang tải...' : 'Sẵn sàng';
+      ytStatusBadge.style.color = loading ? '#ffd700' : '#a0aec0';
+    }
+  }
+
+  async function handleYouTubeAction(action) {
+    if (!ytUrlInput) return;
+    const url = ytUrlInput.value.trim();
+    if (!url) {
+      alert('Vui lòng dán link video hoặc shorts YouTube!');
+      ytUrlInput.focus();
+      return;
+    }
+
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+      alert('Link không đúng định dạng YouTube (cần chứa youtube.com hoặc youtu.be)!');
+      return;
+    }
+
+    setYtLoading(true, action === 'play' ? '⚡ Đang tải & tách âm thanh YouTube để phát ngay...' : '➕ Đang tải & thêm bài hát vào danh sách...');
+
+    try {
+      const endpoint = action === 'play' ? '/api/youtube/play' : '/api/youtube/add';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Lỗi khi xử lý YouTube');
+      }
+
+      setYtLoading(false);
+      ytUrlInput.value = '';
+
+      if (action === 'play') {
+        showToast(`🎉 Đang phát bài YouTube: ${data.track.title}`);
+      } else {
+        if (data.alreadyExists) {
+          showToast(`ℹ️ Bài hát đã có trong Playlist: #${data.track.id} ${data.track.title}`);
+        } else {
+          showToast(`✅ Đã thêm bài hát YouTube vào Playlist: #${data.track.id} ${data.track.title}`);
+        }
+      }
+    } catch (err) {
+      setYtLoading(false);
+      alert('Không thể tải bài hát từ link YouTube này:\n' + err.message);
+    }
+  }
+
+  if (btnYtPlayNow) {
+    btnYtPlayNow.addEventListener('click', () => handleYouTubeAction('play'));
+  }
+  if (btnYtAddPlaylist) {
+    btnYtAddPlaylist.addEventListener('click', () => handleYouTubeAction('add'));
+  }
+  if (ytUrlInput) {
+    ytUrlInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleYouTubeAction('play');
+      }
+    });
+  }

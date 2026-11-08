@@ -110,6 +110,31 @@
             </div>
           </div>
 
+          
+          <!-- YOUTUBE MUSIC INPUT SECTION -->
+          <div class="youtube-player-card" style="margin: 14px 0; background: linear-gradient(135deg, rgba(255, 0, 0, 0.09), rgba(15, 18, 35, 0.75)); border: 1px solid rgba(255, 68, 68, 0.4); border-radius: 8px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div style="font-size: 13px; font-weight: 700; color: #ff4d4d; display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 16px;">▶️</span>
+                <span>PHÁT NHẠC TỪ LINK YOUTUBE (TỰ ĐỘNG ĐỒNG BỘ OVERLAY & BASS):</span>
+              </div>
+              <span id="yt-status-badge" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #a0aec0;">Sẵn sàng</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <input type="text" id="yt-url-input" class="form-control" style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); border-color: rgba(255, 68, 68, 0.4); color: #fff;" placeholder="Dán link YouTube (https://www.youtube.com/watch?v=... hoặc youtu.be/...)">
+              <button id="btn-yt-play-now" class="btn btn-danger" style="background: linear-gradient(135deg, #ff0000, #c53030); font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);">
+                <span>⚡ Phát Ngay</span>
+              </button>
+              <button id="btn-yt-add-playlist" class="btn btn-secondary" style="border: 1px solid rgba(255,255,255,0.25); white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                <span>➕ Thêm Vào Playlist</span>
+              </button>
+            </div>
+            <div id="yt-loading-indicator" style="display: none; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: #ffd700;">
+              <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #ffd700; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+              <span id="yt-loading-text">Đang tải và tách âm thanh từ YouTube... (vui lòng đợi 3-5 giây)</span>
+            </div>
+          </div>
+
           <!-- Search & Playlist Table -->
           <div>
             <div class="input-row" style="margin-bottom: 10px;">

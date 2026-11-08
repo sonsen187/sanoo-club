@@ -267,7 +267,7 @@
       titleEl.textContent = `${track.id}. ${track.title}`;
     }
     if (labelEl && track) {
-      labelEl.textContent = `DJ SANOO • BÀI #${track.id}`;
+      labelEl.textContent = track.isYouTube ? `DJ SANOO • YOUTUBE #${track.id}` : `DJ SANOO • BÀI #${track.id}`;
     }
   }
 
@@ -4546,6 +4546,10 @@
         if (data.autoSimulator) {
           updateAutoSimOverlayUI(data.autoSimulator.status);
         }
+        break;
+
+      case 'playlist_updated':
+        playlist = data || [];
         break;
 
       case 'track_change':

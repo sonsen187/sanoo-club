@@ -4,6 +4,7 @@ const http = require('http');
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const WebSocket = require('ws');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 
@@ -132,6 +133,78 @@ function saveTopGiftersToDisk() {
 
 // Restore top gifters on server initialization
 loadTopGiftersFromDisk();
+
+// ---------------------------------------------------------------------------
+// YOUTUBE AUDIO DOWNLOADER & PLAYLIST INTEGRATION
+// ---------------------------------------------------------------------------
+const YT_DIR = path.join(__dirname, 'public', 'assets', 'music', 'youtube');
+const YT_TRACKS_FILE = path.join(DATA_DIR, 'youtube_tracks.json');
+
+if (!fs.existsSync(YT_DIR)) {
+  fs.mkdirSync(YT_DIR, { recursive: true });
+}
+
+function loadCustomYouTubeTracks() {
+  try {
+    if (fs.existsSync(YT_TRACKS_FILE)) {
+      const raw = fs.readFileSync(YT_TRACKS_FILE, 'utf8');
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved)) {
+        saved.forEach(item => {
+          if (!playlist.some(t => t.youtubeId === item.youtubeId || t.url === item.url)) {
+            item.id = playlist.length + 1;
+            playlist.push(item);
+          }
+        });
+        console.log(`[YouTube] Loaded ${saved.length} custom YouTube tracks into playlist.`);
+      }
+    }
+  } catch (err) {
+    console.error('[YouTube] Error reading youtube_tracks.json:', err.message);
+  }
+}
+
+function saveCustomYouTubeTracks() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const ytTracks = playlist.filter(t => t.isYouTube);
+    fs.writeFileSync(YT_TRACKS_FILE, JSON.stringify(ytTracks, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[YouTube] Error saving youtube_tracks.json:', err.message);
+  }
+}
+
+function downloadYouTubeTrack(url) {
+  return new Promise((resolve, reject) => {
+    const pyScript = path.join(__dirname, 'scripts', 'download_youtube.py');
+    const proc = spawn('python', [pyScript, url, YT_DIR]);
+
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', chunk => { stdout += chunk.toString(); });
+    proc.stderr.on('data', chunk => { stderr += chunk.toString(); });
+
+    proc.on('close', code => {
+      if (code !== 0) {
+        return reject(new Error(stderr || stdout || 'Lỗi khi tải bài hát từ YouTube'));
+      }
+      try {
+        const lines = stdout.trim().split('\n');
+        const lastLine = lines[lines.length - 1];
+        const data = JSON.parse(lastLine);
+        if (!data.success) {
+          return reject(new Error(data.error || 'Không thể xử lý link YouTube'));
+        }
+        resolve(data);
+      } catch (err) {
+        reject(new Error('Dữ liệu YouTube trả về không hợp lệ: ' + stdout));
+      }
+    });
+  });
+}
+
+loadCustomYouTubeTracks();
 
 
 // Helper to robustly extract TikTok Avatar from various live event structures
@@ -534,6 +607,93 @@ app.post('/api/tiktok/connect', (req, res) => {
 app.post('/api/tiktok/disconnect', (req, res) => {
   disconnectTikTok();
   res.json({ success: true, status: state.tiktokConnection });
+});
+
+
+// YouTube Audio Play & Add Endpoints
+app.post('/api/youtube/play', async (req, res) => {
+  const { url } = req.body;
+  if (!url || typeof url !== 'string') {
+    return res.status(400).json({ success: false, error: 'Vui lòng nhập link YouTube hợp lệ' });
+  }
+
+  try {
+    const ytData = await downloadYouTubeTrack(url.trim());
+
+    let trackIndex = playlist.findIndex(t => t.youtubeId === ytData.videoId || t.url === ytData.url);
+    let track;
+
+    if (trackIndex !== -1) {
+      track = playlist[trackIndex];
+    } else {
+      track = {
+        id: playlist.length + 1,
+        title: ytData.title,
+        filename: ytData.filename,
+        url: ytData.url,
+        bpm: 128,
+        duration: ytData.duration,
+        isYouTube: true,
+        youtubeId: ytData.videoId,
+        youtubeUrl: url.trim(),
+        uploader: ytData.uploader
+      };
+      playlist.push(track);
+      trackIndex = playlist.length - 1;
+      saveCustomYouTubeTracks();
+      broadcast('playlist_updated', playlist);
+    }
+
+    state.currentTrackIndex = trackIndex;
+    state.isPlaying = true;
+    broadcast('track_change', {
+      track: playlist[state.currentTrackIndex],
+      index: state.currentTrackIndex,
+      requestedBy: 'Admin'
+    });
+
+    res.json({ success: true, track, index: trackIndex });
+  } catch (err) {
+    console.error('[YouTube Error]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/youtube/add', async (req, res) => {
+  const { url } = req.body;
+  if (!url || typeof url !== 'string') {
+    return res.status(400).json({ success: false, error: 'Vui lòng nhập link YouTube hợp lệ' });
+  }
+
+  try {
+    const ytData = await downloadYouTubeTrack(url.trim());
+
+    let trackIndex = playlist.findIndex(t => t.youtubeId === ytData.videoId || t.url === ytData.url);
+    if (trackIndex !== -1) {
+      return res.json({ success: true, alreadyExists: true, track: playlist[trackIndex], index: trackIndex });
+    }
+
+    const track = {
+      id: playlist.length + 1,
+      title: ytData.title,
+      filename: ytData.filename,
+      url: ytData.url,
+      bpm: 128,
+      duration: ytData.duration,
+      isYouTube: true,
+      youtubeId: ytData.videoId,
+      youtubeUrl: url.trim(),
+      uploader: ytData.uploader
+    };
+    playlist.push(track);
+    saveCustomYouTubeTracks();
+    broadcast('playlist_updated', playlist);
+
+    res.json({ success: true, track, index: playlist.length - 1 });
+  } catch (err) {
+    console.error('[YouTube Error]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // WebSocket Connection Handler
