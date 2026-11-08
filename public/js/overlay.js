@@ -224,6 +224,9 @@
       }
 
       sfx.init(audioCtx);
+      if (window.TTSMCManager) {
+        TTSMCManager.init(audioCtx, audioElement);
+      }
       console.log('Audio Context & Analyser initialized successfully (fftSize 512)');
     } catch (e) {
       console.warn('AudioContext init error:', e);
@@ -1455,6 +1458,9 @@
 
     // 8. Synchronize VIP Podiums & Dancers Ranks
     syncVIPRanksAndPodiums();
+    if (window.TTSMCManager) {
+      TTSMCManager.onTopGiftersUpdate(topGifters);
+    }
 
     // 9. Update & Render Dancers (sorted by Y for proper 2.5D depth)
     dancers.sort((a, b) => a.y - b.y);
@@ -4469,6 +4475,9 @@
       case 'gift':
         triggerDJScreenGift(data);
         sfx.playGiftChime();
+        if (window.TTSMCManager) {
+          TTSMCManager.onGift(data);
+        }
         // Trigger stage FX depending on gift level
         if (data.fxType === 'mega_rave') triggerRave();
         else if (data.fxType === 'fireworks') triggerFireworks();
@@ -4532,6 +4541,27 @@
         dancers = [];
         const cc = document.getElementById('crowd-count');
         if (cc) cc.textContent = 0;
+        break;
+
+      case 'tts_speak':
+        if (window.TTSMCManager) TTSMCManager.speak(data.text, data.priority);
+        break;
+
+      case 'tts_hype':
+        if (window.TTSMCManager) TTSMCManager.triggerRandomHype();
+        break;
+
+      case 'tts_config':
+        if (window.TTSMCManager) {
+          if (data.enabled !== undefined) TTSMCManager.setEnabled(data.enabled);
+          if (data.voiceAccent) TTSMCManager.setVoiceAccent(data.voiceAccent);
+          if (data.volume !== undefined) {
+            TTSMCManager.volume = data.volume;
+            if (TTSMCManager.masterVocalGain) {
+              TTSMCManager.masterVocalGain.gain.value = data.volume;
+            }
+          }
+        }
         break;
 
       case 'trigger_effect':

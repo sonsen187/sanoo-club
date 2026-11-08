@@ -1,6 +1,7 @@
 const express = require('express');
 const ProfanityFilter = require('./public/js/profanity-filter.js');
 const http = require('http');
+const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
@@ -386,6 +387,69 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// In-Memory TTS Cache (Max 250 items)
+const ttsCache = new Map();
+
+app.get('/api/tts', (req, res) => {
+  const text = (req.query.text || '').trim();
+  if (!text) return res.status(400).send('Text is required');
+  if (text.length > 250) return res.status(400).send('Text exceeds 250 characters');
+
+  const cacheKey = text.toLowerCase();
+  if (ttsCache.has(cacheKey)) {
+    const cachedBuffer = ttsCache.get(cacheKey);
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': cachedBuffer.length,
+      'Cache-Control': 'public, max-age=86400'
+    });
+    return res.end(cachedBuffer);
+  }
+
+  const encoded = encodeURIComponent(text);
+  const ttsUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encoded;
+
+  const request = https.get(ttsUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://translate.google.com/'
+    },
+    timeout: 6000
+  }, (ttsRes) => {
+    if (ttsRes.statusCode !== 200) {
+      return res.status(ttsRes.statusCode).send('Failed to fetch TTS');
+    }
+
+    const chunks = [];
+    ttsRes.on('data', chunk => chunks.push(chunk));
+    ttsRes.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      if (ttsCache.size > 250) {
+        const oldest = ttsCache.keys().next().value;
+        ttsCache.delete(oldest);
+      }
+      ttsCache.set(cacheKey, buffer);
+
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': buffer.length,
+        'Cache-Control': 'public, max-age=86400'
+      });
+      res.end(buffer);
+    });
+  });
+
+  request.on('error', err => {
+    console.error('TTS proxy error:', err.message);
+    if (!res.headersSent) res.status(500).send('TTS service error');
+  });
+
+  request.on('timeout', () => {
+    request.destroy();
+    if (!res.headersSent) res.status(504).send('TTS service timeout');
+  });
+});
+
 app.post('/api/tiktok/connect', (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ error: 'Username is required' });
@@ -568,6 +632,18 @@ function handleClientMessage(msg, ws) {
     case 'set_audio_mode':
       state.settings.audioMode = data.mode || msg.mode || 'glass_room';
       broadcast('audio_mode_changed', { mode: state.settings.audioMode });
+      break;
+
+    case 'tts_speak':
+      broadcast('tts_speak', data);
+      break;
+    case 'tts_hype':
+      broadcast('tts_hype', data);
+      break;
+    case 'tts_config':
+      state.settings.tts = state.settings.tts || {};
+      Object.assign(state.settings.tts, data);
+      broadcast('tts_config', data);
       break;
 
     case 'clear_dancers':

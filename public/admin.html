@@ -134,6 +134,48 @@
       <!-- RIGHT COLUMN -->
       <div style="display: flex; flex-direction: column; gap: 24px;">
 
+        <!-- CARD: AI MC & GIỌNG ĐỌC LIVESTREAM (REALISTIC MIC DSP) -->
+        <div class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎤</span>
+              <span>AI MC & GIỌNG ĐỌC LIVESTREAM (MIC SÂN KHẤU DSP)</span>
+            </div>
+            <div class="card-badge" id="tts-status-badge" style="background: rgba(0, 240, 255, 0.2); color: var(--neon-cyan); border: 1px solid var(--neon-cyan);">Đang Bật</div>
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+            Tự động cảm ơn người tặng quà, chúc mừng lên bục Top đại gia và định kỳ hô khẩu hiệu khuấy động qua bộ lọc âm micro sân khấu (tự động giảm nhẹ nhạc nền khi nói).
+          </div>
+
+          <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 12px;">
+            <button id="btn-toggle-tts" class="fx-btn active-audio-mode" style="border-color: var(--neon-cyan);">🎙️ Trạng Thái: ĐANG BẬT</button>
+            <select id="tts-voice-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px;">
+              <option value="north" selected>Giọng Nữ Miền Bắc (Chuẩn Google + Mic DSP)</option>
+              <option value="south">Giọng Miền Nam (Tươi vui, sống động)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
+              <span>Âm lượng giọng đọc MC:</span>
+              <span id="tts-vol-val" style="color: var(--neon-cyan); font-weight: 700;">95%</span>
+            </div>
+            <input type="range" id="tts-volume-slider" min="0" max="100" value="95" style="width: 100%; accent-color: var(--neon-cyan); cursor: pointer;">
+          </div>
+
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+              Thử Nghiệm Nhanh Giọng Đọc (Phát Trực Tiếp Qua Stream):
+            </div>
+            <div class="button-grid">
+              <button id="btn-test-gift-tts" class="fx-btn">🎁 Test Cảm Ơn Quà</button>
+              <button id="btn-test-top-tts" class="fx-btn">👑 Test Vinh Danh Top 1</button>
+              <button id="btn-test-hype-tts" class="fx-btn">⚡ Hô Câu Hype Ngẫu Nhiên</button>
+            </div>
+          </div>
+        </div>
+
         <!-- CARD 3: STAGE SPECIAL EFFECTS -->
         <div class="admin-card">
           <div class="card-header">

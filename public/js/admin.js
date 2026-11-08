@@ -709,5 +709,86 @@
     }
   });
 
+  // ============================================================================
+  // AI MC & LIVESTREAM TTS CONTROLS
+  // ============================================================================
+  let ttsEnabled = true;
+  const btnToggleTTS = document.getElementById('btn-toggle-tts');
+  const ttsStatusBadge = document.getElementById('tts-status-badge');
+  const ttsVoiceSelect = document.getElementById('tts-voice-select');
+  const ttsVolumeSlider = document.getElementById('tts-volume-slider');
+  const ttsVolVal = document.getElementById('tts-vol-val');
+  const btnTestGiftTTS = document.getElementById('btn-test-gift-tts');
+  const btnTestTopTTS = document.getElementById('btn-test-top-tts');
+  const btnTestHypeTTS = document.getElementById('btn-test-hype-tts');
+
+  if (btnToggleTTS) {
+    btnToggleTTS.addEventListener('click', () => {
+      ttsEnabled = !ttsEnabled;
+      if (ttsEnabled) {
+        btnToggleTTS.classList.add('active-audio-mode');
+        btnToggleTTS.style.borderColor = 'var(--neon-cyan)';
+        btnToggleTTS.innerHTML = '🎙️ Trạng Thái: ĐANG BẬT';
+        if (ttsStatusBadge) {
+          ttsStatusBadge.textContent = 'Đang Bật';
+          ttsStatusBadge.style.color = 'var(--neon-cyan)';
+        }
+        showToast('Đã BẬT giọng đọc AI MC');
+      } else {
+        btnToggleTTS.classList.remove('active-audio-mode');
+        btnToggleTTS.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnToggleTTS.innerHTML = '🔇 Trạng Thái: ĐÃ TẮT';
+        if (ttsStatusBadge) {
+          ttsStatusBadge.textContent = 'Đã Tắt';
+          ttsStatusBadge.style.color = '#a0aec0';
+        }
+        showToast('Đã TẮT giọng đọc AI MC');
+      }
+      sendWS('tts_config', { enabled: ttsEnabled });
+    });
+  }
+
+  if (ttsVoiceSelect) {
+    ttsVoiceSelect.addEventListener('change', () => {
+      sendWS('tts_config', { voiceAccent: ttsVoiceSelect.value });
+      showToast('Đã đổi giọng: ' + (ttsVoiceSelect.value === 'north' ? 'Miền Bắc' : 'Miền Nam'));
+    });
+  }
+
+  if (ttsVolumeSlider) {
+    ttsVolumeSlider.addEventListener('input', () => {
+      const vol = parseInt(ttsVolumeSlider.value, 10);
+      if (ttsVolVal) ttsVolVal.textContent = vol + '%';
+      sendWS('tts_config', { volume: vol / 100 });
+    });
+  }
+
+  if (btnTestGiftTTS) {
+    btnTestGiftTTS.addEventListener('click', () => {
+      sendWS('tts_speak', {
+        text: 'Cảm ơn đại gia Minh Rave đã gửi tặng Hoa Hồng, quẩy lên nào anh em ơi!',
+        priority: true
+      });
+      showToast('Đang phát thử: Cảm ơn tặng quà');
+    });
+  }
+
+  if (btnTestTopTTS) {
+    btnTestTopTTS.addEventListener('click', () => {
+      sendWS('tts_speak', {
+        text: 'Chúc mừng đại gia Minh Rave đã chính thức chiếm lĩnh Top 1 bục vàng đại gia!',
+        priority: true
+      });
+      showToast('Đang phát thử: Vinh danh Top 1');
+    });
+  }
+
+  if (btnTestHypeTTS) {
+    btnTestHypeTTS.addEventListener('click', () => {
+      sendWS('tts_hype', {});
+      showToast('Đang phát thử: Hô MC khuấy động');
+    });
+  }
+
   setupWebSocket();
 })();
