@@ -796,12 +796,14 @@
   });
 
   // ============================================================================
-  // AI MC & LIVESTREAM NEURAL TTS CONTROLS (EXPANDED CLUB ENGINE)
+  // AI MC STUDIO - QUẢN LÝ GIỌNG & DSP PHÒNG THU (REFACTORED)
   // ============================================================================
   const ttsState = {
     enabled: true,
     volume: 1.0,
     speed: 1.20,
+    pitch: 0,
+    echo: 35,
     style: 'female_hype',
     introSFX: 'click',
     duckingRatio: 0.40,
@@ -812,11 +814,27 @@
 
   const btnToggleTTS = document.getElementById('btn-toggle-tts');
   const ttsStatusBadge = document.getElementById('tts-status-badge');
+  const ttsVoiceLabel = document.getElementById('tts-voice-label');
+  const btnVoiceFemale = document.getElementById('btn-voice-female');
+  const btnVoiceMale = document.getElementById('btn-voice-male');
+  const btnVoiceGoogle = document.getElementById('btn-voice-google');
   const ttsVoiceSelect = document.getElementById('tts-voice-select');
-  const ttsSpeedSelect = document.getElementById('tts-speed-select');
-  const ttsSFXSelect = document.getElementById('tts-sfx-select');
+
   const ttsVolumeSlider = document.getElementById('tts-volume-slider');
   const ttsVolVal = document.getElementById('tts-vol-val');
+
+  const ttsSpeedSlider = document.getElementById('tts-speed-slider');
+  const ttsSpeedVal = document.getElementById('tts-speed-val');
+
+  const ttsPitchSlider = document.getElementById('tts-pitch-slider');
+  const ttsPitchVal = document.getElementById('tts-pitch-val');
+
+  const ttsEchoSlider = document.getElementById('tts-echo-slider');
+  const ttsEchoVal = document.getElementById('tts-echo-val');
+
+  const btnResetTTSParams = document.getElementById('btn-reset-tts-params');
+
+  const ttsSFXSelect = document.getElementById('tts-sfx-select');
   const ttsDuckingSelect = document.getElementById('tts-ducking-select');
 
   const btnToggleGiftHype = document.getElementById('btn-toggle-gift-hype');
@@ -835,15 +853,16 @@
     if (!tts) return;
     Object.assign(ttsState, tts);
 
+    // Master Power Button
     if (btnToggleTTS) {
       if (ttsState.enabled) {
         btnToggleTTS.classList.add('active-audio-mode');
         btnToggleTTS.style.borderColor = 'var(--neon-cyan)';
-        btnToggleTTS.innerHTML = '🎙️ Trạng Thái: ĐANG BẬT';
+        btnToggleTTS.innerHTML = '🎙️ Mic Master: ĐANG BẬT';
       } else {
         btnToggleTTS.classList.remove('active-audio-mode');
         btnToggleTTS.style.borderColor = 'rgba(255,255,255,0.2)';
-        btnToggleTTS.innerHTML = '🔇 Trạng Thái: ĐÃ TẮT';
+        btnToggleTTS.innerHTML = '🔇 Mic Master: ĐÃ TẮT';
       }
     }
     if (ttsStatusBadge) {
@@ -851,24 +870,92 @@
       ttsStatusBadge.style.color = ttsState.enabled ? 'var(--neon-cyan)' : '#a0aec0';
     }
 
-    if (ttsVoiceSelect && ttsState.style) {
-      ttsVoiceSelect.value = ttsState.style;
-    }
-    if (ttsSpeedSelect && ttsState.speed !== undefined) {
-      ttsSpeedSelect.value = Number(ttsState.speed).toFixed(2);
-    }
-    if (ttsSFXSelect && ttsState.introSFX) {
-      ttsSFXSelect.value = ttsState.introSFX;
-    }
+    // Voice & Gender Selectors
+    const voiceStyle = ttsState.style || 'female_hype';
+    if (ttsVoiceSelect) ttsVoiceSelect.value = voiceStyle;
+
+    const voiceList = [
+      { btn: btnVoiceFemale, key: 'female_hype', label: 'Hoài My (Nữ Hype)' },
+      { btn: btnVoiceMale, key: 'male_deep', label: 'Nam Minh (Nam Trầm)' },
+      { btn: btnVoiceGoogle, key: 'google', label: 'Google Robot' }
+    ];
+
+    voiceList.forEach(v => {
+      if (v.btn) {
+        if (voiceStyle === v.key) {
+          v.btn.classList.add('active-audio-mode');
+          v.btn.style.borderColor = 'var(--neon-cyan)';
+          if (ttsVoiceLabel) ttsVoiceLabel.textContent = v.label;
+        } else {
+          v.btn.classList.remove('active-audio-mode');
+          v.btn.style.borderColor = 'rgba(255,255,255,0.2)';
+        }
+      }
+    });
+
+    // 1. Âm lượng (Volume)
     if (ttsVolumeSlider && ttsState.volume !== undefined) {
       const volPct = Math.round(ttsState.volume * 100);
       ttsVolumeSlider.value = volPct;
-      if (ttsVolVal) ttsVolVal.textContent = volPct + '%';
+      if (ttsVolVal) {
+        ttsVolVal.textContent = volPct + '%';
+        ttsVolVal.style.color = volPct > 100 ? '#ff007f' : 'var(--neon-cyan)';
+      }
     }
+
+    // 2. Nhanh / Chậm (Speed)
+    if (ttsSpeedSlider && ttsState.speed !== undefined) {
+      const spdVal = Math.round(ttsState.speed * 100);
+      ttsSpeedSlider.value = spdVal;
+      if (ttsSpeedVal) {
+        const spdFloat = (spdVal / 100).toFixed(2);
+        let tag = 'Vừa vặn';
+        if (spdVal >= 135) tag = 'Siêu tốc Turbo';
+        else if (spdVal >= 115) tag = 'Quẩy sung';
+        else if (spdVal <= 95) tag = 'Chậm rãi';
+        ttsSpeedVal.textContent = `${spdFloat}x (${tag})`;
+      }
+    }
+
+    // 3. Cao / Thấp (Pitch)
+    if (ttsPitchSlider && ttsState.pitch !== undefined) {
+      const pitchHz = parseInt(ttsState.pitch, 10) || 0;
+      ttsPitchSlider.value = pitchHz;
+      if (ttsPitchVal) {
+        let pitchTag = 'Chuẩn';
+        if (pitchHz >= 15) pitchTag = 'Cao vút';
+        else if (pitchHz > 0) pitchTag = 'Hơi cao';
+        else if (pitchHz <= -15) pitchTag = 'Trầm sâu';
+        else if (pitchHz < 0) pitchTag = 'Trầm ấm';
+        const sign = pitchHz > 0 ? `+${pitchHz}` : `${pitchHz}`;
+        ttsPitchVal.textContent = `${sign}Hz (${pitchTag})`;
+      }
+    }
+
+    // 4. Echo & Vang
+    if (ttsEchoSlider && ttsState.echo !== undefined) {
+      const echoVal = Math.round(ttsState.echo);
+      ttsEchoSlider.value = echoVal;
+      if (ttsEchoVal) {
+        let echoTag = 'Khô mộc';
+        if (echoVal >= 70) echoTag = 'Vang dội Bar';
+        else if (echoVal >= 30) echoTag = 'Chuẩn Club';
+        else if (echoVal > 0) echoTag = 'Vang nhẹ';
+        ttsEchoVal.textContent = `${echoVal}% (${echoTag})`;
+      }
+    }
+
+    // SFX
+    if (ttsSFXSelect && ttsState.introSFX) {
+      ttsSFXSelect.value = ttsState.introSFX;
+    }
+
+    // Ducking
     if (ttsDuckingSelect && ttsState.duckingRatio !== undefined) {
       ttsDuckingSelect.value = Number(ttsState.duckingRatio).toFixed(2);
     }
 
+    // Event toggles
     if (btnToggleGiftHype) {
       if (ttsState.enableGiftHype) {
         btnToggleGiftHype.classList.add('active-audio-mode');
@@ -904,6 +991,7 @@
     }
   }
 
+  // Master Toggle Button
   if (btnToggleTTS) {
     btnToggleTTS.addEventListener('click', () => {
       ttsState.enabled = !ttsState.enabled;
@@ -913,42 +1001,100 @@
     });
   }
 
-  if (ttsVoiceSelect) {
-    ttsVoiceSelect.addEventListener('change', () => {
-      ttsState.style = ttsVoiceSelect.value;
-      sendWS('tts_config', { style: ttsVoiceSelect.value });
-      const voiceNames = {
-        female_hype: 'Nữ Hype Quẩy Sung (Hoài My Neural)',
-        male_deep: 'Nam Trầm Gằn Bar (Nam Minh Neural)',
-        google: 'Robot Cổ Điển (Google TTS)'
-      };
-      showToast('Đã chuyển giọng: ' + (voiceNames[ttsVoiceSelect.value] || ttsVoiceSelect.value));
-    });
+  // Voice Style / Gender Switching
+  function selectVoiceStyle(style) {
+    ttsState.style = style;
+    updateTTSAdminUI(ttsState);
+    sendWS('tts_config', { style });
+    const nameMap = {
+      female_hype: 'Nữ Hoài My Neural (Quẩy sung)',
+      male_deep: 'Nam Minh Neural (Trầm Bar)',
+      google: 'Robot Google Translate'
+    };
+    showToast(`Đã chọn giọng: ${nameMap[style] || style}`);
   }
 
-  if (ttsSpeedSelect) {
-    ttsSpeedSelect.addEventListener('change', () => {
-      const speed = parseFloat(ttsSpeedSelect.value);
-      ttsState.speed = speed;
-      sendWS('tts_config', { speed });
-      showToast(`Đã chỉnh tốc độ MC: ${speed.toFixed(2)}x`);
-    });
-  }
+  if (btnVoiceFemale) btnVoiceFemale.addEventListener('click', () => selectVoiceStyle('female_hype'));
+  if (btnVoiceMale) btnVoiceMale.addEventListener('click', () => selectVoiceStyle('male_deep'));
+  if (btnVoiceGoogle) btnVoiceGoogle.addEventListener('click', () => selectVoiceStyle('google'));
 
-  if (ttsSFXSelect) {
-    ttsSFXSelect.addEventListener('change', () => {
-      ttsState.introSFX = ttsSFXSelect.value;
-      sendWS('tts_config', { introSFX: ttsSFXSelect.value });
-      showToast(`Đã chọn âm mở mic: ${ttsSFXSelect.options[ttsSFXSelect.selectedIndex].text}`);
-    });
-  }
-
+  // 1. Volume Slider
   if (ttsVolumeSlider) {
     ttsVolumeSlider.addEventListener('input', () => {
       const vol = parseInt(ttsVolumeSlider.value, 10);
-      if (ttsVolVal) ttsVolVal.textContent = vol + '%';
       ttsState.volume = vol / 100;
+      if (ttsVolVal) {
+        ttsVolVal.textContent = vol + '%';
+        ttsVolVal.style.color = vol > 100 ? '#ff007f' : 'var(--neon-cyan)';
+      }
       sendWS('tts_config', { volume: vol / 100 });
+    });
+  }
+
+  // 2. Speed Slider
+  if (ttsSpeedSlider) {
+    ttsSpeedSlider.addEventListener('input', () => {
+      const spdVal = parseInt(ttsSpeedSlider.value, 10);
+      const spdFloat = parseFloat((spdVal / 100).toFixed(2));
+      ttsState.speed = spdFloat;
+      if (ttsSpeedVal) {
+        let tag = 'Vừa vặn';
+        if (spdVal >= 135) tag = 'Siêu tốc Turbo';
+        else if (spdVal >= 115) tag = 'Quẩy sung';
+        else if (spdVal <= 95) tag = 'Chậm rãi';
+        ttsSpeedVal.textContent = `${spdFloat}x (${tag})`;
+      }
+      sendWS('tts_config', { speed: spdFloat });
+    });
+  }
+
+  // 3. Pitch Slider
+  if (ttsPitchSlider) {
+    ttsPitchSlider.addEventListener('input', () => {
+      const pitchHz = parseInt(ttsPitchSlider.value, 10);
+      ttsState.pitch = pitchHz;
+      if (ttsPitchVal) {
+        let pitchTag = 'Chuẩn';
+        if (pitchHz >= 15) pitchTag = 'Cao vút';
+        else if (pitchHz > 0) pitchTag = 'Hơi cao';
+        else if (pitchHz <= -15) pitchTag = 'Trầm sâu';
+        else if (pitchHz < 0) pitchTag = 'Trầm ấm';
+        const sign = pitchHz > 0 ? `+${pitchHz}` : `${pitchHz}`;
+        ttsPitchVal.textContent = `${sign}Hz (${pitchTag})`;
+      }
+      sendWS('tts_config', { pitch: pitchHz });
+    });
+  }
+
+  // 4. Echo Slider
+  if (ttsEchoSlider) {
+    ttsEchoSlider.addEventListener('input', () => {
+      const echoVal = parseInt(ttsEchoSlider.value, 10);
+      ttsState.echo = echoVal;
+      if (ttsEchoVal) {
+        let echoTag = 'Khô mộc';
+        if (echoVal >= 70) echoTag = 'Vang dội Bar';
+        else if (echoVal >= 30) echoTag = 'Chuẩn Club';
+        else if (echoVal > 0) echoTag = 'Vang nhẹ';
+        ttsEchoVal.textContent = `${echoVal}% (${echoTag})`;
+      }
+      sendWS('tts_config', { echo: echoVal });
+    });
+  }
+
+  // Reset to Default Club preset
+  if (btnResetTTSParams) {
+    btnResetTTSParams.addEventListener('click', () => {
+      const defaultPreset = {
+        volume: 1.0,
+        speed: 1.20,
+        pitch: 0,
+        echo: 35,
+        style: 'female_hype'
+      };
+      updateTTSAdminUI(defaultPreset);
+      sendWS('tts_config', defaultPreset);
+      showToast('Đã khôi phục thông số chuẩn Club: Nữ Hoài My, 100% Vol, 1.20x Tốc độ, 0Hz Pitch, 35% Echo');
     });
   }
 

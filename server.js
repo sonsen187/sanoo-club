@@ -74,6 +74,8 @@ const state = {
       enabled: true,
       volume: 1.0,
       speed: 1.20,
+      pitch: 0,
+      echo: 35,
       style: 'female_hype',
       duckingRatio: 0.40,
       introSFX: 'click',
@@ -624,6 +626,7 @@ app.get('/api/tts', (req, res) => {
 
   const voiceType = req.query.voice || 'female_hype'; // 'female_hype' | 'male_deep' | 'google'
   const speed = parseFloat(req.query.speed) || 1.20;
+  const pitchHz = parseInt(req.query.pitch, 10) || 0;
 
   let edgeVoice = 'vi-VN-HoaiMyNeural';
   if (voiceType === 'male_deep') {
@@ -632,8 +635,9 @@ app.get('/api/tts', (req, res) => {
 
   const ratePct = Math.round((speed - 1.0) * 100);
   const rateStr = (ratePct >= 0 ? `+${ratePct}%` : `${ratePct}%`);
+  const pitchStr = (pitchHz >= 0 ? `+${pitchHz}Hz` : `${pitchHz}Hz`);
 
-  const cacheKey = `${voiceType}_${rateStr}_${text.toLowerCase()}`;
+  const cacheKey = `${voiceType}_${rateStr}_${pitchStr}_${text.toLowerCase()}`;
   if (ttsCache.has(cacheKey)) {
     const cachedBuffer = ttsCache.get(cacheKey);
     res.set({
@@ -655,6 +659,7 @@ app.get('/api/tts', (req, res) => {
       '-t', text,
       '-v', edgeVoice,
       `--rate=${rateStr}`,
+      `--pitch=${pitchStr}`,
       '--write-media', '-'
     ], {
       env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }

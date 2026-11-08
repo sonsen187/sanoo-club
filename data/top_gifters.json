@@ -1,1033 +1,487 @@
 {
-  "updatedAt": "2026-11-08T11:12:38.102Z",
-  "totalCoins": 67440,
-  "totalGifts": 264,
+  "updatedAt": "2026-11-08T14:36:00.128Z",
+  "totalCoins": 1285,
+  "totalGifts": 136,
   "topGifters": {
-    "nam_sanoo_519": {
-      "username": "nam_sanoo_519",
-      "nickname": "Nam_Sanoo_519",
+    "yến_nhi_579": {
+      "username": "yến_nhi_579",
+      "nickname": "Yến_Nhi_579",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 5
+    },
+    "phong_dj_443": {
+      "username": "phong_dj_443",
+      "nickname": "Phong_DJ_443",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "an_nhiên_956": {
+      "username": "an_nhiên_956",
+      "nickname": "An_Nhiên_956",
+      "avatar": "",
+      "coins": 30,
+      "giftsCount": 1
+    },
+    "tuấn_rave_843": {
+      "username": "tuấn_rave_843",
+      "nickname": "Tuấn_Rave_843",
       "avatar": "",
       "coins": 4,
       "giftsCount": 4
     },
-    "sơn_bass_170": {
-      "username": "sơn_bass_170",
-      "nickname": "Sơn_Bass_170",
+    "ngọc_trầm_701": {
+      "username": "ngọc_trầm_701",
+      "nickname": "Ngọc_Trầm_701",
       "avatar": "",
-      "coins": 30,
+      "coins": 1,
       "giftsCount": 1
     },
-    "tiến_dubstep_512": {
-      "username": "tiến_dubstep_512",
-      "nickname": "Tiến_Dubstep_512",
+    "diệu_linh_718": {
+      "username": "diệu_linh_718",
+      "nickname": "Diệu_Linh_718",
       "avatar": "",
       "coins": 5,
       "giftsCount": 5
     },
-    "diệu_linh_448": {
-      "username": "diệu_linh_448",
-      "nickname": "Diệu_Linh_448",
+    "yến_nhi_736": {
+      "username": "yến_nhi_736",
+      "nickname": "Yến_Nhi_736",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "hoàng_tử_nhạc_285": {
+      "username": "hoàng_tử_nhạc_285",
+      "nickname": "Hoàng_Tử_Nhạc_285",
       "avatar": "",
       "coins": 3,
       "giftsCount": 3
     },
-    "lan_ngọc_422": {
-      "username": "lan_ngọc_422",
-      "nickname": "Lan_Ngọc_422",
+    "my_cat_589": {
+      "username": "my_cat_589",
+      "nickname": "My_Cat_589",
       "avatar": "",
       "coins": 30,
       "giftsCount": 1
     },
-    "đức_vip_794": {
-      "username": "đức_vip_794",
-      "nickname": "Đức_VIP_794",
+    "quỳnh_anh_909": {
+      "username": "quỳnh_anh_909",
+      "nickname": "Quỳnh_Anh_909",
+      "avatar": "",
+      "coins": 100,
+      "giftsCount": 1
+    },
+    "dân_chơi_sài_gòn_203": {
+      "username": "dân_chơi_sài_gòn_203",
+      "nickname": "Dân_Chơi_Sài_Gòn_203",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "linh_cute_653": {
+      "username": "linh_cute_653",
+      "nickname": "Linh_Cute_653",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "mai_rave_307": {
+      "username": "mai_rave_307",
+      "nickname": "Mai_Rave_307",
+      "avatar": "",
+      "coins": 30,
+      "giftsCount": 1
+    },
+    "thùy_dương_536": {
+      "username": "thùy_dương_536",
+      "nickname": "Thùy_Dương_536",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "lan_ngọc_525": {
+      "username": "lan_ngọc_525",
+      "nickname": "Lan_Ngọc_525",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "thành_remix_874": {
+      "username": "thành_remix_874",
+      "nickname": "Thành_Remix_874",
       "avatar": "",
       "coins": 1,
       "giftsCount": 1
     },
-    "bé_mèo_đi_bụi_182": {
-      "username": "bé_mèo_đi_bụi_182",
-      "nickname": "Bé_Mèo_Đi_Bụi_182",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "thùy_dương_392": {
-      "username": "thùy_dương_392",
-      "nickname": "Thùy_Dương_392",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "dân_chơi_sài_gòn_452": {
-      "username": "dân_chơi_sài_gòn_452",
-      "nickname": "Dân_Chơi_Sài_Gòn_452",
+    "đức_vip_381": {
+      "username": "đức_vip_381",
+      "nickname": "Đức_VIP_381",
       "avatar": "",
       "coins": 1,
       "giftsCount": 1
     },
-    "đức_vip_632": {
-      "username": "đức_vip_632",
-      "nickname": "Đức_VIP_632",
+    "hà_dance_874": {
+      "username": "hà_dance_874",
+      "nickname": "Hà_Dance_874",
+      "avatar": "",
+      "coins": 100,
+      "giftsCount": 1
+    },
+    "cô_nàng_genz_818": {
+      "username": "cô_nàng_genz_818",
+      "nickname": "Cô_Nàng_GenZ_818",
       "avatar": "",
       "coins": 5,
       "giftsCount": 5
     },
-    "dân_chơi_sài_gòn_308": {
-      "username": "dân_chơi_sài_gòn_308",
-      "nickname": "Dân_Chơi_Sài_Gòn_308",
+    "trâm_quẩy_254": {
+      "username": "trâm_quẩy_254",
+      "nickname": "Trâm_Quẩy_254",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "bé_mèo_đi_bụi_348": {
+      "username": "bé_mèo_đi_bụi_348",
+      "nickname": "Bé_Mèo_Đi_Bụi_348",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "yến_nhi_305": {
+      "username": "yến_nhi_305",
+      "nickname": "Yến_Nhi_305",
       "avatar": "",
       "coins": 30,
       "giftsCount": 1
     },
-    "hải_đăng_419": {
-      "username": "hải_đăng_419",
-      "nickname": "Hải_Đăng_419",
+    "an_nhiên_922": {
+      "username": "an_nhiên_922",
+      "nickname": "An_Nhiên_922",
+      "avatar": "",
+      "coins": 100,
+      "giftsCount": 1
+    },
+    "dj_tài_năng_888": {
+      "username": "dj_tài_năng_888",
+      "nickname": "DJ_Tài_Năng_888",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "yến_nhi_413": {
+      "username": "yến_nhi_413",
+      "nickname": "Yến_Nhi_413",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "phương_baby_273": {
+      "username": "phương_baby_273",
+      "nickname": "Phương_Baby_273",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 5
+    },
+    "hải_đăng_135": {
+      "username": "hải_đăng_135",
+      "nickname": "Hải_Đăng_135",
       "avatar": "",
       "coins": 2,
       "giftsCount": 2
     },
-    "my_cat_408": {
-      "username": "my_cat_408",
-      "nickname": "My_Cat_408",
+    "bé_mèo_đi_bụi_666": {
+      "username": "bé_mèo_đi_bụi_666",
+      "nickname": "Bé_Mèo_Đi_Bụi_666",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "vũ_quẩy_935": {
+      "username": "vũ_quẩy_935",
+      "nickname": "Vũ_Quẩy_935",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "vinh_techno_463": {
+      "username": "vinh_techno_463",
+      "nickname": "Vinh_Techno_463",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "hải_đăng_442": {
+      "username": "hải_đăng_442",
+      "nickname": "Hải_Đăng_442",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "trang_club_176": {
+      "username": "trang_club_176",
+      "nickname": "Trang_Club_176",
       "avatar": "",
       "coins": 1,
       "giftsCount": 1
     },
-    "vinh_techno_179": {
-      "username": "vinh_techno_179",
-      "nickname": "Vinh_Techno_179",
+    "thùy_dương_512": {
+      "username": "thùy_dương_512",
+      "nickname": "Thùy_Dương_512",
       "avatar": "",
       "coins": 2,
       "giftsCount": 2
     },
-    "vinh_techno_637": {
-      "username": "vinh_techno_637",
-      "nickname": "Vinh_Techno_637",
+    "tuấn_rave_104": {
+      "username": "tuấn_rave_104",
+      "nickname": "Tuấn_Rave_104",
+      "avatar": "",
+      "coins": 30,
+      "giftsCount": 1
+    },
+    "lan_ngọc_345": {
+      "username": "lan_ngọc_345",
+      "nickname": "Lan_Ngọc_345",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1
     },
-    "cô_nàng_genz_569": {
-      "username": "cô_nàng_genz_569",
-      "nickname": "Cô_Nàng_GenZ_569",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "trâm_quẩy_886": {
-      "username": "trâm_quẩy_886",
-      "nickname": "Trâm_Quẩy_886",
-      "avatar": "",
-      "coins": 1000,
-      "giftsCount": 1
-    },
-    "yến_nhi_318": {
-      "username": "yến_nhi_318",
-      "nickname": "Yến_Nhi_318",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "yến_nhi_278": {
-      "username": "yến_nhi_278",
-      "nickname": "Yến_Nhi_278",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "my_cat_393": {
-      "username": "my_cat_393",
-      "nickname": "My_Cat_393",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "phong_dj_357": {
-      "username": "phong_dj_357",
-      "nickname": "Phong_DJ_357",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "yến_nhi_651": {
-      "username": "yến_nhi_651",
-      "nickname": "Yến_Nhi_651",
+    "bảo_bass_174": {
+      "username": "bảo_bass_174",
+      "nickname": "Bảo_Bass_174",
       "avatar": "",
       "coins": 1,
       "giftsCount": 1
     },
-    "lan_ngọc_837": {
-      "username": "lan_ngọc_837",
-      "nickname": "Lan_Ngọc_837",
+    "huy_beat_633": {
+      "username": "huy_beat_633",
+      "nickname": "Huy_Beat_633",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "ngọc_trầm_762": {
+      "username": "ngọc_trầm_762",
+      "nickname": "Ngọc_Trầm_762",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "linh_cute_254": {
+      "username": "linh_cute_254",
+      "nickname": "Linh_Cute_254",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "bảo_bass_295": {
+      "username": "bảo_bass_295",
+      "nickname": "Bảo_Bass_295",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "vũ_quẩy_814": {
+      "username": "vũ_quẩy_814",
+      "nickname": "Vũ_Quẩy_814",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1
     },
-    "dj_tài_năng_262": {
-      "username": "dj_tài_năng_262",
-      "nickname": "DJ_Tài_Năng_262",
+    "việt_hype_631": {
+      "username": "việt_hype_631",
+      "nickname": "Việt_Hype_631",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "hà_dance_182": {
+      "username": "hà_dance_182",
+      "nickname": "Hà_Dance_182",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 5
+    },
+    "tiến_dubstep_233": {
+      "username": "tiến_dubstep_233",
+      "nickname": "Tiến_Dubstep_233",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1
     },
-    "huy_beat_555": {
-      "username": "huy_beat_555",
-      "nickname": "Huy_Beat_555",
+    "an_nhiên_720": {
+      "username": "an_nhiên_720",
+      "nickname": "An_Nhiên_720",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1
     },
-    "phương_baby_388": {
-      "username": "phương_baby_388",
-      "nickname": "Phương_Baby_388",
+    "duy_electronic_484": {
+      "username": "duy_electronic_484",
+      "nickname": "Duy_Electronic_484",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "trang_club_150": {
+      "username": "trang_club_150",
+      "nickname": "Trang_Club_150",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "khánh_edm_785": {
+      "username": "khánh_edm_785",
+      "nickname": "Khánh_EDM_785",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "mai_rave_521": {
+      "username": "mai_rave_521",
+      "nickname": "Mai_Rave_521",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "hoàng_bách_267": {
+      "username": "hoàng_bách_267",
+      "nickname": "Hoàng_Bách_267",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "phương_baby_877": {
+      "username": "phương_baby_877",
+      "nickname": "Phương_Baby_877",
+      "avatar": "",
+      "coins": 2,
+      "giftsCount": 2
+    },
+    "cô_nàng_genz_853": {
+      "username": "cô_nàng_genz_853",
+      "nickname": "Cô_Nàng_GenZ_853",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 5
+    },
+    "việt_hype_918": {
+      "username": "việt_hype_918",
+      "nickname": "Việt_Hype_918",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "bé_mèo_đi_bụi_359": {
+      "username": "bé_mèo_đi_bụi_359",
+      "nickname": "Bé_Mèo_Đi_Bụi_359",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 5
+    },
+    "dân_chơi_sài_gòn_799": {
+      "username": "dân_chơi_sài_gòn_799",
+      "nickname": "Dân_Chơi_Sài_Gòn_799",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "an_nhiên_827": {
+      "username": "an_nhiên_827",
+      "nickname": "An_Nhiên_827",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "thùy_dương_133": {
+      "username": "thùy_dương_133",
+      "nickname": "Thùy_Dương_133",
+      "avatar": "",
+      "coins": 1,
+      "giftsCount": 1
+    },
+    "tiến_dubstep_889": {
+      "username": "tiến_dubstep_889",
+      "nickname": "Tiến_Dubstep_889",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "đức_vip_365": {
+      "username": "đức_vip_365",
+      "nickname": "Đức_VIP_365",
+      "avatar": "",
+      "coins": 100,
+      "giftsCount": 1
+    },
+    "minh_quẩy_365": {
+      "username": "minh_quẩy_365",
+      "nickname": "Minh_Quẩy_365",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "vũ_quẩy_281": {
+      "username": "vũ_quẩy_281",
+      "nickname": "Vũ_Quẩy_281",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "my_cat_365": {
+      "username": "my_cat_365",
+      "nickname": "My_Cat_365",
+      "avatar": "",
+      "coins": 5,
+      "giftsCount": 1
+    },
+    "an_nhiên_366": {
+      "username": "an_nhiên_366",
+      "nickname": "An_Nhiên_366",
+      "avatar": "",
+      "coins": 4,
+      "giftsCount": 4
+    },
+    "vũ_quẩy_754": {
+      "username": "vũ_quẩy_754",
+      "nickname": "Vũ_Quẩy_754",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "hải_đăng_999": {
+      "username": "hải_đăng_999",
+      "nickname": "Hải_Đăng_999",
+      "avatar": "",
+      "coins": 3,
+      "giftsCount": 3
+    },
+    "hải_đăng_726": {
+      "username": "hải_đăng_726",
+      "nickname": "Hải_Đăng_726",
       "avatar": "",
       "coins": 500,
       "giftsCount": 1
     },
-    "thành_remix_587": {
-      "username": "thành_remix_587",
-      "nickname": "Thành_Remix_587",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "huy_beat_627": {
-      "username": "huy_beat_627",
-      "nickname": "Huy_Beat_627",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "vũ_quẩy_990": {
-      "username": "vũ_quẩy_990",
-      "nickname": "Vũ_Quẩy_990",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "an_nhiên_569": {
-      "username": "an_nhiên_569",
-      "nickname": "An_Nhiên_569",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "trâm_quẩy_177": {
-      "username": "trâm_quẩy_177",
-      "nickname": "Trâm_Quẩy_177",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "bảo_bass_527": {
-      "username": "bảo_bass_527",
-      "nickname": "Bảo_Bass_527",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "my_cat_254": {
-      "username": "my_cat_254",
-      "nickname": "My_Cat_254",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "an_nhiên_356": {
-      "username": "an_nhiên_356",
-      "nickname": "An_Nhiên_356",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "lan_ngọc_218": {
-      "username": "lan_ngọc_218",
-      "nickname": "Lan_Ngọc_218",
+    "bảo_bass_875": {
+      "username": "bảo_bass_875",
+      "nickname": "Bảo_Bass_875",
       "avatar": "",
       "coins": 30,
       "giftsCount": 1
     },
-    "sơn_bass_722": {
-      "username": "sơn_bass_722",
-      "nickname": "Sơn_Bass_722",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "trâm_quẩy_486": {
-      "username": "trâm_quẩy_486",
-      "nickname": "Trâm_Quẩy_486",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "minh_quẩy_159": {
-      "username": "minh_quẩy_159",
-      "nickname": "Minh_Quẩy_159",
+    "việt_hype_299": {
+      "username": "việt_hype_299",
+      "nickname": "Việt_Hype_299",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1
     },
-    "dj_tài_năng_252": {
-      "username": "dj_tài_năng_252",
-      "nickname": "DJ_Tài_Năng_252",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "việt_hype_599": {
-      "username": "việt_hype_599",
-      "nickname": "Việt_Hype_599",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "quỳnh_anh_134": {
-      "username": "quỳnh_anh_134",
-      "nickname": "Quỳnh_Anh_134",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "phong_dj_924": {
-      "username": "phong_dj_924",
-      "nickname": "Phong_DJ_924",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "bảo_bass_171": {
-      "username": "bảo_bass_171",
-      "nickname": "Bảo_Bass_171",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "đức_vip_491": {
-      "username": "đức_vip_491",
-      "nickname": "Đức_VIP_491",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "hoàng_bách_522": {
-      "username": "hoàng_bách_522",
-      "nickname": "Hoàng_Bách_522",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "thành_remix_909": {
-      "username": "thành_remix_909",
-      "nickname": "Thành_Remix_909",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "vinh_techno_489": {
-      "username": "vinh_techno_489",
-      "nickname": "Vinh_Techno_489",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "my_cat_217": {
-      "username": "my_cat_217",
-      "nickname": "My_Cat_217",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "dj_tài_năng_363": {
-      "username": "dj_tài_năng_363",
-      "nickname": "DJ_Tài_Năng_363",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "hương_dance_313": {
-      "username": "hương_dance_313",
-      "nickname": "Hương_Dance_313",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "duy_electronic_294": {
-      "username": "duy_electronic_294",
-      "nickname": "Duy_Electronic_294",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "sơn_bass_538": {
-      "username": "sơn_bass_538",
-      "nickname": "Sơn_Bass_538",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "cô_nàng_genz_349": {
-      "username": "cô_nàng_genz_349",
-      "nickname": "Cô_Nàng_GenZ_349",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "tuấn_rave_113": {
-      "username": "tuấn_rave_113",
-      "nickname": "Tuấn_Rave_113",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "trâm_quẩy_391": {
-      "username": "trâm_quẩy_391",
-      "nickname": "Trâm_Quẩy_391",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "huy_beat_297": {
-      "username": "huy_beat_297",
-      "nickname": "Huy_Beat_297",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "bảo_bass_904": {
-      "username": "bảo_bass_904",
-      "nickname": "Bảo_Bass_904",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "nam_sanoo_449": {
-      "username": "nam_sanoo_449",
-      "nickname": "Nam_Sanoo_449",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "hương_dance_964": {
-      "username": "hương_dance_964",
-      "nickname": "Hương_Dance_964",
-      "avatar": "",
-      "coins": 500,
-      "giftsCount": 1
-    },
-    "phong_dj_362": {
-      "username": "phong_dj_362",
-      "nickname": "Phong_DJ_362",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "hải_đăng_283": {
-      "username": "hải_đăng_283",
-      "nickname": "Hải_Đăng_283",
-      "avatar": "",
-      "coins": 500,
-      "giftsCount": 1
-    },
-    "việt_hype_384": {
-      "username": "việt_hype_384",
-      "nickname": "Việt_Hype_384",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "Minh_Rave": {
-      "username": "Minh_Rave",
-      "nickname": "Minh Rave",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "yến_nhi_266": {
-      "username": "yến_nhi_266",
-      "nickname": "Yến_Nhi_266",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "linh_cute_472": {
-      "username": "linh_cute_472",
-      "nickname": "Linh_Cute_472",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "thành_remix_833": {
-      "username": "thành_remix_833",
-      "nickname": "Thành_Remix_833",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "an_nhiên_624": {
-      "username": "an_nhiên_624",
-      "nickname": "An_Nhiên_624",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "huy_beat_486": {
-      "username": "huy_beat_486",
-      "nickname": "Huy_Beat_486",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "trâm_quẩy_926": {
-      "username": "trâm_quẩy_926",
-      "nickname": "Trâm_Quẩy_926",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "my_cat_465": {
-      "username": "my_cat_465",
-      "nickname": "My_Cat_465",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "ngọc_trầm_795": {
-      "username": "ngọc_trầm_795",
-      "nickname": "Ngọc_Trầm_795",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "quỳnh_anh_531": {
-      "username": "quỳnh_anh_531",
-      "nickname": "Quỳnh_Anh_531",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "tiến_dubstep_798": {
-      "username": "tiến_dubstep_798",
-      "nickname": "Tiến_Dubstep_798",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "duy_electronic_799": {
-      "username": "duy_electronic_799",
-      "nickname": "Duy_Electronic_799",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "khánh_edm_352": {
-      "username": "khánh_edm_352",
-      "nickname": "Khánh_EDM_352",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "quỳnh_anh_741": {
-      "username": "quỳnh_anh_741",
-      "nickname": "Quỳnh_Anh_741",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "mai_rave_828": {
-      "username": "mai_rave_828",
-      "nickname": "Mai_Rave_828",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "phương_baby_672": {
-      "username": "phương_baby_672",
-      "nickname": "Phương_Baby_672",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "vinh_techno_900": {
-      "username": "vinh_techno_900",
-      "nickname": "Vinh_Techno_900",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "mai_rave_843": {
-      "username": "mai_rave_843",
-      "nickname": "Mai_Rave_843",
-      "avatar": "",
-      "coins": 500,
-      "giftsCount": 1
-    },
-    "hương_dance_762": {
-      "username": "hương_dance_762",
-      "nickname": "Hương_Dance_762",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "hà_dance_819": {
-      "username": "hà_dance_819",
-      "nickname": "Hà_Dance_819",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "diệu_linh_383": {
-      "username": "diệu_linh_383",
-      "nickname": "Diệu_Linh_383",
-      "avatar": "",
-      "coins": 1000,
-      "giftsCount": 1
-    },
-    "sơn_bass_792": {
-      "username": "sơn_bass_792",
-      "nickname": "Sơn_Bass_792",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "linh_cute_706": {
-      "username": "linh_cute_706",
-      "nickname": "Linh_Cute_706",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "hoàng_tử_nhạc_383": {
-      "username": "hoàng_tử_nhạc_383",
-      "nickname": "Hoàng_Tử_Nhạc_383",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "trâm_quẩy_484": {
-      "username": "trâm_quẩy_484",
-      "nickname": "Trâm_Quẩy_484",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "khánh_edm_201": {
-      "username": "khánh_edm_201",
-      "nickname": "Khánh_EDM_201",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "hoàng_tử_nhạc_663": {
-      "username": "hoàng_tử_nhạc_663",
-      "nickname": "Hoàng_Tử_Nhạc_663",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "bé_mèo_đi_bụi_800": {
-      "username": "bé_mèo_đi_bụi_800",
-      "nickname": "Bé_Mèo_Đi_Bụi_800",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "trâm_quẩy_990": {
-      "username": "trâm_quẩy_990",
-      "nickname": "Trâm_Quẩy_990",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "Hoàng_Tử_DJ": {
-      "username": "Hoàng_Tử_DJ",
-      "nickname": "Hoàng_Tử_DJ",
-      "avatar": "",
-      "coins": 30535,
-      "giftsCount": 5
-    },
-    "Bé_Mèo": {
-      "username": "Bé_Mèo",
-      "nickname": "Bé_Mèo",
-      "avatar": "",
-      "coins": 30504,
-      "giftsCount": 3
-    },
-    "Hải_Quay_Xe": {
-      "username": "Hải_Quay_Xe",
-      "nickname": "Hải_Quay_Xe",
-      "avatar": "",
-      "coins": 105,
-      "giftsCount": 2
-    },
-    "Đại_Gia_99": {
-      "username": "Đại_Gia_99",
-      "nickname": "Đại_Gia_99",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "trang_club_618": {
-      "username": "trang_club_618",
-      "nickname": "Trang_Club_618",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "lan_ngọc_617": {
-      "username": "lan_ngọc_617",
-      "nickname": "Lan_Ngọc_617",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "bé_mèo_đi_bụi_358": {
-      "username": "bé_mèo_đi_bụi_358",
-      "nickname": "Bé_Mèo_Đi_Bụi_358",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "yến_nhi_348": {
-      "username": "yến_nhi_348",
-      "nickname": "Yến_Nhi_348",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "lan_ngọc_266": {
-      "username": "lan_ngọc_266",
-      "nickname": "Lan_Ngọc_266",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "dân_chơi_sài_gòn_939": {
-      "username": "dân_chơi_sài_gòn_939",
-      "nickname": "Dân_Chơi_Sài_Gòn_939",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "thùy_dương_733": {
-      "username": "thùy_dương_733",
-      "nickname": "Thùy_Dương_733",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "hoàng_tử_nhạc_280": {
-      "username": "hoàng_tử_nhạc_280",
-      "nickname": "Hoàng_Tử_Nhạc_280",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "huy_beat_576": {
-      "username": "huy_beat_576",
-      "nickname": "Huy_Beat_576",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "cô_nàng_genz_364": {
-      "username": "cô_nàng_genz_364",
-      "nickname": "Cô_Nàng_GenZ_364",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "linh_cute_921": {
-      "username": "linh_cute_921",
-      "nickname": "Linh_Cute_921",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "an_nhiên_218": {
-      "username": "an_nhiên_218",
-      "nickname": "An_Nhiên_218",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "hoàng_tử_nhạc_908": {
-      "username": "hoàng_tử_nhạc_908",
-      "nickname": "Hoàng_Tử_Nhạc_908",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "việt_hype_704": {
-      "username": "việt_hype_704",
-      "nickname": "Việt_Hype_704",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "cô_nàng_genz_376": {
-      "username": "cô_nàng_genz_376",
-      "nickname": "Cô_Nàng_GenZ_376",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "an_nhiên_459": {
-      "username": "an_nhiên_459",
-      "nickname": "An_Nhiên_459",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "phong_dj_456": {
-      "username": "phong_dj_456",
-      "nickname": "Phong_DJ_456",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "phong_dj_643": {
-      "username": "phong_dj_643",
-      "nickname": "Phong_DJ_643",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "hải_đăng_386": {
-      "username": "hải_đăng_386",
-      "nickname": "Hải_Đăng_386",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "vũ_quẩy_126": {
-      "username": "vũ_quẩy_126",
-      "nickname": "Vũ_Quẩy_126",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "hà_dance_357": {
-      "username": "hà_dance_357",
-      "nickname": "Hà_Dance_357",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "dân_chơi_sài_gòn_185": {
-      "username": "dân_chơi_sài_gòn_185",
-      "nickname": "Dân_Chơi_Sài_Gòn_185",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "phong_dj_254": {
-      "username": "phong_dj_254",
-      "nickname": "Phong_DJ_254",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "mai_rave_437": {
-      "username": "mai_rave_437",
-      "nickname": "Mai_Rave_437",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "mai_rave_116": {
-      "username": "mai_rave_116",
-      "nickname": "Mai_Rave_116",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "khánh_edm_498": {
-      "username": "khánh_edm_498",
-      "nickname": "Khánh_EDM_498",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "hoàng_bách_696": {
-      "username": "hoàng_bách_696",
-      "nickname": "Hoàng_Bách_696",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "vũ_quẩy_597": {
-      "username": "vũ_quẩy_597",
-      "nickname": "Vũ_Quẩy_597",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "tuấn_rave_924": {
-      "username": "tuấn_rave_924",
-      "nickname": "Tuấn_Rave_924",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "nam_sanoo_781": {
-      "username": "nam_sanoo_781",
-      "nickname": "Nam_Sanoo_781",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "vinh_techno_789": {
-      "username": "vinh_techno_789",
-      "nickname": "Vinh_Techno_789",
-      "avatar": "",
-      "coins": 100,
-      "giftsCount": 1
-    },
-    "tiến_dubstep_531": {
-      "username": "tiến_dubstep_531",
-      "nickname": "Tiến_Dubstep_531",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "mai_rave_354": {
-      "username": "mai_rave_354",
-      "nickname": "Mai_Rave_354",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "minh_quẩy_108": {
-      "username": "minh_quẩy_108",
-      "nickname": "Minh_Quẩy_108",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "ngọc_trầm_266": {
-      "username": "ngọc_trầm_266",
-      "nickname": "Ngọc_Trầm_266",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "dj_tài_năng_241": {
-      "username": "dj_tài_năng_241",
-      "nickname": "DJ_Tài_Năng_241",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "khánh_edm_766": {
-      "username": "khánh_edm_766",
-      "nickname": "Khánh_EDM_766",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "tuấn_rave_452": {
-      "username": "tuấn_rave_452",
-      "nickname": "Tuấn_Rave_452",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "sơn_bass_575": {
-      "username": "sơn_bass_575",
-      "nickname": "Sơn_Bass_575",
-      "avatar": "",
-      "coins": 4,
-      "giftsCount": 4
-    },
-    "phương_baby_870": {
-      "username": "phương_baby_870",
-      "nickname": "Phương_Baby_870",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "đức_vip_121": {
-      "username": "đức_vip_121",
-      "nickname": "Đức_VIP_121",
-      "avatar": "",
-      "coins": 1,
-      "giftsCount": 1
-    },
-    "hà_dance_591": {
-      "username": "hà_dance_591",
-      "nickname": "Hà_Dance_591",
-      "avatar": "",
-      "coins": 3,
-      "giftsCount": 3
-    },
-    "phong_dj_505": {
-      "username": "phong_dj_505",
-      "nickname": "Phong_DJ_505",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 5
-    },
-    "vũ_quẩy_926": {
-      "username": "vũ_quẩy_926",
-      "nickname": "Vũ_Quẩy_926",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "sơn_bass_850": {
-      "username": "sơn_bass_850",
-      "nickname": "Sơn_Bass_850",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "sơn_bass_480": {
-      "username": "sơn_bass_480",
-      "nickname": "Sơn_Bass_480",
-      "avatar": "",
-      "coins": 2,
-      "giftsCount": 2
-    },
-    "mai_rave_766": {
-      "username": "mai_rave_766",
-      "nickname": "Mai_Rave_766",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "quẩy_thủ_bắc_ninh_884": {
-      "username": "quẩy_thủ_bắc_ninh_884",
-      "nickname": "Quẩy_Thủ_Bắc_Ninh_884",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "sơn_bass_422": {
-      "username": "sơn_bass_422",
-      "nickname": "Sơn_Bass_422",
-      "avatar": "",
-      "coins": 5,
-      "giftsCount": 1
-    },
-    "my_cat_903": {
-      "username": "my_cat_903",
-      "nickname": "My_Cat_903",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "hải_đăng_515": {
-      "username": "hải_đăng_515",
-      "nickname": "Hải_Đăng_515",
-      "avatar": "",
-      "coins": 30,
-      "giftsCount": 1
-    },
-    "hương_dance_114": {
-      "username": "hương_dance_114",
-      "nickname": "Hương_Dance_114",
+    "nam_sanoo_766": {
+      "username": "nam_sanoo_766",
+      "nickname": "Nam_Sanoo_766",
       "avatar": "",
       "coins": 5,
       "giftsCount": 1

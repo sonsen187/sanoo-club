@@ -24,8 +24,10 @@
       this.audioElement = null;
       this.enabled = true;
       this.volume = 1.0; // Default 100% (Full master level, prominent and clearly audible above loud club music)
-      this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn)
-      this.playbackRate = 1.26; // 1.26x fast, snappy club tempo
+      this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn) | 'google'
+      this.playbackRate = 1.20; // 1.20x energetic club tempo
+      this.pitch = 0; // -50Hz to +50Hz pitch adjust
+      this.echo = 35; // 0% to 100% echo/reverb wet mix
       this.stingerEnabled = false;
       this.introSFX = 'click'; // 'none' | 'click' | 'airhorn' | 'scratch' | 'siren'
       this.enableGiftHype = true;
@@ -162,6 +164,7 @@
         this.reverbGain.connect(this.masterVocalGain);
 
         this.masterVocalGain.connect(this.ctx.destination);
+        this.setEcho(this.echo);
       } catch (err) {
         console.warn('Club TTS DSP Setup warning:', err);
       }
@@ -461,7 +464,7 @@
         }
 
         const encoded = encodeURIComponent(text);
-        const res = await fetch(`/api/tts?text=${encoded}&voice=${encodeURIComponent(this.style || 'female_hype')}&speed=${this.playbackRate || 1.20}`);
+        const res = await fetch(`/api/tts?text=${encoded}&voice=${encodeURIComponent(this.style || 'female_hype')}&speed=${this.playbackRate || 1.20}&pitch=${this.pitch || 0}`);
         if (!res.ok) throw new Error('TTS server status ' + res.status);
 
         const arrayBuffer = await res.arrayBuffer();
@@ -471,12 +474,9 @@
           const source = this.ctx.createBufferSource();
           source.buffer = audioBuffer;
 
-          // FAST & CRISP CADENCE: 1.25x - 1.28x
-          if (this.style === 'male_deep') {
-            source.playbackRate.value = 1.16;
-          } else {
-            source.playbackRate.value = this.playbackRate || 1.26;
-          }
+          // Natural cadence: Server edge_tts already handles rate & pitch natively!
+          // Only time-stretch for legacy Google TTS fallback
+          source.playbackRate.value = (this.style === 'google') ? (this.playbackRate || 1.20) : 1.0;
 
           if (this.micHighpass) {
             source.connect(this.micHighpass);
@@ -505,8 +505,9 @@
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'vi-VN';
         utterance.volume = this.volume;
-        utterance.rate = 1.25;
-        utterance.pitch = this.style === 'male_deep' ? 0.9 : 1.1;
+        utterance.rate = this.playbackRate || 1.20;
+        const basePitch = this.style === 'male_deep' ? 0.9 : 1.1;
+        utterance.pitch = Math.max(0.5, Math.min(2.0, basePitch + (this.pitch || 0) / 80));
 
         const voices = window.speechSynthesis.getVoices();
         const viVoices = voices.filter(v => v.lang.includes('vi') || v.lang.includes('VI'));
@@ -668,6 +669,8 @@
       if (typeof config.enabled !== 'undefined') this.setEnabled(config.enabled);
       if (typeof config.volume !== 'undefined') this.setVolume(config.volume);
       if (typeof config.speed !== 'undefined') this.setSpeed(config.speed);
+      if (typeof config.pitch !== 'undefined') this.setPitch(config.pitch);
+      if (typeof config.echo !== 'undefined') this.setEcho(config.echo);
       if (typeof config.style !== 'undefined') this.setStyle(config.style);
       if (typeof config.introSFX !== 'undefined') this.introSFX = config.introSFX;
       if (typeof config.duckingRatio !== 'undefined') this.setDucking(config.duckingRatio);
@@ -678,8 +681,43 @@
 
     setSpeed(speed) {
       const val = parseFloat(speed);
-      if (!isNaN(val) && val >= 1.0 && val <= 1.45) {
+      if (!isNaN(val) && val >= 0.70 && val <= 1.60) {
         this.playbackRate = val;
+      }
+    }
+
+    setPitch(val) {
+      const p = parseInt(val, 10);
+      if (!isNaN(p) && p >= -60 && p <= 60) {
+        this.pitch = p;
+        if (this.micPresence && this.micHighpass && this.ctx) {
+          try {
+            const now = this.ctx.currentTime;
+            this.micPresence.frequency.setValueAtTime(3000 + p * 15, now);
+            this.micHighpass.frequency.setValueAtTime(Math.max(80, 160 + p * 2), now);
+          } catch (_) {}
+        }
+      }
+    }
+
+    setEcho(val) {
+      const echoPct = Math.max(0, Math.min(100, parseFloat(val) || 0));
+      this.echo = echoPct;
+      const factor = echoPct / 100;
+      if (this.wetGain && this.ctx) {
+        const targetWet = factor * 0.45;
+        const targetFeedback = Math.min(0.55, 0.15 + factor * 0.35);
+        const targetReverb = factor * 0.35;
+        try {
+          const now = this.ctx.currentTime;
+          this.wetGain.gain.setValueAtTime(targetWet, now);
+          this.delayFeedback.gain.setValueAtTime(targetFeedback, now);
+          this.reverbGain.gain.setValueAtTime(targetReverb, now);
+        } catch (_) {
+          this.wetGain.gain.value = targetWet;
+          this.delayFeedback.gain.value = targetFeedback;
+          this.reverbGain.gain.value = targetReverb;
+        }
       }
     }
 

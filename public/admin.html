@@ -167,61 +167,139 @@
       <!-- RIGHT COLUMN -->
       <div style="display: flex; flex-direction: column; gap: 24px;">
 
-        <!-- CARD: AI MC & GIỌNG ĐỌC LIVESTREAM NEURAL (REALISTIC MIC DSP) -->
+        <!-- CARD: AI MC STUDIO - QUẢN LÝ GIỌNG & DSP PHÒNG THU -->
         <div class="admin-card" style="border: 1px solid rgba(0, 240, 255, 0.35); box-shadow: 0 4px 20px rgba(0, 240, 255, 0.08);">
           <div class="card-header">
             <div class="card-title">
               <span>🎤</span>
-              <span>AI MC & GIỌNG ĐỌC LIVESTREAM NEURAL (MIC SÂN KHẤU DSP)</span>
+              <span>AI MC STUDIO - QUẢN LÝ GIỌNG & DSP PHÒNG THU</span>
             </div>
             <div class="card-badge" id="tts-status-badge" style="background: rgba(0, 240, 255, 0.2); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); white-space: nowrap; padding: 4px 10px; font-size: 11px; font-weight: 700;">Đang Bật</div>
           </div>
 
           <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-            Trang bị giọng đọc AI Neural thế hệ mới (Microsoft Edge Neural siêu tự nhiên) kết hợp DSP phòng thu (Compressor nén âm, Reverb sân khấu, Delay 1/8) & Tự động hạ nhạc (Auto-Ducking) giúp giọng MC luôn uy lực, sắc nét trên nền nhạc sàn Vinahouse/EDM.
+            Bộ điều khiển giọng đọc MC toàn diện: Tùy chỉnh Giọng Nam/Nữ, Cao thấp (Pitch), Nhanh chậm (Speed), Echo/Vang sân khấu và Âm lượng Boost phòng thu trên nền nhạc sàn Vinahouse/EDM.
           </div>
 
-          <!-- BẬT/TẮT & CHỌN GIỌNG NÓI -->
-          <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px;">
-            <button id="btn-toggle-tts" class="fx-btn active-audio-mode" style="border-color: var(--neon-cyan); font-weight: 700;">🎙️ Trạng Thái: ĐANG BẬT</button>
-            <select id="tts-voice-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px;">
-              <option value="female_hype" selected>✨ Nữ Hype Quẩy Sung (Hoài My Neural AI)</option>
-              <option value="male_deep">🔥 Nam Trầm Gằn Bar (Nam Minh Neural AI)</option>
-              <option value="google">🤖 Robot Cổ Điển (Google Translate TTS)</option>
-            </select>
+          <!-- BẬT/TẮT MASTER & CHỌN GIỚI TÍNH / GIỌNG NÓI -->
+          <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: stretch;">
+            <button id="btn-toggle-tts" class="fx-btn active-audio-mode" style="border-color: var(--neon-cyan); font-weight: 700; flex: 1; padding: 10px;">🎙️ Mic Master: ĐANG BẬT</button>
           </div>
 
-          <!-- TỐC ĐỘ MC & ÂM MỞ ĐẦU SFX -->
-          <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 12px;">
-            <select id="tts-speed-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px;">
-              <option value="1.10">🎵 Tốc Độ: Vừa vặn (1.10x)</option>
-              <option value="1.20" selected>⚡ Tốc Độ: Quẩy Sung (1.20x - Chuẩn Bar)</option>
-              <option value="1.30">🔥 Tốc Độ: Siêu Tốc Turbo (1.30x)</option>
-            </select>
-            <select id="tts-sfx-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px;">
-              <option value="click" selected>🎙️ Âm Mở Mic: Click Sân Khấu</option>
-              <option value="airhorn">📯 Âm Mở Mic: Còi Hơi DJ Airhorn</option>
-              <option value="scratch">💿 Âm Mở Mic: Scratch Chà Đĩa Sàn</option>
-              <option value="siren">🚨 Âm Mở Mic: Còi Hú Siren Quán Bar</option>
-              <option value="none">🔇 Âm Mở Mic: Tắt Tiếng Mở Đầu</option>
-            </select>
-          </div>
-
-          <!-- ÂM LƯỢNG & TỰ ĐỘNG HẠ NHẠC (AUTO-DUCKING) -->
-          <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
-              <span>Âm lượng giọng đọc MC (Boost tối đa 150%):</span>
-              <span id="tts-vol-val" style="color: var(--neon-cyan); font-weight: 700;">100%</span>
+          <!-- GIỚI TÍNH & PHONG CÁCH GIỌNG (NAM / NỮ / ROBOT) -->
+          <div style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <span>🎭 Chọn Giới Tính & Giọng Đọc:</span>
+              <span id="tts-voice-label" style="color: var(--neon-cyan); font-weight: 700;">Hoài My (Nữ Hype)</span>
             </div>
-            <input type="range" id="tts-volume-slider" min="0" max="150" value="100" style="width: 100%; accent-color: var(--neon-cyan); cursor: pointer; margin-bottom: 10px;">
+            <div class="button-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+              <button id="btn-voice-female" class="fx-btn active-audio-mode" data-voice="female_hype" style="padding: 8px 6px; font-size: 12px; font-weight: 700; border-color: var(--neon-cyan);">
+                👩 Nữ Quẩy Sung<br><span style="font-size: 10px; opacity: 0.8; font-weight: 400;">Hoài My Neural</span>
+              </button>
+              <button id="btn-voice-male" class="fx-btn" data-voice="male_deep" style="padding: 8px 6px; font-size: 12px; font-weight: 700;">
+                👨 Nam Trầm Bar<br><span style="font-size: 10px; opacity: 0.8; font-weight: 400;">Nam Minh Neural</span>
+              </button>
+              <button id="btn-voice-google" class="fx-btn" data-voice="google" style="padding: 8px 6px; font-size: 12px; font-weight: 700;">
+                🤖 Robot Cổ Điển<br><span style="font-size: 10px; opacity: 0.8; font-weight: 400;">Google TTS</span>
+              </button>
+            </div>
+            <!-- Hidden fallback select for program compatibility -->
+            <select id="tts-voice-select" style="display: none;">
+              <option value="female_hype" selected>female_hype</option>
+              <option value="male_deep">male_deep</option>
+              <option value="google">google</option>
+            </select>
+          </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px;">
-              <span style="color: var(--text-muted); white-space: nowrap;">Tự động hạ nhạc khi MC nói:</span>
-              <select id="tts-ducking-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 6px; font-size: 12px; flex: 1;">
-                <option value="0.25">🔉 Hạ sâu 25% (Rõ chữ khi nhạc sàn cực lớn)</option>
-                <option value="0.40" selected>🔊 Chuẩn Club 40% (Cân bằng giọng MC & bass kick)</option>
-                <option value="0.65">🎶 Hạ nhẹ 65% (Giữ nhịp quẩy mượt mà)</option>
-                <option value="1.00">❌ Giữ nguyên 100% (Không hạ nhạc)</option>
+          <!-- BỘ 4 THANH TRƯỢT PHÒNG THU (STUDIO DSP CONTROLS) -->
+          <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 0.5px;">🎛️ Bảng Điều Khiển Âm Sắc (DSP Mixing Console)</span>
+              <button id="btn-reset-tts-params" class="btn btn-secondary" style="font-size: 10px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); cursor: pointer;" title="Khôi phục lại thông số chuẩn Bar">
+                🔄 Đặt Lại Chuẩn Club
+              </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+
+              <!-- 1. ÂM LƯỢNG (VOLUME) -->
+              <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                  <span style="color: var(--text-main); font-weight: 600;">🔊 Âm Lượng:</span>
+                  <span id="tts-vol-val" style="color: var(--neon-cyan); font-weight: 700;">100%</span>
+                </div>
+                <input type="range" id="tts-volume-slider" min="0" max="150" value="100" style="width: 100%; accent-color: var(--neon-cyan); cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                  <span>0%</span>
+                  <span>100% (Chuẩn)</span>
+                  <span>150% (Boost)</span>
+                </div>
+              </div>
+
+              <!-- 2. NHANH / CHẬM (SPEED) -->
+              <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                  <span style="color: var(--text-main); font-weight: 600;">⚡ Nhanh / Chậm:</span>
+                  <span id="tts-speed-val" style="color: var(--neon-yellow); font-weight: 700;">1.20x (Quẩy sung)</span>
+                </div>
+                <input type="range" id="tts-speed-slider" min="80" max="145" value="120" step="5" style="width: 100%; accent-color: var(--neon-yellow); cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                  <span>0.80x (Chậm)</span>
+                  <span>1.20x (Chuẩn)</span>
+                  <span>1.45x (Turbo)</span>
+                </div>
+              </div>
+
+              <!-- 3. CAO / THẤP (PITCH) -->
+              <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                  <span style="color: var(--text-main); font-weight: 600;">🎵 Cao / Thấp:</span>
+                  <span id="tts-pitch-val" style="color: var(--neon-pink); font-weight: 700;">0Hz (Chuẩn)</span>
+                </div>
+                <input type="range" id="tts-pitch-slider" min="-30" max="30" value="0" step="2" style="width: 100%; accent-color: var(--neon-pink); cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                  <span>-30Hz (Trầm ấm)</span>
+                  <span>0Hz (Chuẩn)</span>
+                  <span>+30Hz (Cao vút)</span>
+                </div>
+              </div>
+
+              <!-- 4. ECHO & VANG (REVERB / DELAY) -->
+              <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                  <span style="color: var(--text-main); font-weight: 600;">🌌 Echo & Vang:</span>
+                  <span id="tts-echo-val" style="color: #b388ff; font-weight: 700;">35% (Chuẩn Club)</span>
+                </div>
+                <input type="range" id="tts-echo-slider" min="0" max="100" value="35" step="5" style="width: 100%; accent-color: #b388ff; cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                  <span>0% (Khô mộc)</span>
+                  <span>35% (Club)</span>
+                  <span>100% (Vang dội)</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ÂM MỞ ĐẦU SFX & TỰ ĐỘNG HẠ NHẠC (AUTO-DUCKING) -->
+          <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">🎙️ ÂM MỞ ĐẦU (INTRO SFX):</div>
+              <select id="tts-sfx-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; width: 100%;">
+                <option value="click" selected>🎙️ Click Sân Khấu</option>
+                <option value="airhorn">📯 Còi Hơi DJ Airhorn</option>
+                <option value="scratch">💿 Scratch Chà Đĩa Sàn</option>
+                <option value="siren">🚨 Còi Hú Siren Quán Bar</option>
+                <option value="none">🔇 Tắt Tiếng Mở Đầu</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">🔉 HẠ NHẠC KHI HÔ (AUTO-DUCKING):</div>
+              <select id="tts-ducking-select" class="form-control" style="cursor: pointer; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; width: 100%;">
+                <option value="0.25">🔉 Hạ sâu 25% (Rõ từng chữ)</option>
+                <option value="0.40" selected>🔊 Chuẩn Club 40% (Cân bằng)</option>
+                <option value="0.65">🎶 Hạ nhẹ 65% (Giữ nhịp quẩy)</option>
+                <option value="1.00">❌ Giữ 100% (Không hạ nhạc)</option>
               </select>
             </div>
           </div>
