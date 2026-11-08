@@ -231,6 +231,72 @@
     // ==========================================================================
     // CORE SPEECH QUEUE & PLAYBACK
     // ==========================================================================
+    // Direct async speak that resolves strictly when audio playback finishes
+    async speakDirectAsync(text) {
+      if (!this.enabled || !text) return;
+      text = text.trim();
+      if (!text) return;
+
+      this.isPlaying = true;
+      this.lastSpeechTime = Date.now();
+
+      this.playMicClick(true);
+      this.startDucking();
+
+      await new Promise(r => setTimeout(r, 60));
+
+      let success = await this._playServerAudioDSP(text);
+      if (!success) {
+        await this._playWebSpeech(text);
+      }
+
+      this.playMicClick(false);
+      this.lastSpeechTime = Date.now();
+
+      await new Promise(r => setTimeout(r, 60));
+      this.stopDucking();
+      this.isPlaying = false;
+    }
+
+    // Formulates concise thank you sentence and speaks it, resolving when done
+    async speakGiftAsync(gift) {
+      if (!this.enabled || !gift) return;
+
+      const nickname = gift.nickname || gift.username || 'Bạn';
+      const giftName = gift.giftName || 'quà';
+      const count = gift.repeatCount || 1;
+      const diamondCount = gift.diamondCount || 0;
+      const fxType = gift.fxType || 'sparkles';
+
+      let sentence = '';
+      if (diamondCount >= 70 || fxType === 'mega_rave' || fxType === 'flame') {
+        const vipPhrases = [
+          `Úi xời đại gia ${nickname} nổ ${giftName}! Quá đỉnh!`,
+          `Đẳng cấp đại gia! Cảm ơn sếp ${nickname} ${giftName}!`,
+          `Khét lẹt! Cảm ơn đại gia ${nickname} nổ ${giftName}!`
+        ];
+        sentence = vipPhrases[Math.floor(Math.random() * vipPhrases.length)];
+      } else if (count > 1) {
+        const comboPhrases = [
+          `1 2 3! Cảm ơn ${nickname} combo ${count} ${giftName}!`,
+          `Khét mù! Cảm ơn sếp ${nickname} ${count} ${giftName}!`,
+          `Đỉnh quá! Cảm ơn ${nickname} ${count} ${giftName}!`
+        ];
+        sentence = comboPhrases[Math.floor(Math.random() * comboPhrases.length)];
+      } else {
+        const singlePhrases = [
+          `Cảm ơn sếp ${nickname} tặng ${giftName}!`,
+          `Khét lẹt! Cảm ơn ${nickname}!`,
+          `Lên luôn! Cảm ơn sếp ${nickname}!`,
+          `Cảm ơn ${nickname} ${giftName} nhé!`,
+          `Quá đỉnh! Cảm ơn ${nickname}!`
+        ];
+        sentence = singlePhrases[Math.floor(Math.random() * singlePhrases.length)];
+      }
+
+      return this.speakDirectAsync(sentence);
+    }
+
     speak(text, priority = false) {
       if (!this.enabled || !text) return;
       text = text.trim();

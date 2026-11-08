@@ -1393,28 +1393,125 @@
     });
   }
 
-  // Gift Celebration on DJ Screen (Replaces old popup card)
+  // Synchronized Sequential Queue for DJ Screen Showcase + Voice Reading
   let activeDJScreenGift = null;
 
+  class GiftShowcaseQueue {
+    constructor() {
+      this.queue = [];
+      this.isProcessing = false;
+    }
+
+    enqueue(gift) {
+      if (!gift) return;
+
+      const userKey = gift.username || gift.nickname || 'guest';
+      const giftName = gift.giftName || 'quà';
+      const repeatCount = gift.repeatCount || 1;
+      const diamondCount = gift.diamondCount || 0;
+
+      // Smart aggregation: Combine repeats if already in queue waiting
+      const existing = this.queue.find(
+        g => (g.username === userKey || g.nickname === userKey) && g.giftName === giftName
+      );
+
+      if (existing) {
+        existing.repeatCount = (existing.repeatCount || 1) + repeatCount;
+        existing.diamondCount = (existing.diamondCount || 0) + diamondCount;
+      } else {
+        this.queue.push({
+          username: gift.username || '',
+          nickname: gift.nickname || gift.username || 'Đại Gia',
+          avatar: gift.avatar || '',
+          giftName: gift.giftName || 'Quà Tặng VIP',
+          giftPictureUrl: gift.giftPictureUrl || gift.giftImage || '',
+          repeatCount: repeatCount,
+          diamondCount: diamondCount,
+          fxType: gift.fxType || 'cheer'
+        });
+      }
+
+      // Max 8 gifts in queue to keep it timely
+      if (this.queue.length > 8) {
+        this.queue.splice(2, this.queue.length - 8);
+      }
+
+      if (!this.isProcessing) {
+        this.processNext();
+      }
+    }
+
+    async processNext() {
+      if (this.queue.length === 0) {
+        this.isProcessing = false;
+        activeDJScreenGift = null; // Smoothly reverts DJ Screen back to 3 Top VIPs
+        return;
+      }
+
+      this.isProcessing = true;
+      const gift = this.queue.shift();
+
+      // Display duration on DJ Screen: 3.5s minimum (or 2.6s if queue has backlog)
+      const minDisplayTime = this.queue.length > 2 ? 2600 : 3600;
+      const now = performance.now();
+
+      // 1. Activate DJ Screen Showcase
+      activeDJScreenGift = {
+        ...gift,
+        startTime: now,
+        expiry: now + minDisplayTime + 8000
+      };
+
+      // 2. Play chime & trigger FX
+      if (window.sfx && typeof sfx.playGiftChime === 'function') {
+        sfx.playGiftChime();
+      }
+      this._triggerFX(gift.fxType);
+
+      // 3. Make target dancer celebrate jump
+      const gifterDancer = dancers.find(d => d.username === gift.username || d.nickname === gift.nickname);
+      if (gifterDancer) {
+        gifterDancer.isJumping = true;
+        setTimeout(() => { if (gifterDancer) gifterDancer.isJumping = false; }, 2500);
+      }
+
+      // 4. Synchronized Voice Reading (Resolves strictly when audio ends)
+      let ttsPromise = Promise.resolve();
+      if (window.TTSMCManager && TTSMCManager.enabled) {
+        if (typeof TTSMCManager.speakGiftAsync === 'function') {
+          ttsPromise = TTSMCManager.speakGiftAsync(gift);
+        }
+      }
+
+      // 5. Wait for BOTH reading to finish AND minimum screen display time
+      const minTimerPromise = new Promise(r => setTimeout(r, minDisplayTime));
+      await Promise.all([ttsPromise, minTimerPromise]);
+
+      // 6. Brief 200ms visual buffer before displaying next gift
+      await new Promise(r => setTimeout(r, 200));
+
+      // 7. Proceed to next gift in queue!
+      this.processNext();
+    }
+
+    _triggerFX(fxType) {
+      if (fxType === 'mega_rave') triggerRave();
+      else if (fxType === 'fireworks') triggerFireworks();
+      else if (fxType === 'flame') triggerFlame();
+      else if (fxType === 'smoke') triggerSmoke();
+      else if (fxType === 'confetti') triggerConfetti();
+      else triggerFireworks();
+    }
+  }
+
+  const giftQueue = new GiftShowcaseQueue();
+
   function triggerDJScreenGift(gift) {
-    if (!gift) return;
-    const now = performance.now();
-    activeDJScreenGift = {
-      username: gift.username || '',
-      nickname: gift.nickname || gift.username || 'Đại Gia',
-      avatar: gift.avatar || '',
-      giftName: gift.giftName || 'Quà Tặng VIP',
-      giftPictureUrl: gift.giftPictureUrl || gift.giftImage || '',
-      repeatCount: gift.repeatCount || 1,
-      diamondCount: gift.diamondCount || 1,
-      fxType: gift.fxType || 'cheer',
-      startTime: now,
-      expiry: now + 6000 // Display for 6 seconds on DJ Screen
-    };
+    giftQueue.enqueue(gift);
   }
 
   function showGiftBanner(gift) {
-    triggerDJScreenGift(gift);
+    giftQueue.enqueue(gift);
   }
 
   // Main Render Loop

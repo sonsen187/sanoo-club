@@ -773,21 +773,25 @@
 
   if (btnTestGiftTTS) {
     btnTestGiftTTS.addEventListener('click', () => {
-      sendWS('tts_speak', {
-        text: 'Khét lẹt! Cảm ơn sếp Minh Rave tặng Hoa Hồng!',
-        priority: true
+      sendWS('simulate_gift', {
+        username: 'Minh_Rave',
+        nickname: 'Minh Rave',
+        giftName: 'Hoa Hồng',
+        repeatCount: 1,
+        diamondCount: 1,
+        fxType: 'fireworks'
       });
-      showToast('Đang phát thử: Cảm ơn tặng quà');
+      showToast('🎁 Đã đưa quà vào Queue: Minh Rave tặng Hoa Hồng');
     });
   }
 
   if (btnTestTopTTS) {
     btnTestTopTTS.addEventListener('click', () => {
-      sendWS('tts_speak', {
-        text: 'Chúc mừng sếp Minh Rave lên đỉnh Top 1 bục vàng!',
-        priority: true
+      sendWS('simulate_vip', {
+        rank: 1,
+        username: 'Minh_Rave'
       });
-      showToast('Đang phát thử: Vinh danh Top 1');
+      showToast('👑 Đang đưa Top 1 vào Queue: Minh Rave');
     });
   }
 
