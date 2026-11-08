@@ -73,8 +73,13 @@ const state = {
     tts: {
       enabled: true,
       volume: 1.0,
-      speed: 1.26,
-      style: 'female_hype'
+      speed: 1.20,
+      style: 'female_hype',
+      duckingRatio: 0.40,
+      introSFX: 'click',
+      enableGiftHype: true,
+      enableTopRankHype: true,
+      enablePeriodicHype: true
     }
   }
 };
@@ -566,15 +571,69 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// In-Memory TTS Cache (Max 250 items)
+// In-Memory TTS Cache for Neural Audio (Max 350 items)
 const ttsCache = new Map();
+
+function fetchGoogleTTS(text, cacheKey, res) {
+  const encoded = encodeURIComponent(text);
+  const ttsUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encoded;
+  const request = https.get(ttsUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://translate.google.com/'
+    },
+    timeout: 6000
+  }, (ttsRes) => {
+    if (ttsRes.statusCode !== 200) {
+      if (!res.headersSent) res.status(ttsRes.statusCode).send('Failed to fetch TTS');
+      return;
+    }
+    const chunks = [];
+    ttsRes.on('data', chunk => chunks.push(chunk));
+    ttsRes.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      if (ttsCache.size > 350) {
+        const oldest = ttsCache.keys().next().value;
+        ttsCache.delete(oldest);
+      }
+      ttsCache.set(cacheKey, buffer);
+      if (!res.headersSent) {
+        res.set({
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': buffer.length,
+          'Cache-Control': 'public, max-age=86400'
+        });
+        res.end(buffer);
+      }
+    });
+  });
+  request.on('error', err => {
+    console.error('Google TTS fallback error:', err.message);
+    if (!res.headersSent) res.status(500).send('TTS service error');
+  });
+  request.on('timeout', () => {
+    request.destroy();
+    if (!res.headersSent) res.status(504).send('TTS timeout');
+  });
+}
 
 app.get('/api/tts', (req, res) => {
   const text = (req.query.text || '').trim();
   if (!text) return res.status(400).send('Text is required');
   if (text.length > 250) return res.status(400).send('Text exceeds 250 characters');
 
-  const cacheKey = text.toLowerCase();
+  const voiceType = req.query.voice || 'female_hype'; // 'female_hype' | 'male_deep' | 'google'
+  const speed = parseFloat(req.query.speed) || 1.20;
+
+  let edgeVoice = 'vi-VN-HoaiMyNeural';
+  if (voiceType === 'male_deep') {
+    edgeVoice = 'vi-VN-NamMinhNeural';
+  }
+
+  const ratePct = Math.round((speed - 1.0) * 100);
+  const rateStr = (ratePct >= 0 ? `+${ratePct}%` : `${ratePct}%`);
+
+  const cacheKey = `${voiceType}_${rateStr}_${text.toLowerCase()}`;
   if (ttsCache.has(cacheKey)) {
     const cachedBuffer = ttsCache.get(cacheKey);
     res.set({
@@ -585,48 +644,53 @@ app.get('/api/tts', (req, res) => {
     return res.end(cachedBuffer);
   }
 
-  const encoded = encodeURIComponent(text);
-  const ttsUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encoded;
+  if (voiceType === 'google') {
+    return fetchGoogleTTS(text, cacheKey, res);
+  }
 
-  const request = https.get(ttsUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://translate.google.com/'
-    },
-    timeout: 6000
-  }, (ttsRes) => {
-    if (ttsRes.statusCode !== 200) {
-      return res.status(ttsRes.statusCode).send('Failed to fetch TTS');
-    }
+  // Attempt Microsoft Edge Neural TTS (Ultra Natural Human-like AI Voice)
+  try {
+    const pyProc = spawn('python', [
+      '-m', 'edge_tts',
+      '-t', text,
+      '-v', edgeVoice,
+      `--rate=${rateStr}`,
+      '--write-media', '-'
+    ], {
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }
+    });
 
     const chunks = [];
-    ttsRes.on('data', chunk => chunks.push(chunk));
-    ttsRes.on('end', () => {
-      const buffer = Buffer.concat(chunks);
-      if (ttsCache.size > 250) {
-        const oldest = ttsCache.keys().next().value;
-        ttsCache.delete(oldest);
+    pyProc.stdout.on('data', chunk => chunks.push(chunk));
+
+    pyProc.on('close', code => {
+      if (code === 0 && chunks.length > 0) {
+        const buffer = Buffer.concat(chunks);
+        if (ttsCache.size > 350) {
+          const oldest = ttsCache.keys().next().value;
+          ttsCache.delete(oldest);
+        }
+        ttsCache.set(cacheKey, buffer);
+
+        if (!res.headersSent) {
+          res.set({
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': buffer.length,
+            'Cache-Control': 'public, max-age=86400'
+          });
+          return res.end(buffer);
+        }
+      } else {
+        fetchGoogleTTS(text, cacheKey, res);
       }
-      ttsCache.set(cacheKey, buffer);
-
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': buffer.length,
-        'Cache-Control': 'public, max-age=86400'
-      });
-      res.end(buffer);
     });
-  });
 
-  request.on('error', err => {
-    console.error('TTS proxy error:', err.message);
-    if (!res.headersSent) res.status(500).send('TTS service error');
-  });
-
-  request.on('timeout', () => {
-    request.destroy();
-    if (!res.headersSent) res.status(504).send('TTS service timeout');
-  });
+    pyProc.on('error', () => {
+      fetchGoogleTTS(text, cacheKey, res);
+    });
+  } catch (err) {
+    fetchGoogleTTS(text, cacheKey, res);
+  }
 });
 
 app.post('/api/tiktok/connect', (req, res) => {

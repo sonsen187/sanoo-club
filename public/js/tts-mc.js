@@ -13,6 +13,7 @@
     module.exports = factory();
   } else {
     root.TTSMCManager = factory();
+    root.ClubTTSMC = root.TTSMCManager;
   }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
@@ -25,7 +26,11 @@
       this.volume = 1.0; // Default 100% (Full master level, prominent and clearly audible above loud club music)
       this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn)
       this.playbackRate = 1.26; // 1.26x fast, snappy club tempo
-      this.stingerEnabled = false; // Disable extra scratch by default to keep music clean
+      this.stingerEnabled = false;
+      this.introSFX = 'click'; // 'none' | 'click' | 'airhorn' | 'scratch' | 'siren'
+      this.enableGiftHype = true;
+      this.enableTopRankHype = true;
+      this.enablePeriodicHype = true;
 
       this.isDucking = false;
       this.baseMusicVolume = 0.8;
@@ -178,6 +183,29 @@
       return impulse;
     }
 
+    playIntroSFX(isOn = true) {
+      if (!isOn) {
+        if (this.introSFX === 'click') this.playMicClick(false);
+        return;
+      }
+
+      if (this.introSFX === 'click') {
+        this.playMicClick(true);
+      } else if (this.introSFX === 'airhorn') {
+        if (typeof window !== 'undefined' && window.sfx && typeof window.sfx.playAirhorn === 'function') {
+          window.sfx.playAirhorn();
+        }
+      } else if (this.introSFX === 'scratch') {
+        if (typeof window !== 'undefined' && window.sfx && typeof window.sfx.playScratch === 'function') {
+          window.sfx.playScratch();
+        }
+      } else if (this.introSFX === 'siren') {
+        if (typeof window !== 'undefined' && window.sfx && typeof window.sfx.playSiren === 'function') {
+          window.sfx.playSiren();
+        }
+      }
+    }
+
     playMicClick(isOn = true) {
       if (!this.ctx || this.ctx.state !== 'running') return;
       try {
@@ -260,7 +288,7 @@
       this.isPlaying = true;
       this.lastSpeechTime = Date.now();
 
-      this.playMicClick(true);
+      this.playIntroSFX(true);
       this.startDucking();
 
       await new Promise(r => setTimeout(r, 60));
@@ -270,7 +298,7 @@
         await this._playWebSpeech(text);
       }
 
-      this.playMicClick(false);
+      this.playIntroSFX(false);
       this.lastSpeechTime = Date.now();
 
       await new Promise(r => setTimeout(r, 60));
@@ -357,7 +385,7 @@
     }
 
     async speakGiftAsync(gift) {
-      if (!this.enabled || !gift) return;
+      if (!this.enabled || !this.enableGiftHype || !gift) return;
 
       const nickname = gift.nickname || gift.username || 'Bạn';
       const count = gift.repeatCount || 1;
@@ -403,7 +431,7 @@
       this.lastSpeechTime = Date.now();
 
       // Mic-on click & gentle ducking
-      this.playMicClick(true);
+      this.playIntroSFX(true);
       this.startDucking();
 
       await new Promise(r => setTimeout(r, 60));
@@ -414,7 +442,7 @@
         await this._playWebSpeech(text);
       }
 
-      this.playMicClick(false);
+      this.playIntroSFX(false);
       this.lastSpeechTime = Date.now();
 
       await new Promise(r => setTimeout(r, 60));
@@ -433,7 +461,7 @@
         }
 
         const encoded = encodeURIComponent(text);
-        const res = await fetch(`/api/tts?text=${encoded}`);
+        const res = await fetch(`/api/tts?text=${encoded}&voice=${encodeURIComponent(this.style || 'female_hype')}&speed=${this.playbackRate || 1.20}`);
         if (!res.ok) throw new Error('TTS server status ' + res.status);
 
         const arrayBuffer = await res.arrayBuffer();
@@ -506,7 +534,7 @@
     // 1. SMART GIFT CELEBRATION (SUPER CONCISE & PUNCHY: 1.2s - 2.0s MAX)
     // ==========================================================================
     onGift(data) {
-      if (!this.enabled || !data) return;
+      if (!this.enabled || !this.enableGiftHype || !data) return;
 
       const userKey = data.username || data.nickname || 'guest';
       const nickname = data.nickname || data.username || 'Bạn';
@@ -550,7 +578,7 @@
     // 2. TOP 3 VIP PODIUM ANNOUNCEMENTS (CONCISE: ~2.0s)
     // ==========================================================================
     onTopGiftersUpdate(topGifters) {
-      if (!this.enabled) return;
+      if (!this.enabled || !this.enableTopRankHype) return;
       if (!Array.isArray(topGifters) || topGifters.length === 0) {
         this.lastTop3Usernames = [null, null, null];
         this.isInitialTopLoad = true;
@@ -609,7 +637,7 @@
 
         const idleTime = Date.now() - this.lastSpeechTime;
         // Only trigger every 240 seconds (4 minutes) when room is completely idle
-        if (idleTime >= 240000 && this.queue.length === 0 && !this.isPlaying) {
+        if (this.enablePeriodicHype && idleTime >= 240000 && this.queue.length === 0 && !this.isPlaying) {
           this.triggerRandomHype();
         }
       }, 35000);
@@ -630,9 +658,22 @@
     }
 
     setStyle(style) {
-      if (style === 'female_hype' || style === 'male_deep') {
+      if (style === 'female_hype' || style === 'male_deep' || style === 'google') {
         this.style = style;
       }
+    }
+
+    setConfig(config) {
+      if (!config) return;
+      if (typeof config.enabled !== 'undefined') this.setEnabled(config.enabled);
+      if (typeof config.volume !== 'undefined') this.setVolume(config.volume);
+      if (typeof config.speed !== 'undefined') this.setSpeed(config.speed);
+      if (typeof config.style !== 'undefined') this.setStyle(config.style);
+      if (typeof config.introSFX !== 'undefined') this.introSFX = config.introSFX;
+      if (typeof config.duckingRatio !== 'undefined') this.setDucking(config.duckingRatio);
+      if (typeof config.enableGiftHype !== 'undefined') this.enableGiftHype = !!config.enableGiftHype;
+      if (typeof config.enableTopRankHype !== 'undefined') this.enableTopRankHype = !!config.enableTopRankHype;
+      if (typeof config.enablePeriodicHype !== 'undefined') this.enablePeriodicHype = !!config.enablePeriodicHype;
     }
 
     setSpeed(speed) {

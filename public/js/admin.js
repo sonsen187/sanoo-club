@@ -80,14 +80,7 @@
           if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
           if (data.settings.autoLeaveInactive60s !== undefined) updateAutoLeaveUI(data.settings.autoLeaveInactive60s);
           if (data.settings.tts) {
-            if (data.settings.tts.volume !== undefined && ttsVolumeSlider) {
-              const volPct = Math.round(data.settings.tts.volume * 100);
-              ttsVolumeSlider.value = volPct;
-              if (ttsVolVal) ttsVolVal.textContent = volPct + '%';
-            }
-            if (data.settings.tts.speed !== undefined && ttsSpeedSelect) {
-              ttsSpeedSelect.value = String(data.settings.tts.speed);
-            }
+            updateTTSAdminUI(data.settings.tts);
           }
         }
         if (data.autoSimulator) {
@@ -101,6 +94,11 @@
           const bg = document.getElementById('chk-transparent-bg');
           if (bg) bg.checked = !!data.transparentBg;
         }
+        if (data.tts) updateTTSAdminUI(data.tts);
+        break;
+
+      case 'tts_config':
+        updateTTSAdminUI(data);
         break;
 
       case 'auto_sim_update':
@@ -798,56 +796,150 @@
   });
 
   // ============================================================================
-  // AI MC & LIVESTREAM TTS CONTROLS
+  // AI MC & LIVESTREAM NEURAL TTS CONTROLS (EXPANDED CLUB ENGINE)
   // ============================================================================
-  let ttsEnabled = true;
+  const ttsState = {
+    enabled: true,
+    volume: 1.0,
+    speed: 1.20,
+    style: 'female_hype',
+    introSFX: 'click',
+    duckingRatio: 0.40,
+    enableGiftHype: true,
+    enableTopRankHype: true,
+    enablePeriodicHype: true
+  };
+
   const btnToggleTTS = document.getElementById('btn-toggle-tts');
   const ttsStatusBadge = document.getElementById('tts-status-badge');
   const ttsVoiceSelect = document.getElementById('tts-voice-select');
+  const ttsSpeedSelect = document.getElementById('tts-speed-select');
+  const ttsSFXSelect = document.getElementById('tts-sfx-select');
   const ttsVolumeSlider = document.getElementById('tts-volume-slider');
   const ttsVolVal = document.getElementById('tts-vol-val');
+  const ttsDuckingSelect = document.getElementById('tts-ducking-select');
+
+  const btnToggleGiftHype = document.getElementById('btn-toggle-gift-hype');
+  const btnToggleTopHype = document.getElementById('btn-toggle-top-hype');
+  const btnTogglePeriodicHype = document.getElementById('btn-toggle-periodic-hype');
+
+  const customTTSInput = document.getElementById('custom-tts-input');
+  const btnCustomTTSSpeak = document.getElementById('btn-custom-tts-speak');
+
   const btnTestGiftTTS = document.getElementById('btn-test-gift-tts');
+  const btnTestBigGiftTTS = document.getElementById('btn-test-big-gift-tts');
   const btnTestTopTTS = document.getElementById('btn-test-top-tts');
   const btnTestHypeTTS = document.getElementById('btn-test-hype-tts');
 
-  if (btnToggleTTS) {
-    btnToggleTTS.addEventListener('click', () => {
-      ttsEnabled = !ttsEnabled;
-      if (ttsEnabled) {
+  function updateTTSAdminUI(tts) {
+    if (!tts) return;
+    Object.assign(ttsState, tts);
+
+    if (btnToggleTTS) {
+      if (ttsState.enabled) {
         btnToggleTTS.classList.add('active-audio-mode');
         btnToggleTTS.style.borderColor = 'var(--neon-cyan)';
         btnToggleTTS.innerHTML = '🎙️ Trạng Thái: ĐANG BẬT';
-        if (ttsStatusBadge) {
-          ttsStatusBadge.textContent = 'Đang Bật';
-          ttsStatusBadge.style.color = 'var(--neon-cyan)';
-        }
-        showToast('Đã BẬT giọng đọc AI MC');
       } else {
         btnToggleTTS.classList.remove('active-audio-mode');
         btnToggleTTS.style.borderColor = 'rgba(255,255,255,0.2)';
         btnToggleTTS.innerHTML = '🔇 Trạng Thái: ĐÃ TẮT';
-        if (ttsStatusBadge) {
-          ttsStatusBadge.textContent = 'Đã Tắt';
-          ttsStatusBadge.style.color = '#a0aec0';
-        }
-        showToast('Đã TẮT giọng đọc AI MC');
       }
-      sendWS('tts_config', { enabled: ttsEnabled });
-    });
+    }
+    if (ttsStatusBadge) {
+      ttsStatusBadge.textContent = ttsState.enabled ? 'Đang Bật' : 'Đã Tắt';
+      ttsStatusBadge.style.color = ttsState.enabled ? 'var(--neon-cyan)' : '#a0aec0';
+    }
+
+    if (ttsVoiceSelect && ttsState.style) {
+      ttsVoiceSelect.value = ttsState.style;
+    }
+    if (ttsSpeedSelect && ttsState.speed !== undefined) {
+      ttsSpeedSelect.value = Number(ttsState.speed).toFixed(2);
+    }
+    if (ttsSFXSelect && ttsState.introSFX) {
+      ttsSFXSelect.value = ttsState.introSFX;
+    }
+    if (ttsVolumeSlider && ttsState.volume !== undefined) {
+      const volPct = Math.round(ttsState.volume * 100);
+      ttsVolumeSlider.value = volPct;
+      if (ttsVolVal) ttsVolVal.textContent = volPct + '%';
+    }
+    if (ttsDuckingSelect && ttsState.duckingRatio !== undefined) {
+      ttsDuckingSelect.value = Number(ttsState.duckingRatio).toFixed(2);
+    }
+
+    if (btnToggleGiftHype) {
+      if (ttsState.enableGiftHype) {
+        btnToggleGiftHype.classList.add('active-audio-mode');
+        btnToggleGiftHype.style.borderColor = 'var(--neon-cyan)';
+        btnToggleGiftHype.innerHTML = '🎁 Hô Khi Tặng Quà (Bật)';
+      } else {
+        btnToggleGiftHype.classList.remove('active-audio-mode');
+        btnToggleGiftHype.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnToggleGiftHype.innerHTML = '🎁 Hô Khi Tặng Quà (Tắt)';
+      }
+    }
+    if (btnToggleTopHype) {
+      if (ttsState.enableTopRankHype) {
+        btnToggleTopHype.classList.add('active-audio-mode');
+        btnToggleTopHype.style.borderColor = 'var(--neon-cyan)';
+        btnToggleTopHype.innerHTML = '👑 Hô Top BXH (Bật)';
+      } else {
+        btnToggleTopHype.classList.remove('active-audio-mode');
+        btnToggleTopHype.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnToggleTopHype.innerHTML = '👑 Hô Top BXH (Tắt)';
+      }
+    }
+    if (btnTogglePeriodicHype) {
+      if (ttsState.enablePeriodicHype) {
+        btnTogglePeriodicHype.classList.add('active-audio-mode');
+        btnTogglePeriodicHype.style.borderColor = 'var(--neon-cyan)';
+        btnTogglePeriodicHype.innerHTML = '⚡ Hô Giữ Nhiệt 4p (Bật)';
+      } else {
+        btnTogglePeriodicHype.classList.remove('active-audio-mode');
+        btnTogglePeriodicHype.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnTogglePeriodicHype.innerHTML = '⚡ Hô Giữ Nhiệt 4p (Tắt)';
+      }
+    }
   }
 
-  const ttsSpeedSelect = document.getElementById('tts-speed-select');
-  if (ttsSpeedSelect) {
-    ttsSpeedSelect.addEventListener('change', () => {
-      sendWS('tts_config', { speed: parseFloat(ttsSpeedSelect.value) });
-      showToast('Đã chỉnh tốc độ MC: ' + ttsSpeedSelect.value + 'x');
+  if (btnToggleTTS) {
+    btnToggleTTS.addEventListener('click', () => {
+      ttsState.enabled = !ttsState.enabled;
+      updateTTSAdminUI(ttsState);
+      sendWS('tts_config', { enabled: ttsState.enabled });
+      showToast(ttsState.enabled ? 'Đã BẬT giọng đọc AI MC Neural' : 'Đã TẮT giọng đọc AI MC');
     });
   }
 
   if (ttsVoiceSelect) {
     ttsVoiceSelect.addEventListener('change', () => {
-      sendWS('tts_config', { voiceAccent: ttsVoiceSelect.value });
-      showToast('Đã đổi giọng: ' + (ttsVoiceSelect.value === 'north' ? 'Miền Bắc' : 'Miền Nam'));
+      ttsState.style = ttsVoiceSelect.value;
+      sendWS('tts_config', { style: ttsVoiceSelect.value });
+      const voiceNames = {
+        female_hype: 'Nữ Hype Quẩy Sung (Hoài My Neural)',
+        male_deep: 'Nam Trầm Gằn Bar (Nam Minh Neural)',
+        google: 'Robot Cổ Điển (Google TTS)'
+      };
+      showToast('Đã chuyển giọng: ' + (voiceNames[ttsVoiceSelect.value] || ttsVoiceSelect.value));
+    });
+  }
+
+  if (ttsSpeedSelect) {
+    ttsSpeedSelect.addEventListener('change', () => {
+      const speed = parseFloat(ttsSpeedSelect.value);
+      ttsState.speed = speed;
+      sendWS('tts_config', { speed });
+      showToast(`Đã chỉnh tốc độ MC: ${speed.toFixed(2)}x`);
+    });
+  }
+
+  if (ttsSFXSelect) {
+    ttsSFXSelect.addEventListener('change', () => {
+      ttsState.introSFX = ttsSFXSelect.value;
+      sendWS('tts_config', { introSFX: ttsSFXSelect.value });
+      showToast(`Đã chọn âm mở mic: ${ttsSFXSelect.options[ttsSFXSelect.selectedIndex].text}`);
     });
   }
 
@@ -855,9 +947,80 @@
     ttsVolumeSlider.addEventListener('input', () => {
       const vol = parseInt(ttsVolumeSlider.value, 10);
       if (ttsVolVal) ttsVolVal.textContent = vol + '%';
+      ttsState.volume = vol / 100;
       sendWS('tts_config', { volume: vol / 100 });
     });
   }
+
+  if (ttsDuckingSelect) {
+    ttsDuckingSelect.addEventListener('change', () => {
+      const duckingRatio = parseFloat(ttsDuckingSelect.value);
+      ttsState.duckingRatio = duckingRatio;
+      sendWS('tts_config', { duckingRatio });
+      showToast(`Đã chỉnh chế độ hạ nhạc: ${Math.round(duckingRatio * 100)}%`);
+    });
+  }
+
+  if (btnToggleGiftHype) {
+    btnToggleGiftHype.addEventListener('click', () => {
+      ttsState.enableGiftHype = !ttsState.enableGiftHype;
+      updateTTSAdminUI(ttsState);
+      sendWS('tts_config', { enableGiftHype: ttsState.enableGiftHype });
+      showToast(ttsState.enableGiftHype ? 'Đã BẬT hô khi tặng quà' : 'Đã TẮT hô khi tặng quà');
+    });
+  }
+
+  if (btnToggleTopHype) {
+    btnToggleTopHype.addEventListener('click', () => {
+      ttsState.enableTopRankHype = !ttsState.enableTopRankHype;
+      updateTTSAdminUI(ttsState);
+      sendWS('tts_config', { enableTopRankHype: ttsState.enableTopRankHype });
+      showToast(ttsState.enableTopRankHype ? 'Đã BẬT hô Top BXH & Đại gia' : 'Đã TẮT hô Top BXH');
+    });
+  }
+
+  if (btnTogglePeriodicHype) {
+    btnTogglePeriodicHype.addEventListener('click', () => {
+      ttsState.enablePeriodicHype = !ttsState.enablePeriodicHype;
+      updateTTSAdminUI(ttsState);
+      sendWS('tts_config', { enablePeriodicHype: ttsState.enablePeriodicHype });
+      showToast(ttsState.enablePeriodicHype ? 'Đã BẬT hô giữ nhiệt định kỳ 4p' : 'Đã TẮT hô giữ nhiệt định kỳ');
+    });
+  }
+
+  function triggerCustomLiveSpeech() {
+    if (!customTTSInput) return;
+    const text = customTTSInput.value.trim();
+    if (!text) {
+      showToast('Vui lòng nhập nội dung muốn MC hô!');
+      customTTSInput.focus();
+      return;
+    }
+    sendWS('tts_speak', { text, priority: true });
+    showToast(`📢 Đang phát câu hô qua stream: "${text}"`);
+  }
+
+  if (btnCustomTTSSpeak) {
+    btnCustomTTSSpeak.addEventListener('click', triggerCustomLiveSpeech);
+  }
+
+  if (customTTSInput) {
+    customTTSInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerCustomLiveSpeech();
+      }
+    });
+  }
+
+  document.querySelectorAll('.quick-shout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.text;
+      if (customTTSInput) customTTSInput.value = text;
+      sendWS('tts_speak', { text, priority: true });
+      showToast(`📢 MC Hô ngay: "${text}"`);
+    });
+  });
 
   if (btnTestGiftTTS) {
     btnTestGiftTTS.addEventListener('click', () => {
@@ -867,9 +1030,23 @@
         giftName: 'Hoa Hồng',
         repeatCount: 1,
         diamondCount: 1,
-        fxType: 'fireworks'
+        fxType: 'sparkles'
       });
-      showToast('🎁 Đã đưa quà vào Queue: Minh Rave tặng Hoa Hồng');
+      showToast('🎁 Test quà nhỏ: Minh Rave tặng Hoa Hồng');
+    });
+  }
+
+  if (btnTestBigGiftTTS) {
+    btnTestBigGiftTTS.addEventListener('click', () => {
+      sendWS('simulate_gift', {
+        username: 'DaiGia_SaiThanh',
+        nickname: 'Đại Gia Sài Thành',
+        giftName: 'Sư Tử Siêu Cấp',
+        repeatCount: 1,
+        diamondCount: 5000,
+        fxType: 'mega_rave'
+      });
+      showToast('💎 Test đại gia: Đại Gia Sài Thành tặng Sư Tử (5000 xu)');
     });
   }
 
@@ -877,16 +1054,16 @@
     btnTestTopTTS.addEventListener('click', () => {
       sendWS('simulate_vip', {
         rank: 1,
-        username: 'Minh_Rave'
+        username: 'Trum_SanBay'
       });
-      showToast('👑 Đang đưa Top 1 vào Queue: Minh Rave');
+      showToast('👑 Test vinh danh Top 1: Trùm Sàn Bay');
     });
   }
 
   if (btnTestHypeTTS) {
     btnTestHypeTTS.addEventListener('click', () => {
       sendWS('tts_hype', {});
-      showToast('Đang phát thử: Hô MC khuấy động');
+      showToast('⚡ Đang phát câu MC hô giữ nhiệt');
     });
   }
 
