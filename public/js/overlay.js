@@ -2306,7 +2306,7 @@
     ctx.textBaseline = 'middle';
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = 6;
-    ctx.fillText(`✨ CẢM ƠN ${gift.nickname.toUpperCase()} ĐÃ TẶNG ${gift.giftName.toUpperCase()} x${gift.repeatCount}! ✨`, cx, bottomY);
+    ctx.fillText(`🔥 VINH DANH ${gift.nickname.toUpperCase()} TIẾP LỬA ${gift.giftName.toUpperCase()} x${gift.repeatCount}! 🔥`, cx, bottomY);
     ctx.restore();
 
     ctx.restore();

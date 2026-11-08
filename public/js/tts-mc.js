@@ -278,75 +278,84 @@
       this.isPlaying = false;
     }
 
-    // Tra ve cau cam on ngan gon theo gia tri qua (KHONG doc ten qua, dung chat MC club)
+    // Tra ve cau ho qua chuan Club / DJ MC (TUYET DOI KHONG dung tu "cam on", chuan phong cach vu truong)
     getGiftThankYouSentence(nickname, diamondCount = 0, count = 1, fxType = 'sparkles') {
       const cleanNick = (nickname || 'bạn').trim();
       const totalCoins = Math.max(diamondCount * (count > 1 ? count : 1), diamondCount);
 
-      // TANG 4: Sieu qua khung (>= 5,000 xu, vi du Du Thuyen 9,999 xu, Su Tu 29,999 xu...)
+      // TẦNG 4: Siêu quà khủng (>= 5,000 xu, ví dụ Du Thuyền, Sư Tử, Lâu Đài...)
       if (totalCoins >= 5000) {
         const phrases = [
           `Bái phục đại gia ${cleanNick}! Đẳng cấp vũ trụ!`,
-          `Chao đảo sàn nhảy! Cảm ơn trùm đại gia ${cleanNick}!`,
-          `Đại địa chấn! Cảm ơn đại gia ${cleanNick} quá khủng!`,
-          `Cả sàn nâng ly chúc mừng đại gia ${cleanNick}!`,
-          `Quá khét đại gia ${cleanNick} ơi! Đỉnh của chóp!`
+          `Chao đảo sàn bay! Gọi tên trùm đại gia ${cleanNick}!`,
+          `Đại địa chấn! Đại gia ${cleanNick} gánh cả sàn nhảy!`,
+          `Cả sàn nâng ly! Đại gia ${cleanNick} quá khét!`,
+          `Đỉnh của chóp! Đại gia ${cleanNick} bao trọn sàn bay!`,
+          `Quá đẳng cấp! Một tràng pháo tay cho sếp ${cleanNick}!`,
+          `Sếp ${cleanNick} xuất hiện, chao đảo cả vũ trường!`
         ];
         return phrases[Math.floor(Math.random() * phrases.length)];
       }
 
-      // TANG 3: Qua to / Dai gia (500 - 4,999 xu, vi du Sung Tien 500 xu, Vuong Mien, Thien Nga...)
+      // TẦNG 3: Quà to / Đại gia (500 - 4,999 xu, ví dụ Súng Tiền, Vương Miện, Thiên Nga, Siêu Xe...)
       if (totalCoins >= 500 || fxType === 'mega_rave') {
         const phrases = [
           `Úi xời đại gia ${cleanNick}! Đẳng cấp quá sếp ơi!`,
-          `Cháy sàn luôn! Cảm ơn đại gia ${cleanNick}!`,
-          `Đẳng cấp đại gia! Cảm ơn sếp ${cleanNick}!`,
-          `Khét mù sàn nhảy! Cảm ơn đại gia ${cleanNick}!`,
-          `Cảm ơn đại gia ${cleanNick}, quẩy tung nóc nhà!`,
-          `Quá đỉnh đại gia ${cleanNick} ơi! Lên là lên!`
+          `Cháy sàn luôn! Gọi tên đại gia ${cleanNick}!`,
+          `Đẳng cấp dân chơi! Sếp ${cleanNick} lên đồ khét lẹt!`,
+          `Khét mù sàn nhảy! Đại gia ${cleanNick} vào việc rồi!`,
+          `Quá bốc sếp ${cleanNick} ơi! Lên là lên luôn!`,
+          `Một hai ba zô! Vinh danh đại gia ${cleanNick}!`,
+          `Hết nước chấm! Đại gia ${cleanNick} quẩy tung nóc!`,
+          `Bén quá sếp ${cleanNick} ơi! Cả sàn quỳ gối!`
         ];
         return phrases[Math.floor(Math.random() * phrases.length)];
       }
 
-      // TANG 2: Qua vua / Qua xin (50 - 499 xu)
+      // TẦNG 2: Quà vừa / Quà xịn (50 - 499 xu, ví dụ Bắn Pháo, Lửa, Kính Mát, Tim Bay...)
       if (totalCoins >= 50 || fxType === 'flame' || fxType === 'fireworks') {
         const phrases = [
-          `Cảm ơn sếp ${cleanNick} quá đã!`,
-          `Khét lẹt! Cảm ơn sếp ${cleanNick}!`,
-          `Lên luôn! Cảm ơn ${cleanNick} nha!`,
-          `Quá bốc! Cảm ơn ${cleanNick}!`,
-          `Cảm ơn ${cleanNick}, quẩy hết nấc luôn!`,
-          `Đỉnh chóp! Cảm ơn sếp ${cleanNick}!`,
-          `Cảm ơn ${cleanNick}, quẩy cháy sàn nào!`
+          `Quá bén sếp ${cleanNick} ơi! Lên luôn!`,
+          `Khét lẹt! Sếp ${cleanNick} vào nhịp rồi!`,
+          `Lên là lên! ${cleanNick} quẩy hết nấc luôn!`,
+          `Quá bốc! Gọi tên ${cleanNick} trên sàn bay!`,
+          `Bốc luôn sếp ${cleanNick} ơi! Quẩy cháy sàn!`,
+          `Đỉnh chóp! ${cleanNick} tiếp lửa quá đã!`,
+          `Tay đâu tay đâu! Vỗ tay cho sếp ${cleanNick}!`,
+          `Chất chơi người dơi! ${cleanNick} bốc lửa luôn!`
         ];
         return phrases[Math.floor(Math.random() * phrases.length)];
       }
 
-      // COMBO Qua nho (Ban lien tiep nhieu lan):
+      // COMBO Quà nhỏ (Bắn liên tiếp nhiều lần / Combo streak):
       if (count > 2) {
         const phrases = [
-          `Cảm ơn ${cleanNick} bắn tay quá đã!`,
-          `1 2 3! Cảm ơn ${cleanNick} tiếp lửa đều tay!`,
-          `Quá nhiệt tình! Cảm ơn ${cleanNick} nha!`
+          `Bắn tay khét lẹt! ${cleanNick} dồn dập quá đã!`,
+          `Một hai ba zô! ${cleanNick} tiếp lửa đều tay!`,
+          `Tay đâu cho ${cleanNick}! Bắn nhịp quá bén!`,
+          `Lên nhịp liên hoàn! ${cleanNick} quẩy tới bến!`,
+          `Khét mù luôn! ${cleanNick} bấm tay không trượt phát nào!`
         ];
         return phrases[Math.floor(Math.random() * phrases.length)];
       }
 
-      // TANG 1: Qua nho (< 50 xu, vi du Hoa hong 1 xu, Trai tim 5 xu...)
-      // Sieu ngan gon (~1.0s), khong doc ten qua, khong lan at nhac san
+      // TẦNG 1: Quà nhỏ (< 50 xu, ví dụ Hoa hồng, Trái tim, Kẹo, Kem...)
+      // Siêu ngắn gọn (~1.0s), dứt khoát, đúng chất Club MC
       const smallPhrases = [
-        `Cảm ơn ${cleanNick} nhé!`,
-        `Cảm ơn ${cleanNick} nhiều nha!`,
-        `Cảm ơn ${cleanNick} lên đồ!`,
-        `Cảm ơn sếp ${cleanNick} nha!`,
-        `Yeah! Cảm ơn ${cleanNick}!`,
-        `Cảm ơn ${cleanNick}, quẩy lên nào!`,
-        `Cảm ơn ${cleanNick} ủng hộ nha!`
+        `Lên đồ nào ${cleanNick}!`,
+        `Quá bén ${cleanNick} ơi!`,
+        `Tiếp lửa cực căng ${cleanNick}!`,
+        `Đã cái nư ${cleanNick} ơi!`,
+        `Bốc luôn ${cleanNick} ơi!`,
+        `Zô zô ${cleanNick} nào!`,
+        `Khét lẹt ${cleanNick} ơi!`,
+        `Lên nhịp luôn ${cleanNick}!`,
+        `Quẩy nhiệt nào ${cleanNick}!`,
+        `Bung lụa sếp ${cleanNick} ơi!`
       ];
       return smallPhrases[Math.floor(Math.random() * smallPhrases.length)];
     }
 
-    // Formulates concise thank you sentence without gift name and speaks it in sequence
     async speakGiftAsync(gift) {
       if (!this.enabled || !gift) return;
 
@@ -566,8 +575,9 @@
       if (u1 && u1 !== this.lastTop3Usernames[0]) {
         const name = curTop1.nickname || curTop1.username;
         const rank1Phrases = [
-          `Chúc mừng sếp ${name} lên đỉnh Top 1 bục vàng!`,
-          `Đại ca ${name} soán ngôi Top 1 đại gia! Quá đỉnh!`
+          `Bái phục sếp ${name} soán ngôi bục vàng Top 1!`,
+          `Gọi tên đại ca ${name} chễm chệ ngôi vương Top 1! Quá đỉnh!`,
+          `Đại địa chấn! Sếp ${name} độc chiếm bục vàng Top 1!`
         ];
         const text = rank1Phrases[Math.floor(Math.random() * rank1Phrases.length)];
         this.speak(text, true);
@@ -575,13 +585,13 @@
       // Rank 2 change
       else if (u2 && u2 !== this.lastTop3Usernames[1] && u2 !== this.lastTop3Usernames[0]) {
         const name = curTop2.nickname || curTop2.username;
-        const text = `Chúc mừng ${name} lên Top 2 đại gia!`;
+        const text = `Hò reo cho sếp ${name} chiếm lĩnh bục bạc Top 2!`;
         this.speak(text, true);
       }
       // Rank 3 change
       else if (u3 && u3 !== this.lastTop3Usernames[2] && u3 !== this.lastTop3Usernames[0] && u3 !== this.lastTop3Usernames[1]) {
         const name = curTop3.nickname || curTop3.username;
-        const text = `Chúc mừng ${name} bước vào Top 3!`;
+        const text = `Nâng ly cho ${name} vững vàng bục đồng Top 3!`;
         this.speak(text, true);
       }
 
