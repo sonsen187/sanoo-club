@@ -4634,6 +4634,17 @@
         }
         break;
 
+      case 'remove_dancer':
+        dancers = dancers.filter(d => d.id !== data.id && d.username !== data.username);
+        const ccRem = document.getElementById('crowd-count');
+        if (ccRem) ccRem.textContent = dancers.length;
+        break;
+
+      case 'crowd_count':
+        const ccCount = document.getElementById('crowd-count');
+        if (ccCount) ccCount.textContent = data.count !== undefined ? data.count : dancers.length;
+        break;
+
       case 'dancers_cleared':
         dancers = [];
         const cc = document.getElementById('crowd-count');

@@ -198,6 +198,80 @@ body.transparent-mode .stream-container {
   100% { transform: translateX(-100%); }
 }
 
+/* COMMANDS MENU - SYMMETRIC TO TOP-RIGHT VIP LEADERBOARD */
+.commands-menu {
+  position: absolute;
+  top: 140px;
+  left: 14px;
+  width: 150px;
+  background: rgba(10, 10, 25, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+  z-index: 20;
+}
+
+.commands-header {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.commands-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cmd-item {
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+}
+
+.cmd-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  min-width: 16px;
+  text-align: center;
+}
+
+.cmd-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.cmd-item.cmd-gift {
+  background: linear-gradient(90deg, rgba(255, 0, 127, 0.2), transparent);
+  border-left: 2px solid var(--neon-magenta);
+}
+
+.cmd-item.cmd-gift .cmd-badge {
+  color: var(--neon-magenta);
+  background: rgba(255, 0, 127, 0.2);
+  border-color: rgba(255, 0, 127, 0.4);
+}
+
 /* TOP GIFTERS VIP LEADERBOARD */
 .vip-leaderboard {
   position: absolute;

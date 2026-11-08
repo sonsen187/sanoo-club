@@ -63,6 +63,7 @@ const state = {
     transparentBg: false,
     autoJoinOnChat: true,
     autoJoinOnGift: true,
+    autoLeaveInactive60s: true,
     chatBubbleDuration: 5000,
     effectsDuration: 4000,
     characterTheme: 'cats', // 100% Cats on dance floor (Only DJ is human)
@@ -160,6 +161,32 @@ function addOrUpdateDancer(user) {
   broadcast('dancer_update', state.dancers[username]);
   return state.dancers[username];
 }
+
+// Auto-clean dancers who left live or have been inactive for > 60s
+setInterval(() => {
+  if (!state.settings || !state.settings.autoLeaveInactive60s) return;
+  const now = Date.now();
+  const timeoutMs = 60 * 1000;
+  const top3Users = new Set(getTopGiftersList(3).map(g => g.username));
+
+  const toRemove = [];
+  for (const [id, dancer] of Object.entries(state.dancers)) {
+    if (top3Users.has(id)) continue; // Keep VIPs on podiums
+    const lastActive = dancer.lastActive || dancer.joinedAt || 0;
+    if (now - lastActive > timeoutMs) {
+      toRemove.push(id);
+    }
+  }
+
+  if (toRemove.length > 0) {
+    toRemove.forEach(id => {
+      delete state.dancers[id];
+      broadcast('remove_dancer', { username: id, id });
+    });
+    state.stats.activeDancers = Object.keys(state.dancers).length;
+    broadcast('crowd_count', { count: state.stats.activeDancers });
+  }
+}, 3000);
 
 // Process incoming gift
 function processGift(giftEvent) {
@@ -269,7 +296,9 @@ function processChat(chatEvent) {
     broadcast('chat_command', { username, command: 'avatar_change', message: `${nickname} chọn Mèo Xám Hands Up 🐱🚀!` });
   }
 
-    // Broadcast chat message for dancer speech bubble & overlay chat log
+    if (state.dancers[username]) state.dancers[username].lastActive = Date.now();
+
+  // Broadcast chat message for dancer speech bubble & overlay chat log
   broadcast('chat', {
     username,
     nickname,
@@ -757,7 +786,7 @@ const AUTO_BOT_COMMENTS = [
   'Lên nóc nhà bắt con gà anh em ơiii 🚀'
 ];
 
-const AUTO_BOT_COMMANDS = ['1', '!1', '!2', '!3'];
+const AUTO_BOT_COMMANDS = ['1', '2', '3'];
 
 const AUTO_BOT_GIFTS = [
   { name: 'Hoa hồng', coins: 1, weight: 50 },

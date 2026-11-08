@@ -308,10 +308,9 @@
             </div>
             <!-- Quick command chips (Viewer Free Commands) -->
             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="1">Chat "1" (Vào sàn)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #a855f7;" data-quick-cmd="!1">!1 (Mèo Đen Que Sáng)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #eab308;" data-quick-cmd="!2">!2 (Mèo Vàng Shuffle)</button>
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #38bdf8;" data-quick-cmd="!3">!3 (Mèo Xám Hands Up)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #a855f7;" data-quick-cmd="1">Chat "1" (Mèo Đen Que Sáng)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #eab308;" data-quick-cmd="2">Chat "2" (Mèo Vàng Shuffle)</button>
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: #38bdf8;" data-quick-cmd="3">Chat "3" (Mèo Xám Hands Up)</button>
               <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" data-quick-cmd="Quẩy lên nào anh em ơi 🔥">Bình luận: "Quẩy lên nào! 🔥"</button>
             </div>
             <div style="font-size: 11px; color: #a0aec0; margin-top: 8px; line-height: 1.4;">
@@ -388,6 +387,22 @@
             <span id="active-cats-badge" class="status-badge" style="background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid #00f0ff;">
               0 Mèo đang quẩy
             </span>
+          </div>
+
+          <!-- TỰ ĐỘNG RỜI SÀN KHI RỜI LIVE 60S -->
+          <div style="margin-bottom: 14px; padding: 12px 14px; background: rgba(0, 240, 255, 0.06); border-radius: 10px; border: 1px solid rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+                <span>⏱️</span>
+                <span>Tự Động Rời Sàn Sau 60s (Rời Live / Không Tương Tác)</span>
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">
+                Tự động dọn dẹp dancer rời live hoặc không tương tác sau 60s để nhường chỗ người mới (trừ Top 3 VIP).
+              </div>
+            </div>
+            <button id="btn-toggle-auto-leave" class="fx-btn active-audio-mode" style="border-color: var(--neon-cyan); white-space: nowrap; margin-left: 12px; padding: 8px 14px;">
+              ⏱️ ĐANG BẬT (60s)
+            </button>
           </div>
 
           <!-- Spawner buttons -->

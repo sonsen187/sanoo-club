@@ -78,6 +78,7 @@
           const bgCheck = document.getElementById('chk-transparent-bg');
           if (bgCheck) bgCheck.checked = !!data.settings.transparentBg;
           if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
+          if (data.settings.autoLeaveInactive60s !== undefined) updateAutoLeaveUI(data.settings.autoLeaveInactive60s);
         }
         if (data.autoSimulator) {
           updateAutoSimAdminUI(data.autoSimulator);
@@ -85,6 +86,7 @@
         break;
 
       case 'settings_updated':
+        if (data.autoLeaveInactive60s !== undefined) updateAutoLeaveUI(data.autoLeaveInactive60s);
         if (data.transparentBg !== undefined) {
           const bg = document.getElementById('chk-transparent-bg');
           if (bg) bg.checked = !!data.transparentBg;
@@ -508,6 +510,33 @@
   }
 
   // Shuffle & Set Dance Styles for the whole floor
+  // Auto Leave Inactive 60s Toggle
+  let autoLeaveInactive = true;
+  const btnToggleAutoLeave = document.getElementById('btn-toggle-auto-leave');
+
+  function updateAutoLeaveUI(enabled) {
+    autoLeaveInactive = !!enabled;
+    if (!btnToggleAutoLeave) return;
+    if (autoLeaveInactive) {
+      btnToggleAutoLeave.classList.add('active-audio-mode');
+      btnToggleAutoLeave.style.borderColor = 'var(--neon-cyan)';
+      btnToggleAutoLeave.innerHTML = '⏱️ ĐANG BẬT (60s)';
+    } else {
+      btnToggleAutoLeave.classList.remove('active-audio-mode');
+      btnToggleAutoLeave.style.borderColor = 'rgba(255,255,255,0.2)';
+      btnToggleAutoLeave.innerHTML = '⏹️ ĐÃ TẮT';
+    }
+  }
+
+  if (btnToggleAutoLeave) {
+    btnToggleAutoLeave.addEventListener('click', () => {
+      autoLeaveInactive = !autoLeaveInactive;
+      updateAutoLeaveUI(autoLeaveInactive);
+      sendWS('update_settings', { autoLeaveInactive60s: autoLeaveInactive });
+      showToast(autoLeaveInactive ? 'Đã BẬT tự động rời sàn sau 60s' : 'Đã TẮT tự động rời sàn');
+    });
+  }
+
   const btnShuffleDances = document.getElementById('btn-shuffle-dances');
   if (btnShuffleDances) {
     btnShuffleDances.addEventListener('click', () => {
