@@ -5,6 +5,7 @@ const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const { analyzeAudioFile } = require('./scripts/audio_analyzer');
 const WebSocket = require('ws');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 
@@ -632,14 +633,37 @@ app.post('/api/youtube/play', async (req, res) => {
 
     if (trackIndex !== -1) {
       track = playlist[trackIndex];
+      if (!track.bassProfile || track.bassProfile.length === 0) {
+        try {
+          const mp3AbsPath = path.join(__dirname, 'public', track.url.replace(/^\//, ''));
+          const analysis = await analyzeAudioFile(mp3AbsPath);
+          track.bpm = analysis.bpm;
+          track.duration = analysis.duration;
+          track.beatOffset = analysis.beatOffset;
+          track.bassProfile = analysis.bassProfile;
+          saveCustomYouTubeTracks();
+        } catch (_) {}
+      }
     } else {
+      const mp3AbsPath = path.join(__dirname, 'public', ytData.url.replace(/^\//, ''));
+      let analysis = { bpm: 128, duration: ytData.duration, beatOffset: 0, bassProfile: [] };
+      try {
+        console.log(`[YouTube] Running precision 110Hz sub-bass analysis for: ${ytData.title}`);
+        analysis = await analyzeAudioFile(mp3AbsPath);
+        console.log(`[YouTube] Detected BPM: ${analysis.bpm}, BeatOffset: ${analysis.beatOffset}s, Profile: ${analysis.bassProfile.length}s`);
+      } catch (analysisErr) {
+        console.warn('[YouTube Audio Analysis Warning]', analysisErr.message);
+      }
+
       track = {
         id: playlist.length + 1,
         title: ytData.title,
         filename: ytData.filename,
         url: ytData.url,
-        bpm: 128,
-        duration: ytData.duration,
+        bpm: analysis.bpm || 128,
+        duration: analysis.duration || ytData.duration,
+        beatOffset: analysis.beatOffset || 0,
+        bassProfile: analysis.bassProfile || [],
         isYouTube: true,
         youtubeId: ytData.videoId,
         youtubeUrl: url.trim(),
@@ -680,13 +704,25 @@ app.post('/api/youtube/add', async (req, res) => {
       return res.json({ success: true, alreadyExists: true, track: playlist[trackIndex], index: trackIndex });
     }
 
+    const mp3AbsPath = path.join(__dirname, 'public', ytData.url.replace(/^\//, ''));
+    let analysis = { bpm: 128, duration: ytData.duration, beatOffset: 0, bassProfile: [] };
+    try {
+      console.log(`[YouTube] Running precision 110Hz sub-bass analysis for: ${ytData.title}`);
+      analysis = await analyzeAudioFile(mp3AbsPath);
+      console.log(`[YouTube] Detected BPM: ${analysis.bpm}, BeatOffset: ${analysis.beatOffset}s, Profile: ${analysis.bassProfile.length}s`);
+    } catch (analysisErr) {
+      console.warn('[YouTube Audio Analysis Warning]', analysisErr.message);
+    }
+
     const track = {
       id: playlist.length + 1,
       title: ytData.title,
       filename: ytData.filename,
       url: ytData.url,
-      bpm: 128,
-      duration: ytData.duration,
+      bpm: analysis.bpm || 128,
+      duration: analysis.duration || ytData.duration,
+      beatOffset: analysis.beatOffset || 0,
+      bassProfile: analysis.bassProfile || [],
       isYouTube: true,
       youtubeId: ytData.videoId,
       youtubeUrl: url.trim(),

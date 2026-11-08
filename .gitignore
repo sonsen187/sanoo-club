@@ -23,3 +23,5 @@ Thumbs.db
 .idea/
 
 scratch/
+public/assets/music/youtube/
+*.bak
