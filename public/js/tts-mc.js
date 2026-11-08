@@ -22,14 +22,14 @@
       this.ctx = null;
       this.audioElement = null;
       this.enabled = true;
-      this.volume = 0.52; // Default 52% - sits gently on top of the music, not overpowering
+      this.volume = 1.0; // Default 100% (Full master level, prominent and clearly audible above loud club music)
       this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn)
       this.playbackRate = 1.26; // 1.26x fast, snappy club tempo
       this.stingerEnabled = false; // Disable extra scratch by default to keep music clean
 
       this.isDucking = false;
       this.baseMusicVolume = 0.8;
-      this.duckingRatio = 0.88; // Gentle dip to 88% - keeps 100% kick punch and groove!
+      this.duckingRatio = 0.35; // Distinct ducking to 35% during speech so MC voice cuts right through loud EDM/Vinahouse!
 
       this.queue = [];
       this.isPlaying = false;
@@ -46,6 +46,8 @@
       this.micHighpass = null;
       this.micPresence = null;
       this.micLowpass = null;
+      this.vocalCompressor = null;
+      this.makeupGain = null;
       this.delayNode = null;
       this.delayFeedback = null;
       this.wetGain = null;
@@ -76,42 +78,54 @@
     _setupAudioDSP() {
       if (!this.ctx) return;
       try {
-        // 1. Stage Vocal Equalizer (Microphone Modeling for Loud Club Mix)
-        // Highpass at 240Hz cuts all boominess, leaving complete room for the music bass
+        // 1. Stage Vocal Equalizer (Microphone Modeling for Powerful Club Mix)
+        // Highpass at 160Hz cleans sub-rumble while retaining full vocal chest and body
         this.micHighpass = this.ctx.createBiquadFilter();
         this.micHighpass.type = 'highpass';
-        this.micHighpass.frequency.value = 240;
-        this.micHighpass.Q.value = 0.85;
+        this.micHighpass.frequency.value = 160;
+        this.micHighpass.Q.value = 0.7;
 
-        // Presence boost at 2800Hz (+4dB) ensures vocal clarity without high volume
+        // Presence boost at 3000Hz (+6.0dB) delivers sharp, crisp intelligibility through thick EDM bass
         this.micPresence = this.ctx.createBiquadFilter();
         this.micPresence.type = 'peaking';
-        this.micPresence.frequency.value = 2800;
-        this.micPresence.gain.value = 4.0;
-        this.micPresence.Q.value = 1.3;
+        this.micPresence.frequency.value = 3000;
+        this.micPresence.gain.value = 6.0;
+        this.micPresence.Q.value = 1.2;
 
-        // Lowpass at 8200Hz
+        // Lowpass at 9500Hz removes harsh sibilance while letting airy mic sheen breathe
         this.micLowpass = this.ctx.createBiquadFilter();
         this.micLowpass.type = 'lowpass';
-        this.micLowpass.frequency.value = 8200;
-        this.micLowpass.Q.value = 0.9;
+        this.micLowpass.frequency.value = 9500;
+        this.micLowpass.Q.value = 0.8;
 
-        // 2. Tempo-synced Club Triplet Delay (234ms @ 128 BPM Vinahouse)
+        // 2. Broadcast-Grade Studio Vocal Compressor (Evens out speech dynamics and fattens the voice)
+        this.vocalCompressor = this.ctx.createDynamicsCompressor();
+        this.vocalCompressor.threshold.value = -22;
+        this.vocalCompressor.knee.value = 10;
+        this.vocalCompressor.ratio.value = 5.0;
+        this.vocalCompressor.attack.value = 0.003;
+        this.vocalCompressor.release.value = 0.12;
+
+        // Makeup Gain: +4.1dB boost bringing voice up to standard master EDM commercial loudness
+        this.makeupGain = this.ctx.createGain();
+        this.makeupGain.gain.value = 1.6;
+
+        // 3. Tempo-synced Club Triplet Delay (234ms @ 128 BPM Vinahouse)
         this.delayNode = this.ctx.createDelay(1.0);
         this.delayNode.delayTime.value = 0.234;
 
         this.delayFeedback = this.ctx.createGain();
-        this.delayFeedback.gain.value = 0.32;
+        this.delayFeedback.gain.value = 0.28;
 
         this.wetGain = this.ctx.createGain();
-        this.wetGain.gain.value = 0.22; // Subtle ambient echo
+        this.wetGain.gain.value = 0.24; // Lush concert echo
 
         this.dryGain = this.ctx.createGain();
-        this.dryGain.gain.value = 0.75;
+        this.dryGain.gain.value = 1.0; // 100% direct voice
 
-        // 3. Large Club Hall Reverb
+        // 4. Large Club Hall Reverb
         this.reverbConvolver = this.ctx.createConvolver();
-        this.reverbConvolver.buffer = this._createClubHallImpulse(this.ctx, 1.5, 3.5);
+        this.reverbConvolver.buffer = this._createClubHallImpulse(this.ctx, 1.2, 3.5);
 
         this.reverbGain = this.ctx.createGain();
         this.reverbGain.gain.value = 0.16;
@@ -119,20 +133,26 @@
         this.masterVocalGain = this.ctx.createGain();
         this.masterVocalGain.gain.value = this.volume;
 
-        // Routing
+        // Routing Chain:
+        // Input -> micHighpass -> micPresence -> micLowpass -> vocalCompressor -> makeupGain
         this.micHighpass.connect(this.micPresence);
         this.micPresence.connect(this.micLowpass);
+        this.micLowpass.connect(this.vocalCompressor);
+        this.vocalCompressor.connect(this.makeupGain);
 
-        this.micLowpass.connect(this.dryGain);
+        // Dry Voice Path: makeupGain -> dryGain -> masterVocalGain
+        this.makeupGain.connect(this.dryGain);
         this.dryGain.connect(this.masterVocalGain);
 
-        this.micLowpass.connect(this.delayNode);
+        // Delay Send: makeupGain -> delayNode -> wetGain -> masterVocalGain
+        this.makeupGain.connect(this.delayNode);
         this.delayNode.connect(this.delayFeedback);
         this.delayFeedback.connect(this.delayNode);
         this.delayNode.connect(this.wetGain);
         this.wetGain.connect(this.masterVocalGain);
 
-        this.micLowpass.connect(this.reverbConvolver);
+        // Reverb Send: makeupGain -> reverbConvolver -> reverbGain -> masterVocalGain
+        this.makeupGain.connect(this.reverbConvolver);
         this.reverbConvolver.connect(this.reverbGain);
         this.reverbGain.connect(this.masterVocalGain);
 
@@ -194,11 +214,11 @@
       if (!this.audioElement || this.isDucking) return;
       this.isDucking = true;
       this.baseMusicVolume = this.audioElement.volume > 0.1 ? this.audioElement.volume : 0.8;
-      const targetVol = Math.max(0.65, this.baseMusicVolume * this.duckingRatio);
+      const targetVol = Math.max(0.15, this.baseMusicVolume * this.duckingRatio);
 
       const startTime = performance.now();
       const startVol = this.audioElement.volume;
-      const duration = 120;
+      const duration = 90;
 
       const duckTimer = setInterval(() => {
         const elapsed = performance.now() - startTime;
@@ -617,6 +637,27 @@
       if (!this.enabled) {
         this.queue = [];
         this.stopDucking();
+      }
+    }
+
+    setVolume(vol) {
+      const v = parseFloat(vol);
+      if (!isNaN(v) && v >= 0) {
+        this.volume = Math.max(0, Math.min(2.0, v));
+        if (this.masterVocalGain && this.ctx) {
+          try {
+            this.masterVocalGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+          } catch (_) {
+            this.masterVocalGain.gain.value = this.volume;
+          }
+        }
+      }
+    }
+
+    setDucking(ratio) {
+      const r = parseFloat(ratio);
+      if (!isNaN(r) && r >= 0.1 && r <= 1.0) {
+        this.duckingRatio = r;
       }
     }
   }

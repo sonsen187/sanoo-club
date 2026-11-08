@@ -4641,6 +4641,12 @@
         if (data.autoSimulator) {
           updateAutoSimOverlayUI(data.autoSimulator.status);
         }
+        if (data.settings && data.settings.tts && window.TTSMCManager) {
+          if (data.settings.tts.enabled !== undefined) TTSMCManager.setEnabled(data.settings.tts.enabled);
+          if (data.settings.tts.volume !== undefined) TTSMCManager.setVolume(data.settings.tts.volume);
+          if (data.settings.tts.speed !== undefined) TTSMCManager.setSpeed(data.settings.tts.speed);
+          if (data.settings.tts.style) TTSMCManager.setStyle(data.settings.tts.style);
+        }
         break;
 
       case 'playlist_updated':
@@ -4785,12 +4791,7 @@
           if (data.style) TTSMCManager.setStyle(data.style);
           if (data.speed !== undefined) TTSMCManager.setSpeed(data.speed);
           if (data.voiceAccent) TTSMCManager.setStyle(data.voiceAccent === 'south' ? 'female_hype' : 'male_deep');
-          if (data.volume !== undefined) {
-            TTSMCManager.volume = data.volume;
-            if (TTSMCManager.masterVocalGain) {
-              TTSMCManager.masterVocalGain.gain.value = data.volume;
-            }
-          }
+          if (data.volume !== undefined) TTSMCManager.setVolume(data.volume);
         }
         break;
 

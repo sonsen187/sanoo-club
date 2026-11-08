@@ -79,6 +79,16 @@
           if (bgCheck) bgCheck.checked = !!data.settings.transparentBg;
           if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
           if (data.settings.autoLeaveInactive60s !== undefined) updateAutoLeaveUI(data.settings.autoLeaveInactive60s);
+          if (data.settings.tts) {
+            if (data.settings.tts.volume !== undefined && ttsVolumeSlider) {
+              const volPct = Math.round(data.settings.tts.volume * 100);
+              ttsVolumeSlider.value = volPct;
+              if (ttsVolVal) ttsVolVal.textContent = volPct + '%';
+            }
+            if (data.settings.tts.speed !== undefined && ttsSpeedSelect) {
+              ttsSpeedSelect.value = String(data.settings.tts.speed);
+            }
+          }
         }
         if (data.autoSimulator) {
           updateAutoSimAdminUI(data.autoSimulator);

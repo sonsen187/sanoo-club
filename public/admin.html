@@ -178,7 +178,7 @@
           </div>
 
           <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-            Tự động cảm ơn ngắn gọn (1.5s) và điểm xuyết câu hô nhẹ nhàng trên nền nhạc (nhạc giữ nguyên 88% âm lượng, không làm lấn át bài hát).
+            Tự động cảm ơn ngắn gọn (1.5s) và điểm xuyết câu hô nhẹ nhàng trên nền nhạc (tự động hạ nhạc xuống 35% khi MC nói kết hợp Bộ nén âm Compressor phòng thu giúp giọng đọc luôn to, rõ ràng và vang sáng trên nền nhạc sàn).
           </div>
 
           <div class="button-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px;">
@@ -198,10 +198,10 @@
 
           <div style="margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
-              <span>Âm lượng giọng đọc MC:</span>
-              <span id="tts-vol-val" style="color: var(--neon-cyan); font-weight: 700;">95%</span>
+              <span>Âm lượng giọng đọc MC (Boost tối đa 150%):</span>
+              <span id="tts-vol-val" style="color: var(--neon-cyan); font-weight: 700;">100%</span>
             </div>
-            <input type="range" id="tts-volume-slider" min="0" max="100" value="95" style="width: 100%; accent-color: var(--neon-cyan); cursor: pointer;">
+            <input type="range" id="tts-volume-slider" min="0" max="150" value="100" style="width: 100%; accent-color: var(--neon-cyan); cursor: pointer;">
           </div>
 
           <div>

@@ -69,7 +69,13 @@ const state = {
     chatBubbleDuration: 5000,
     effectsDuration: 4000,
     characterTheme: 'cats', // 100% Cats on dance floor (Only DJ is human)
-    audioMode: 'glass_room' // 'glass_room' | 'main_floor' | 'outside_door'
+    audioMode: 'glass_room', // 'glass_room' | 'main_floor' | 'outside_door'
+    tts: {
+      enabled: true,
+      volume: 1.0,
+      speed: 1.26,
+      style: 'female_hype'
+    }
   }
 };
 
