@@ -565,3 +565,145 @@ body {
   color: var(--neon-cyan);
   margin-right: 4px;
 }
+
+/* Auto Simulator Panel Styles */
+.sim-auto-panel {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.08) 0%, rgba(255, 0, 127, 0.08) 100%);
+  border: 1.5px solid rgba(0, 240, 255, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.sim-auto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sim-auto-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-auto-icon {
+  font-size: 26px;
+  background: rgba(0, 240, 255, 0.15);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.sim-auto-title {
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.5px;
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+.sim-auto-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.speed-selector-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-speed {
+  background: #171d38;
+  border: 1.5px solid #28325a;
+  border-radius: 8px;
+  color: #a0aec0;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 10px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-speed:hover {
+  background: #20284d;
+  color: #fff;
+  border-color: #3d4c82;
+  transform: translateY(-1px);
+}
+
+.btn-speed.active[data-sim-speed="off"] {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #cbd5e1;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.btn-speed.active[data-sim-speed="slow"] {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.45);
+}
+
+.btn-speed.active[data-sim-speed="medium"] {
+  background: rgba(255, 230, 0, 0.2);
+  border-color: #ffe600;
+  color: #ffe600;
+  box-shadow: 0 0 15px rgba(255, 230, 0, 0.45);
+}
+
+.btn-speed.active[data-sim-speed="fast"] {
+  background: rgba(255, 0, 127, 0.25);
+  border-color: #ff007f;
+  color: #ff3399;
+  box-shadow: 0 0 18px rgba(255, 0, 127, 0.55);
+}
+
+.sim-options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.sim-chk-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sim-chk-label input[type="checkbox"] {
+  accent-color: var(--neon-cyan);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.sim-stats-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #a0aec0;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 2px 0;
+}
+

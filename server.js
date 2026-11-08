@@ -49,6 +49,13 @@ const state = {
     totalLikes: 0,
     activeDancers: 0
   },
+  autoSimulator: {
+    status: 'off', // 'off' | 'slow' | 'medium' | 'fast'
+    sentCount: 0,
+    enableChat: true,
+    enableLikes: true,
+    enableGifts: true
+  },
   settings: {
     maxDancers: 60,
     transparentBg: false,
@@ -569,6 +576,16 @@ function handleClientMessage(msg, ws) {
       broadcast('top_gifters', []);
       break;
 
+    // Auto Interaction & Comment Simulator
+    case 'set_auto_sim':
+      if (data.speed !== undefined) {
+        if (data.enableChat !== undefined) state.autoSimulator.enableChat = !!data.enableChat;
+        if (data.enableLikes !== undefined) state.autoSimulator.enableLikes = !!data.enableLikes;
+        if (data.enableGifts !== undefined) state.autoSimulator.enableGifts = !!data.enableGifts;
+        startAutoSimulator(data.speed);
+      }
+      break;
+
     case 'update_settings':
       const prevTheme = state.settings.characterTheme;
       state.settings = { ...state.settings, ...data };
@@ -601,6 +618,175 @@ function handleClientMessage(msg, ws) {
 
     default:
       console.log('Unhandled WS message type:', type);
+  }
+}
+
+// =============================================================================
+// AUTO INTERACTION & COMMENT SIMULATOR (3 SPEED LEVELS: SLOW, MEDIUM, FAST)
+// =============================================================================
+const SIMULATOR_CONFIGS = {
+  off: { minInterval: 0, maxInterval: 0, label: 'TẮT' },
+  slow: { minInterval: 6000, maxInterval: 10000, label: 'CHẬM (6-10s)' },   // 6s - 10s
+  medium: { minInterval: 2500, maxInterval: 4500, label: 'VỪA (2.5-4.5s)' }, // 2.5s - 4.5s
+  fast: { minInterval: 800, maxInterval: 1600, label: 'NHANH (0.8-1.6s)' }   // 0.8s - 1.6s
+};
+
+const AUTO_BOT_NAMES = [
+  'Tuấn_Rave', 'Linh_Cute', 'Bảo_Bass', 'Hương_Dance', 'Minh_Quẩy', 'Trang_Club',
+  'Đức_VIP', 'Phương_Baby', 'Huy_Beat', 'Mai_Rave', 'Khánh_EDM', 'Hà_Dance',
+  'Nam_Sanoo', 'My_Cat', 'Sơn_Bass', 'Trâm_Quẩy', 'Phong_DJ', 'Lan_Ngọc',
+  'Hoàng_Tử_Nhạc', 'Cô_Nàng_GenZ', 'Quẩy_Thủ_Bắc_Ninh', 'Dân_Chơi_Sài_Gòn',
+  'Bé_Mèo_Đi_Bụi', 'DJ_Tài_Năng', 'Quỳnh_Anh', 'Việt_Hype', 'An_Nhiên',
+  'Tiến_Dubstep', 'Yến_Nhi', 'Duy_Electronic', 'Ngọc_Trầm', 'Vinh_Techno',
+  'Diệu_Linh', 'Hải_Đăng', 'Thùy_Dương', 'Hoàng_Bách', 'Thành_Remix', 'Vũ_Quẩy'
+];
+
+const AUTO_BOT_COMMENTS = [
+  'Nhạc căng quá DJ Sanoo ơi 🔥🔥',
+  'Bass dập rung cả tai nghe luôn 🎧',
+  'Cho xin tên track này với chủ phòng!',
+  'Drop dã man con ngan luôn 💣',
+  'Đang nghe ở cty mà lắc lư theo =)))',
+  'DJ đánh bài này cháy quá xá!',
+  'Bật max volume quẩy ae ơiii 🚀',
+  'Res DJ Sanoo mãi đỉnh 👑',
+  'Nhạc cuốn không dứt ra được luôn á',
+  'Mèo đen quẩy que sáng nhìn chiến đét 🐱⚡',
+  'Mèo vàng shuffle dẻo vãi chưởng',
+  '2 bé gogo dancer xinh quá trời ơi 💖',
+  'Dàn mèo quẩy đồng bộ cute xỉu =)))',
+  'Thích style mèo hands up quá đê',
+  'Hello cả nhà yêu âm nhạc 👋',
+  'Chào DJ và anh em Sanoo Club!',
+  'Đã thả 50 tim cho live nha ❤️',
+  'Mỗi tối đều phải vào đây nghe nhạc mới ngủ được',
+  'Team quẩy đêm điểm danh nào ⚡',
+  'Top 1 đại gia uy tín thế 👑',
+  'Đẩy view lên nào anh em ơi 👥',
+  'Quẩy sung quá bay màu mệt mỏi luôn!',
+  'Đoạn drop này xuất sắc luôn idol',
+  'Phòng kính bar nghe ấm và phê thật sự 🍸',
+  'Ai ở Hà Nội quẩy điểm danh phát',
+  'Sài Gòn đang nghe cùng DJ nhé 🌆',
+  'Track này nghe nghiện thật sự ý',
+  'Thả tim rụng tay luôn rồi nè ❤️❤️❤️',
+  'Mèo quẩy đáng yêu số 1 TikTok 🐱',
+  'Lên nóc nhà bắt con gà anh em ơiii 🚀'
+];
+
+const AUTO_BOT_COMMANDS = ['1', '!1', '!2', '!3'];
+
+const AUTO_BOT_GIFTS = [
+  { name: 'Hoa hồng', coins: 1, weight: 50 },
+  { name: 'Trái tim', coins: 5, weight: 25 },
+  { name: 'Bánh rán', coins: 30, weight: 15 },
+  { name: 'Pháo hoa', coins: 100, weight: 6 },
+  { name: 'Súng tiền', coins: 500, weight: 3 },
+  { name: 'Siêu Xe DJ', coins: 1000, weight: 1 }
+];
+
+let autoSimTimer = null;
+
+function startAutoSimulator(speed) {
+  if (autoSimTimer) {
+    clearTimeout(autoSimTimer);
+    autoSimTimer = null;
+  }
+
+  if (!SIMULATOR_CONFIGS[speed] || speed === 'off') {
+    state.autoSimulator.status = 'off';
+    broadcast('auto_sim_update', state.autoSimulator);
+    console.log('[AutoSimulator] Đã TẮT giả lập.');
+    return;
+  }
+
+  state.autoSimulator.status = speed;
+  broadcast('auto_sim_update', state.autoSimulator);
+  console.log(`[AutoSimulator] ĐÃ BẬT giả lập ở mức: ${speed.toUpperCase()} (${SIMULATOR_CONFIGS[speed].label})`);
+
+  scheduleNextAutoSimStep();
+}
+
+function scheduleNextAutoSimStep() {
+  if (state.autoSimulator.status === 'off') return;
+
+  const cfg = SIMULATOR_CONFIGS[state.autoSimulator.status];
+  const delay = Math.floor(Math.random() * (cfg.maxInterval - cfg.minInterval + 1)) + cfg.minInterval;
+
+  autoSimTimer = setTimeout(() => {
+    runAutoSimulationStep();
+    scheduleNextAutoSimStep();
+  }, delay);
+}
+
+function runAutoSimulationStep() {
+  if (state.autoSimulator.status === 'off') return;
+
+  const randName = AUTO_BOT_NAMES[Math.floor(Math.random() * AUTO_BOT_NAMES.length)];
+  const randNum = Math.floor(Math.random() * 900 + 100);
+  const username = `${randName.toLowerCase()}_${randNum}`;
+  const nickname = `${randName}_${randNum}`;
+
+  // Decide action: Chat / Likes / Gifts
+  const roll = Math.random() * 100;
+
+  if (roll < 65 && state.autoSimulator.enableChat) {
+    // 65%: Chat (Bình luận hoặc Lệnh)
+    const isCommand = Math.random() < 0.45;
+    let commentText;
+    if (isCommand) {
+      // 60% chance to join sàn ('1'), 40% chance to change style ('!1', '!2', '!3')
+      commentText = Math.random() < 0.60 ? '1' : AUTO_BOT_COMMANDS[Math.floor(Math.random() * AUTO_BOT_COMMANDS.length)];
+    } else {
+      commentText = AUTO_BOT_COMMENTS[Math.floor(Math.random() * AUTO_BOT_COMMENTS.length)];
+    }
+
+    processChat({
+      uniqueId: username,
+      nickname: nickname,
+      avatar: '',
+      comment: commentText
+    });
+    state.autoSimulator.sentCount++;
+  } else if (roll < 88 && state.autoSimulator.enableLikes) {
+    // 23%: Like batch (Thả tim)
+    const likeBatch = Math.floor(Math.random() * 25 + 5);
+    state.stats.totalLikes += likeBatch;
+    broadcast('like', {
+      uniqueId: username,
+      nickname: nickname,
+      likeCount: likeBatch,
+      totalLikes: state.stats.totalLikes
+    });
+    state.autoSimulator.sentCount++;
+  } else if (state.autoSimulator.enableGifts) {
+    // 12%: Gift (Tặng quà)
+    const totalWeight = AUTO_BOT_GIFTS.reduce((sum, g) => sum + g.weight, 0);
+    let r = Math.random() * totalWeight;
+    let chosenGift = AUTO_BOT_GIFTS[0];
+    for (const g of AUTO_BOT_GIFTS) {
+      if (r < g.weight) {
+        chosenGift = g;
+        break;
+      }
+      r -= g.weight;
+    }
+
+    const repeat = (chosenGift.coins === 1) ? Math.floor(Math.random() * 5 + 1) : 1;
+    processGift({
+      uniqueId: username,
+      nickname: nickname,
+      avatar: '',
+      giftName: chosenGift.name,
+      repeatCount: repeat,
+      diamondCount: chosenGift.coins
+    });
+    state.autoSimulator.sentCount++;
+  }
+
+  // Broadcast counter update
+  if (state.autoSimulator.sentCount % 3 === 0) {
+    broadcast('auto_sim_update', state.autoSimulator);
   }
 }
 

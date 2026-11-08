@@ -79,6 +79,9 @@
           if (bgCheck) bgCheck.checked = !!data.settings.transparentBg;
           if (data.settings.audioMode) updateAudioModeAdminUI(data.settings.audioMode);
         }
+        if (data.autoSimulator) {
+          updateAutoSimAdminUI(data.autoSimulator);
+        }
         break;
 
       case 'settings_updated':
@@ -86,6 +89,10 @@
           const bg = document.getElementById('chk-transparent-bg');
           if (bg) bg.checked = !!data.transparentBg;
         }
+        break;
+
+      case 'auto_sim_update':
+        updateAutoSimAdminUI(data);
         break;
 
       case 'audio_mode_changed':
@@ -611,6 +618,94 @@
     } else if (e.code === 'Digit5') {
       e.preventDefault();
       playSoundEffect('cheer');
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // AUTO INTERACTION & CHAT SIMULATOR (3 SPEED LEVELS: SLOW, MEDIUM, FAST)
+  // ---------------------------------------------------------------------------
+  let currentSimSpeed = 'off';
+
+  function updateAutoSimAdminUI(simData) {
+    if (!simData) return;
+    currentSimSpeed = simData.status || 'off';
+
+    // Update active speed button
+    document.querySelectorAll('[data-sim-speed]').forEach(btn => {
+      if (btn.getAttribute('data-sim-speed') === currentSimSpeed) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Update status badge
+    const badge = document.getElementById('auto-sim-status-badge');
+    if (badge) {
+      const badgeConfigs = {
+        off: { cls: 'status-badge disconnected', text: '⏹️ ĐANG TẮT' },
+        slow: { cls: 'status-badge connected', text: '🐢 CHẬM (6-10s)' },
+        medium: { cls: 'status-badge connected', text: '⚡ VỪA (2.5-4.5s)' },
+        fast: { cls: 'status-badge connected', text: '🔥 NHANH (0.8-1.6s)' }
+      };
+      const b = badgeConfigs[currentSimSpeed] || badgeConfigs.off;
+      badge.className = b.cls;
+      badge.textContent = b.text;
+    }
+
+    // Update stats text
+    const counterEl = document.getElementById('sim-stats-counter');
+    if (counterEl) {
+      counterEl.textContent = `Đã gửi: ${simData.sentCount || 0} tương tác`;
+    }
+    const speedEl = document.getElementById('sim-stats-speed');
+    if (speedEl) {
+      const labels = { off: 'Đang tắt', slow: 'Chậm (6-10s)', medium: 'Vừa (2.5-4.5s)', fast: 'Nhanh (0.8-1.6s)' };
+      speedEl.textContent = `Mức độ: ${labels[currentSimSpeed] || currentSimSpeed}`;
+    }
+
+    // Update checkboxes
+    const chkChat = document.getElementById('chk-sim-chat');
+    if (chkChat && simData.enableChat !== undefined) chkChat.checked = !!simData.enableChat;
+    const chkLikes = document.getElementById('chk-sim-likes');
+    if (chkLikes && simData.enableLikes !== undefined) chkLikes.checked = !!simData.enableLikes;
+    const chkGifts = document.getElementById('chk-sim-gifts');
+    if (chkGifts && simData.enableGifts !== undefined) chkGifts.checked = !!simData.enableGifts;
+  }
+
+  function sendAutoSimSettings(speed) {
+    const chkChat = document.getElementById('chk-sim-chat');
+    const chkLikes = document.getElementById('chk-sim-likes');
+    const chkGifts = document.getElementById('chk-sim-gifts');
+
+    sendWS('set_auto_sim', {
+      speed: speed !== undefined ? speed : currentSimSpeed,
+      enableChat: chkChat ? chkChat.checked : true,
+      enableLikes: chkLikes ? chkLikes.checked : true,
+      enableGifts: chkGifts ? chkGifts.checked : true
+    });
+  }
+
+  document.querySelectorAll('[data-sim-speed]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const speed = btn.getAttribute('data-sim-speed');
+      sendAutoSimSettings(speed);
+      const labels = {
+        off: 'Đã tắt giả lập tự động',
+        slow: 'Bật giả lập mức CHẬM (6-10s/lượt)',
+        medium: 'Bật giả lập mức VỪA (2.5-4.5s/lượt)',
+        fast: 'Bật giả lập mức NHANH (0.8-1.6s/lượt)'
+      };
+      showToast(labels[speed] || speed);
+    });
+  });
+
+  ['chk-sim-chat', 'chk-sim-likes', 'chk-sim-gifts'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        sendAutoSimSettings(currentSimSpeed);
+      });
     }
   });
 

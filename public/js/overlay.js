@@ -3887,6 +3887,9 @@
         if (data.settings && data.settings.transparentBg) {
           document.body.classList.add('transparent-mode');
         }
+        if (data.autoSimulator) {
+          updateAutoSimOverlayUI(data.autoSimulator.status);
+        }
         break;
 
       case 'track_change':
@@ -3993,6 +3996,12 @@
         if (likesCountEl) likesCountEl.textContent = data.totalLikes || (parseInt(likesCountEl.textContent) + 1);
         break;
 
+      case 'auto_sim_update':
+        if (data && data.status) {
+          updateAutoSimOverlayUI(data.status);
+        }
+        break;
+
       case 'audio_mode_changed':
         if (data && data.mode) {
           currentAudioMode = data.mode;
@@ -4037,6 +4046,43 @@
       }
     })
     .catch(e => console.warn('REST status fallback:', e));
+
+  // Auto Simulator Button & Sync for Overlay
+  let currentAutoSimSpeed = 'off';
+
+  function updateAutoSimOverlayUI(speed) {
+    currentAutoSimSpeed = speed || 'off';
+    const btn = document.getElementById('btn-auto-sim');
+    const txt = document.getElementById('auto-sim-text');
+    if (!btn || !txt) return;
+
+    btn.className = 'auto-sim-pill mode-' + currentAutoSimSpeed;
+    const labels = {
+      off: 'BOT: TẮT',
+      slow: '🐢 BOT: CHẬM',
+      medium: '⚡ BOT: VỪA',
+      fast: '🔥 BOT: NHANH'
+    };
+    txt.textContent = labels[currentAutoSimSpeed] || 'BOT: TẮT';
+    btn.title = `Giả lập tự động tương tác: ${labels[currentAutoSimSpeed]} (Bấm để đổi: Tắt / Chậm / Vừa / Nhanh)`;
+  }
+
+  const btnAutoSim = document.getElementById('btn-auto-sim');
+  if (btnAutoSim) {
+    btnAutoSim.addEventListener('click', () => {
+      const cycle = {
+        off: 'slow',
+        slow: 'medium',
+        medium: 'fast',
+        fast: 'off'
+      };
+      const nextSpeed = cycle[currentAutoSimSpeed] || 'off';
+      updateAutoSimOverlayUI(nextSpeed);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_auto_sim', data: { speed: nextSpeed } }));
+      }
+    });
+  }
 
   // Initialization: Start graphics & network immediately without blocking
   initLasers();

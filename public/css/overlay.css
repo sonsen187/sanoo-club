@@ -559,6 +559,58 @@ body.transparent-mode .stream-container {
 }
 
 /* ==========================================================================
+   AUTO SIMULATOR QUICK BUTTON (3 SPEED LEVELS: SLOW, MEDIUM, FAST)
+   ========================================================================== */
+.auto-sim-pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.auto-sim-pill:hover {
+  transform: translateY(-2px);
+}
+
+.auto-sim-pill.mode-off {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
+  color: #94a3b8;
+  box-shadow: none;
+}
+
+.auto-sim-pill.mode-slow {
+  background: rgba(0, 240, 255, 0.18);
+  border: 1.5px solid #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
+}
+
+.auto-sim-pill.mode-medium {
+  background: rgba(255, 230, 0, 0.20);
+  border: 1.5px solid #ffe600;
+  color: #ffe600;
+  box-shadow: 0 0 14px rgba(255, 230, 0, 0.45);
+}
+
+.auto-sim-pill.mode-fast {
+  background: rgba(255, 0, 127, 0.25);
+  border: 1.5px solid #ff007f;
+  color: #ff3399;
+  box-shadow: 0 0 18px rgba(255, 0, 127, 0.65);
+}
+
+/* ==========================================================================
    HYPE DROP QUICK BUTTON
    ========================================================================== */
 .hype-drop-pill {

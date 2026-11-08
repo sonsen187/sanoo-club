@@ -157,9 +157,43 @@
           <div class="card-header">
             <div class="card-title">
               <span>🎁</span>
-              <span>BẢNG GIẢ LẬP TEST (QUÀ & TƯƠNG TÁC TIKTOK)</span>
+              <span>BẢNG GIẢ LẬP & TỰ ĐỘNG TƯƠNG TÁC (TIKTOK SIMULATOR)</span>
             </div>
           </div>
+
+          <!-- AUTO SIMULATOR PANEL (3 MỨC ĐỘ: CHẬM, VỪA, NHANH) -->
+          <div class="sim-auto-panel">
+            <div class="sim-auto-header">
+              <div class="sim-auto-title-box">
+                <span class="sim-auto-icon">🤖</span>
+                <div>
+                  <div class="sim-auto-title">TỰ ĐỘNG GIẢ LẬP TƯƠNG TÁC (BOT COMMENTS & QUÀ)</div>
+                  <div class="sim-auto-desc">Tự động bình luận, chat "1" vào sàn, đổi mèo !1 !2 !3, thả tim & tặng quà</div>
+                </div>
+              </div>
+              <span id="auto-sim-status-badge" class="status-badge disconnected">⏹️ ĐANG TẮT</span>
+            </div>
+
+            <div class="speed-selector-group">
+              <button class="btn-speed active" data-sim-speed="off">⏹️ TẮT</button>
+              <button class="btn-speed" data-sim-speed="slow">🐢 CHẬM (6-10s)</button>
+              <button class="btn-speed" data-sim-speed="medium">⚡ VỪA (2.5-4.5s)</button>
+              <button class="btn-speed" data-sim-speed="fast">🔥 NHANH (0.8-1.6s)</button>
+            </div>
+
+            <div class="sim-options-row">
+              <label class="sim-chk-label"><input type="checkbox" id="chk-sim-chat" checked> 💬 Bình luận & Lệnh (1, !1, !2, !3)</label>
+              <label class="sim-chk-label"><input type="checkbox" id="chk-sim-likes" checked> ❤️ Thả tim (Auto Likes)</label>
+              <label class="sim-chk-label"><input type="checkbox" id="chk-sim-gifts" checked> 🎁 Tặng quà ngẫu nhiên</label>
+            </div>
+
+            <div class="sim-stats-bar">
+              <span id="sim-stats-counter">Đã gửi: 0 tương tác</span>
+              <span id="sim-stats-speed">Mức độ: Đang tắt</span>
+            </div>
+          </div>
+
+          <div style="margin: 16px 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>
 
           <!-- Fast Gift Clickers -->
           <div>
