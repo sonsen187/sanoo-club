@@ -748,6 +748,14 @@
     });
   }
 
+  const ttsSpeedSelect = document.getElementById('tts-speed-select');
+  if (ttsSpeedSelect) {
+    ttsSpeedSelect.addEventListener('change', () => {
+      sendWS('tts_config', { speed: parseFloat(ttsSpeedSelect.value) });
+      showToast('Đã chỉnh tốc độ MC: ' + ttsSpeedSelect.value + 'x');
+    });
+  }
+
   if (ttsVoiceSelect) {
     ttsVoiceSelect.addEventListener('change', () => {
       sendWS('tts_config', { voiceAccent: ttsVoiceSelect.value });
@@ -766,7 +774,7 @@
   if (btnTestGiftTTS) {
     btnTestGiftTTS.addEventListener('click', () => {
       sendWS('tts_speak', {
-        text: 'Cảm ơn đại gia Minh Rave đã gửi tặng Hoa Hồng, quẩy lên nào anh em ơi!',
+        text: 'Lên luônnn! Cảm ơn sếp Minh Rave đã nổ Hoa Hồng cực khét! Rót chén rượu mời sếp nào anh em ơi!',
         priority: true
       });
       showToast('Đang phát thử: Cảm ơn tặng quà');
@@ -776,7 +784,7 @@
   if (btnTestTopTTS) {
     btnTestTopTTS.addEventListener('click', () => {
       sendWS('tts_speak', {
-        text: 'Chúc mừng đại gia Minh Rave đã chính thức chiếm lĩnh Top 1 bục vàng đại gia!',
+        text: 'Trật tự nào anh em ơiii! Bảng vàng đại gia chính thức đổi chủ! Chào đón sếp lớn Minh Rave bước lên ngai vàng Top 1! Quá đẳng cấp!',
         priority: true
       });
       showToast('Đang phát thử: Vinh danh Top 1');

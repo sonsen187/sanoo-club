@@ -1,26 +1,13 @@
 // ============================================================================
-// SANOO CLUB - AI MC & TTS REALISTIC STAGE MICROPHONE ENGINE
+// SANOO CLUB - TRUE CLUB MC & DANCEFLOOR HYPENESS AUDIO ENGINE
 // ============================================================================
-// Features:
-// 1. Realistic Wireless / Stage Mic SFX:
-//    - Mic-on key click & sub capsule thump (procedural Web Audio impulse)
-//    - Audio Ducking: Smoothly dips background music by ~75% during speech
-//    - Stage Vocal DSP: 180Hz Highpass, 3.2kHz Peaking (+4.5dB presence), 7.6kHz Lowpass
-//    - Club Stage Echo / Delay (170ms delay with gentle feedback for authentic venue space)
-//    - Mic-off release click, smooth background music restoration
-// 2. Intelligent Gift Celebration:
-//    - Instant speech on gifts with smart debounce / repeat count aggregation
-//    - Natural diverse Vietnamese thank-you phrases
-//    - Special hype announcements for high-tier / VIP gifts
-// 3. Top 3 VIP Podium Announcements:
-//    - Automatic detection when a user climbs onto Top 1, Top 2, or Top 3
-//    - Formal MC recognition ("Chiếm lĩnh Top 1 bục vàng đại gia...")
-// 4. Periodic Random MC Hype Shouts:
-//    - Every 2.5 to 4 minutes during idle periods
-//    - Crowd engagement: call to type 1, send hearts, cheer up the dancers
-// 5. Dialect & Voice Engine Flexibility:
-//    - Supports Google TTS / Server Audio with Web Audio DSP
-//    - Fallback / Alternative: Browser SpeechSynthesis (supports Northern / Southern voices)
+// Built specifically for authentic Vietnamese Club / Bar / Vinahouse atmospheres:
+// 1. Sôi Động & Gãy Gọn (Fast 1.22x - 1.28x club tempo, no sluggish reading)
+// 2. Câu từ dân quẩy sàn bay chính hiệu (Tay đâu tay đâu, 1 2 3 zô, khét lẹt, sếp lớn)
+// 3. Tempo-synced Triplet Club Delay (234ms @ 128 BPM Vinahouse with thick repeats)
+// 4. Large Venue Hall Reverb (Độ vang vũ trường hàng nghìn mét vuông)
+// 5. Preserved Bass Kick (Nhạc chỉ hạ 45-50%, giữ nguyên lực Bass uỳnh uỳnh, không tụt mood)
+// 6. DJ Stinger: Quẹt đĩa (Scratch) / Laser zap nhẹ đệm nhịp khi MC lên tiếng
 // ============================================================================
 
 (function (root, factory) {
@@ -37,13 +24,14 @@
       this.ctx = null;
       this.audioElement = null;
       this.enabled = true;
-      this.volume = 0.95;
-      this.voiceAccent = 'north'; // 'north' (miền Bắc) | 'south' (miền Nam)
-      this.engine = 'auto'; // 'auto' (server endpoint + Web Audio DSP) | 'speech_synthesis'
+      this.volume = 1.0;
+      this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn)
+      this.playbackRate = 1.24; // 1.24x fast club cadence
+      this.stingerEnabled = true; // Đệm scratch nhẹ khi MC nói
 
       this.isDucking = false;
       this.baseMusicVolume = 0.8;
-      this.duckingRatio = 0.22; // Duck music down to 22% of its base level
+      this.duckingRatio = 0.52; // Keep 52% of music volume - keep the bass kick alive!
 
       this.queue = [];
       this.isPlaying = false;
@@ -64,9 +52,11 @@
       this.delayFeedback = null;
       this.wetGain = null;
       this.dryGain = null;
+      this.reverbConvolver = null;
+      this.reverbGain = null;
       this.masterVocalGain = null;
 
-      // Periodic MC Hype timer
+      // Periodic MC Hype timer (Every 2 - 3.5 minutes)
       this.hypeIntervalTimer = null;
       this.startPeriodicHypeTimer();
     }
@@ -88,129 +78,176 @@
     _setupAudioDSP() {
       if (!this.ctx) return;
       try {
-        // 1. Stage Vocal Equalizer (Microphone Modeling)
-        // Highpass at 180Hz cuts boominess / mechanical thumps
+        // 1. Stage Vocal Equalizer (Microphone Modeling for Loud Club Mix)
+        // Highpass at 220Hz cuts all muddiness, letting the club sub-bass breathe
         this.micHighpass = this.ctx.createBiquadFilter();
         this.micHighpass.type = 'highpass';
-        this.micHighpass.frequency.value = 180;
-        this.micHighpass.Q.value = 0.8;
+        this.micHighpass.frequency.value = 220;
+        this.micHighpass.Q.value = 0.85;
 
-        // Peaking at 3200Hz (+4.5dB) gives the Shure SM58 / wireless mic vocal clarity & punch
+        // Strong presence boost at 2800Hz (+5.5dB) cuts through the dense Vinahouse drop
         this.micPresence = this.ctx.createBiquadFilter();
         this.micPresence.type = 'peaking';
-        this.micPresence.frequency.value = 3200;
-        this.micPresence.gain.value = 4.5;
-        this.micPresence.Q.value = 1.4;
+        this.micPresence.frequency.value = 2800;
+        this.micPresence.gain.value = 5.5;
+        this.micPresence.Q.value = 1.3;
 
-        // Lowpass at 7600Hz smooths out digital harshness
+        // Lowpass at 8200Hz cuts harsh hiss
         this.micLowpass = this.ctx.createBiquadFilter();
         this.micLowpass.type = 'lowpass';
-        this.micLowpass.frequency.value = 7600;
+        this.micLowpass.frequency.value = 8200;
         this.micLowpass.Q.value = 0.9;
 
-        // 2. Club Delay / Stage Echo
+        // 2. Tempo-synced Club Triplet Delay (234ms @ 128 BPM Vinahouse)
         this.delayNode = this.ctx.createDelay(1.0);
-        this.delayNode.delayTime.value = 0.17; // 170ms venue reflection
+        this.delayNode.delayTime.value = 0.234; // 1/8 note rhythmic bounce
 
         this.delayFeedback = this.ctx.createGain();
-        this.delayFeedback.gain.value = 0.22; // subtle echo decay
+        this.delayFeedback.gain.value = 0.38; // Thick rhythmic tail ("nàooo... nàooo... nàooo...")
 
         this.wetGain = this.ctx.createGain();
-        this.wetGain.gain.value = 0.18; // 18% wet echo
+        this.wetGain.gain.value = 0.32; // 32% wet echo for unmistakable club vibe
 
         this.dryGain = this.ctx.createGain();
-        this.dryGain.gain.value = 0.88;
+        this.dryGain.gain.value = 0.85;
+
+        // 3. Large Club Hall Reverb (Convolver)
+        this.reverbConvolver = this.ctx.createConvolver();
+        this.reverbConvolver.buffer = this._createClubHallImpulse(this.ctx, 1.8, 3.2);
+
+        this.reverbGain = this.ctx.createGain();
+        this.reverbGain.gain.value = 0.24; // 24% wet hall acoustics
 
         this.masterVocalGain = this.ctx.createGain();
         this.masterVocalGain.gain.value = this.volume;
 
-        // Routing:
+        // Connect Equalizer Chain:
         // Input -> micHighpass -> micPresence -> micLowpass
         this.micHighpass.connect(this.micPresence);
         this.micPresence.connect(this.micLowpass);
 
-        // micLowpass -> dryGain -> masterVocalGain
+        // Dry Route
         this.micLowpass.connect(this.dryGain);
         this.dryGain.connect(this.masterVocalGain);
 
-        // micLowpass -> delayNode -> wetGain -> masterVocalGain
-        // delayNode -> delayFeedback -> delayNode (feedback loop)
+        // Delay Route (with feedback loop)
         this.micLowpass.connect(this.delayNode);
         this.delayNode.connect(this.delayFeedback);
         this.delayFeedback.connect(this.delayNode);
         this.delayNode.connect(this.wetGain);
         this.wetGain.connect(this.masterVocalGain);
 
+        // Reverb Route
+        this.micLowpass.connect(this.reverbConvolver);
+        this.reverbConvolver.connect(this.reverbGain);
+        this.reverbGain.connect(this.masterVocalGain);
+
         this.masterVocalGain.connect(this.ctx.destination);
       } catch (err) {
-        console.warn('TTS DSP Setup warning:', err);
+        console.warn('Club TTS DSP Setup warning:', err);
       }
     }
 
+    // Synthesize realistic Club Stadium / Hall Acoustic Impulse
+    _createClubHallImpulse(audioContext, duration = 1.8, decay = 3.2) {
+      const sampleRate = audioContext.sampleRate;
+      const length = Math.floor(sampleRate * duration);
+      const impulse = audioContext.createBuffer(2, length, sampleRate);
+      const left = impulse.getChannelData(0);
+      const right = impulse.getChannelData(1);
+
+      for (let i = 0; i < length; i++) {
+        const t = i / sampleRate;
+        const env = Math.exp(-t * decay);
+        // Early concrete / glass reflections
+        let earlyL = 0, earlyR = 0;
+        if (i === Math.floor(sampleRate * 0.022)) { earlyL = 0.55; earlyR = 0.28; }
+        if (i === Math.floor(sampleRate * 0.045)) { earlyL = -0.38; earlyR = 0.46; }
+        if (i === Math.floor(sampleRate * 0.075)) { earlyL = 0.32; earlyR = -0.28; }
+        if (i === Math.floor(sampleRate * 0.118)) { earlyL = -0.22; earlyR = 0.22; }
+
+        left[i] = ((Math.random() * 2 - 1) * env * 0.75 + earlyL) * 0.5;
+        right[i] = ((Math.random() * 2 - 1) * env * 0.75 + earlyR) * 0.5;
+      }
+      return impulse;
+    }
+
     // ==========================================================================
-    // PROCEDURAL REALISTIC MICROPHONE SFX
+    // PROCEDURAL CLUB MIC SFX & DJ STINGER
     // ==========================================================================
     playMicClick(isOn = true) {
       if (!this.ctx || this.ctx.state !== 'running') return;
       try {
         const now = this.ctx.currentTime;
 
-        // 1. Mechanical switch contact click (12ms bandpass noise pulse)
+        // Mechanical switch contact click (12ms bandpass noise pulse)
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         const filter = this.ctx.createBiquadFilter();
 
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(isOn ? 1250 : 850, now);
-        osc.frequency.exponentialRampToValueAtTime(isOn ? 420 : 280, now + 0.016);
+        osc.frequency.setValueAtTime(isOn ? 1350 : 850, now);
+        osc.frequency.exponentialRampToValueAtTime(isOn ? 480 : 260, now + 0.015);
 
         filter.type = 'bandpass';
-        filter.frequency.value = 1700;
+        filter.frequency.value = 1800;
         filter.Q.value = 3.5;
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.07, now + 0.003);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.018);
+        gain.gain.linearRampToValueAtTime(0.08, now + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.016);
 
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(this.ctx.destination);
 
         osc.start(now);
-        osc.stop(now + 0.022);
+        osc.stop(now + 0.02);
 
-        // 2. Sub capsule thump (wireless mic un-mute impact)
+        // Sub capsule thump
         if (isOn) {
           const thump = this.ctx.createOscillator();
           const thumpGain = this.ctx.createGain();
           thump.type = 'sine';
-          thump.frequency.setValueAtTime(115, now);
-          thump.frequency.exponentialRampToValueAtTime(42, now + 0.028);
+          thump.frequency.setValueAtTime(120, now);
+          thump.frequency.exponentialRampToValueAtTime(45, now + 0.026);
 
-          thumpGain.gain.setValueAtTime(0.09, now);
-          thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.032);
+          thumpGain.gain.setValueAtTime(0.1, now);
+          thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
 
           thump.connect(thumpGain);
           thumpGain.connect(this.ctx.destination);
 
           thump.start(now);
-          thump.stop(now + 0.035);
+          thump.stop(now + 0.032);
+        }
+      } catch (e) {}
+    }
+
+    // DJ Stinger (Quick scratch or zap before big hype)
+    playDJStinger() {
+      if (!this.stingerEnabled || !window.sfx) return;
+      try {
+        const rand = Math.random();
+        if (rand < 0.6) {
+          if (typeof window.sfx.playScratch === 'function') window.sfx.playScratch();
         }
       } catch (e) {}
     }
 
     // ==========================================================================
-    // AUDIO DUCKING (Smoothly drops background music when MC speaks)
+    // AUDIO DUCKING (Smooth dip to 52% - keeps the bass kick pumping!)
     // ==========================================================================
     startDucking() {
       if (!this.audioElement || this.isDucking) return;
       this.isDucking = true;
       this.baseMusicVolume = this.audioElement.volume > 0.1 ? this.audioElement.volume : 0.8;
-      const targetVol = Math.max(0.12, this.baseMusicVolume * this.duckingRatio);
+      // Drop to 52% instead of 22% so the club beat stays punchy!
+      const targetVol = Math.max(0.35, this.baseMusicVolume * this.duckingRatio);
 
       const startTime = performance.now();
       const startVol = this.audioElement.volume;
-      const duration = 220; // 220ms smooth dip
+      const duration = 160; // 160ms fast dip
 
       const duckTimer = setInterval(() => {
         const elapsed = performance.now() - startTime;
@@ -219,7 +256,7 @@
           this.audioElement.volume = startVol + (targetVol - startVol) * progress;
         }
         if (progress >= 1) clearInterval(duckTimer);
-      }, 20);
+      }, 16);
     }
 
     stopDucking() {
@@ -228,7 +265,7 @@
       const targetVol = this.baseMusicVolume;
       const startVol = this.audioElement.volume;
       const startTime = performance.now();
-      const duration = 550; // 550ms gentle restore
+      const duration = 400; // 400ms quick punchy restore
 
       const restoreTimer = setInterval(() => {
         const elapsed = performance.now() - startTime;
@@ -237,21 +274,23 @@
           this.audioElement.volume = startVol + (targetVol - startVol) * progress;
         }
         if (progress >= 1) clearInterval(restoreTimer);
-      }, 25);
+      }, 20);
     }
 
     // ==========================================================================
     // CORE SPEECH QUEUE & PLAYBACK
     // ==========================================================================
-    speak(text, priority = false) {
+    speak(text, priority = false, withStinger = false) {
       if (!this.enabled || !text) return;
       text = text.trim();
       if (!text) return;
 
+      const item = { text, withStinger };
+
       if (priority) {
-        this.queue.unshift(text);
+        this.queue.unshift(item);
       } else {
-        this.queue.push(text);
+        this.queue.push(item);
       }
 
       // Keep queue manageable (max 3 pending messages)
@@ -271,36 +310,40 @@
       }
 
       this.isPlaying = true;
-      const text = this.queue.shift();
+      const item = this.queue.shift();
+      const text = item.text;
       this.lastSpeechTime = Date.now();
 
-      // 1. Play mic-on click & begin audio ducking
+      // 1. Play DJ Scratch Stinger if triggered
+      if (item.withStinger) {
+        this.playDJStinger();
+        await new Promise(r => setTimeout(r, 180));
+      }
+
+      // 2. Play mic-on click & begin audio ducking
       this.playMicClick(true);
       this.startDucking();
 
-      // Small pause (150ms) for realistic mic keying before vocal starts
-      await new Promise(r => setTimeout(r, 150));
+      // Short pause (100ms) for realistic mic keying
+      await new Promise(r => setTimeout(r, 100));
 
-      // 2. Play speech using Web Audio DSP (/api/tts) or Web Speech API fallback
-      let success = false;
-      if (this.engine !== 'speech_synthesis') {
-        success = await this._playServerAudioDSP(text);
-      }
+      // 3. Play speech using Web Audio DSP (/api/tts)
+      let success = await this._playServerAudioDSP(text);
 
       if (!success) {
         await this._playWebSpeech(text);
       }
 
-      // 3. Play mic-off click & restore music volume
+      // 4. Play mic-off click & restore music volume
       this.playMicClick(false);
       this.lastSpeechTime = Date.now();
 
-      // 120ms pause after speaking before restoring music
-      await new Promise(r => setTimeout(r, 120));
+      // 100ms pause after speaking before restoring music
+      await new Promise(r => setTimeout(r, 100));
       this.stopDucking();
 
-      // Inter-speech buffer (300ms) before next speech in queue
-      await new Promise(r => setTimeout(r, 300));
+      // Inter-speech buffer (250ms) before next speech in queue
+      await new Promise(r => setTimeout(r, 250));
       this._processNextInQueue();
     }
 
@@ -323,7 +366,15 @@
           const source = this.ctx.createBufferSource();
           source.buffer = audioBuffer;
 
-          // Connect into our stage microphone DSP equalizer & club delay
+          // FAST ENERGETIC CLUB CADENCE: 1.22x - 1.28x
+          // Style adjustments:
+          if (this.style === 'male_deep') {
+            source.playbackRate.value = 1.15; // Slightly slower, deeper presence
+          } else {
+            source.playbackRate.value = this.playbackRate || 1.24; // Fast & punchy
+          }
+
+          // Connect into our stage microphone DSP equalizer, delay & reverb
           if (this.micHighpass) {
             source.connect(this.micHighpass);
           } else {
@@ -352,20 +403,19 @@
         utterance.lang = 'vi-VN';
         utterance.volume = this.volume;
 
-        // Adjust rate and pitch for lively MC delivery
-        utterance.rate = 1.08;
-        utterance.pitch = this.voiceAccent === 'south' ? 1.05 : 1.0;
+        // Fast & punchy MC delivery
+        utterance.rate = 1.22;
+        utterance.pitch = this.style === 'male_deep' ? 0.88 : 1.12;
 
-        // Try to find the best Vietnamese voice (HoaiMy, NamMinh, An, or Google)
         const voices = window.speechSynthesis.getVoices();
         const viVoices = voices.filter(v => v.lang.includes('vi') || v.lang.includes('VI'));
         if (viVoices.length > 0) {
-          if (this.voiceAccent === 'north') {
-            const northVoice = viVoices.find(v => v.name.includes('HoaiMy') || v.name.includes('NamMinh') || v.name.includes('An'));
-            utterance.voice = northVoice || viVoices[0];
+          if (this.style === 'male_deep') {
+            const maleVoice = viVoices.find(v => v.name.includes('NamMinh') || v.name.includes('An') || v.name.includes('Male'));
+            utterance.voice = maleVoice || viVoices[0];
           } else {
-            const southVoice = viVoices.find(v => !v.name.includes('HoaiMy') && !v.name.includes('NamMinh'));
-            utterance.voice = southVoice || viVoices[0];
+            const femaleVoice = viVoices.find(v => v.name.includes('HoaiMy') || v.name.includes('Female') || v.name.includes('Google'));
+            utterance.voice = femaleVoice || viVoices[0];
           }
         }
 
@@ -380,7 +430,7 @@
     }
 
     // ==========================================================================
-    // 1. SMART GIFT CELEBRATION (Aggregates multiple gifts within 1.2s)
+    // 1. SMART GIFT CELEBRATION (AUTHENTIC CLUB VINAHOUSE SLANG)
     // ==========================================================================
     onGift(data) {
       if (!this.enabled || !data) return;
@@ -420,47 +470,50 @@
       const { nickname, giftName, count, diamondCount, fxType } = entry;
       let sentence = '';
 
-      // High-tier VIP gift announcement
-      if (diamondCount >= 80 || fxType === 'mega_rave' || fxType === 'flame') {
+      // High-tier VIP gift announcement (Báo động cấp 1, chấn động vũ trường)
+      if (diamondCount >= 70 || fxType === 'mega_rave' || fxType === 'flame') {
         const vipPhrases = [
-          `Úi xời cảm ơn đại gia ${nickname} đã nổ món quà ${giftName} cực khủng! Quẩy lên nào anh em ơi!`,
-          `Đẳng cấp đại gia! Cảm ơn ${nickname} đã gửi tặng ${giftName} bùng nổ sàn diễn!`,
-          `Cháy quá anh em ơi! Cảm ơn đại gia ${nickname} với món quà ${giftName} siêu hoành tráng!`
+          `Báo động cấp 1! Đại gia ${nickname} vừa nổ quả ${giftName} chấn động cả vũ trường! Nâng ly hú hét chúc mừng đại gia nào anh em ơi!`,
+          `Ui là trời! Khét mù sàn bay rồi anh em ơiii! Cảm ơn đại gia ${nickname} nổ ${giftName} siêu đẳng cấp!`,
+          `Đẳng cấp là mãi mãi! Cảm ơn anh đại ${nickname} đã hạ cánh món quà khủng ${giftName}! Nâng ly quẩy hết mình cùng đại ca nào!`,
+          `Nổ tung nóc nhà! Món quà ${giftName} cực khủng từ vị trí của đại gia ${nickname}! Cả vũ trường nâng ly chúc mừng nào!`
         ];
         sentence = vipPhrases[Math.floor(Math.random() * vipPhrases.length)];
-        this.speak(sentence, true); // VIP gifts get priority
+        this.speak(sentence, true, true); // VIP gifts get priority & scratch stinger
         return;
       }
 
       // Combo gifts (count > 1)
       if (count > 1) {
         const comboPhrases = [
-          `Cảm ơn ${nickname} đã tặng liền ${count} ${giftName}! Đỉnh quá anh em ơi!`,
-          `Cảm ơn ${nickname} đã gửi tặng combo ${count} ${giftName}! Quẩy hết mình nhé!`,
-          `Tuyệt vời! Cảm ơn ${nickname} đã ủng hộ ${count} ${giftName} cho sàn nhảy!`
+          `1 2 3... ối dồi ôi! Cảm ơn ${nickname} nã combo ${count} ${giftName}! Rung chuyển sàn bay luôn anh em ơiii!`,
+          `Gáy lên nào anh em ơi! Cảm ơn sếp ${nickname} giã liền ${count} ${giftName}! Quá đỉnh quá đẳng cấp!`,
+          `Khét mù mắt luôn anh em ơi! Combo ${count} ${giftName} từ vị trí của đại ca ${nickname}! Quẩy bung nóc nào!`,
+          `Nuốt luôn cái beat này nào! Cảm ơn sếp ${nickname} đã bắn phá ${count} ${giftName} lên sàn diễn!`
         ];
         sentence = comboPhrases[Math.floor(Math.random() * comboPhrases.length)];
       } else {
         // Single gift
         const singlePhrases = [
-          `Cảm ơn ${nickname} đã gửi tặng ${giftName}, quẩy lên nào anh em ơi!`,
-          `Cảm ơn ${nickname} với món quà ${giftName} cực xinh!`,
-          `Cảm ơn bạn ${nickname} đã ủng hộ ${giftName}, chúc bạn một đêm quẩy thật vui!`,
-          `Cảm ơn ${nickname} đã tiếp lửa cho sàn nhảy bằng ${giftName} nhé!`
+          `Lên luônnn! Cảm ơn sếp ${nickname} đã nổ ${giftName}! Rót chén rượu mời sếp nào anh em ơi!`,
+          `Khét lẹt luôn! Cảm ơn anh ${nickname} với quả ${giftName} cực cháy! Quẩy bung nóc nào!`,
+          `Nhận chén rượu từ DJ gửi tới ${nickname}! Cảm ơn món quà ${giftName} nhé sếp ơi!`,
+          `Đẳng cấp sếp ơi! Cảm ơn ${nickname} đã tiếp lửa ${giftName} cho sàn bay!`,
+          `Tay đâu tay đâu anh em ơi! Hú hét cảm ơn sếp ${nickname} vừa nổ ${giftName} nào!`,
+          `Quá đỉnh sếp ${nickname} ơi! Một món quà ${giftName} làm rực sáng cả sàn diễn đêm nay!`
         ];
         sentence = singlePhrases[Math.floor(Math.random() * singlePhrases.length)];
       }
 
-      this.speak(sentence, false);
+      this.speak(sentence, false, false);
     }
 
     // ==========================================================================
-    // 2. TOP 3 VIP PODIUM ANNOUNCEMENTS (Triggered when ranking changes)
+    // 2. TOP 3 VIP PODIUM ANNOUNCEMENTS (VŨ TRƯỜNG SOÁN NGÔI TOP 1)
     // ==========================================================================
     onTopGiftersUpdate(topGifters) {
       if (!this.enabled || !Array.isArray(topGifters) || topGifters.length === 0) return;
 
-      // Extract current Top 3 usernames
       const curTop1 = topGifters[0];
       const curTop2 = topGifters[1];
       const curTop3 = topGifters[2];
@@ -469,79 +522,86 @@
       const u2 = curTop2 && curTop2.coins > 0 ? (curTop2.username || curTop2.nickname) : null;
       const u3 = curTop3 && curTop3.coins > 0 ? (curTop3.username || curTop3.nickname) : null;
 
-      // If initial state load, just record usernames without speaking
       if (this.isInitialTopLoad) {
         this.isInitialTopLoad = false;
         this.lastTop3Usernames = [u1, u2, u3];
         return;
       }
 
-      // Check for Rank 1 change
+      // Check for Rank 1 change (SOÁN NGÔI TOP 1)
       if (u1 && u1 !== this.lastTop3Usernames[0]) {
         const name = curTop1.nickname || curTop1.username;
         const rank1Phrases = [
-          `Chúc mừng đại gia ${name} đã chính thức chiếm lĩnh Top 1 bục vàng đại gia!`,
-          `Đẳng cấp đại gia! ${name} đã vươn lên vị trí dẫn đầu bảng vàng Sanoo Club!`
+          `Trật tự nào anh em ơiii! Bảng vàng đại gia chính thức đổi chủ! Chào đón sếp lớn ${name} bước lên ngai vàng Top 1! Quá đẳng cấp!`,
+          `Nổ tung sàn diễn! Đại ca ${name} chính thức soán ngôi độc chiếm Top 1 bục vàng đại gia đêm nay! Anh em hú hét lên nào!`,
+          `Tiếng nổ vang trời từ vị trí của ${name}! Ngai vàng Top 1 đại gia Sanoo Club đêm nay đã có chủ! Cả vũ trường nâng ly nào!`
         ];
         const text = rank1Phrases[Math.floor(Math.random() * rank1Phrases.length)];
-        this.speak(text, true);
+        this.speak(text, true, true);
       }
       // Check for Rank 2 change
       else if (u2 && u2 !== this.lastTop3Usernames[1] && u2 !== this.lastTop3Usernames[0]) {
         const name = curTop2.nickname || curTop2.username;
-        const text = `Chúc mừng ${name} đã xuất sắc vươn lên vị trí Top 2 đại gia!`;
-        this.speak(text, true);
+        const text = `Đẳng cấp không cần bàn cãi! Chúc mừng ${name} đã xuất sắc vươn lên Top 2 đại gia!`;
+        this.speak(text, true, false);
       }
       // Check for Rank 3 change
       else if (u3 && u3 !== this.lastTop3Usernames[2] && u3 !== this.lastTop3Usernames[0] && u3 !== this.lastTop3Usernames[1]) {
         const name = curTop3.nickname || curTop3.username;
-        const text = `Chúc mừng ${name} đã bước lên Top 3 bục vinh quang!`;
-        this.speak(text, true);
+        const text = `Hú hét lên nào anh em ơi! Chào mừng ${name} chính thức ghi danh bước lên Top 3 bục vinh quang!`;
+        this.speak(text, true, false);
       }
 
       this.lastTop3Usernames = [u1, u2, u3];
     }
 
     // ==========================================================================
-    // 3. PERIODIC RANDOM MC HYPE SHOUTS (Every 2.5 - 4 minutes during idle)
+    // 3. PERIODIC RANDOM MC HYPE SHOUTS (KHUẤY ĐỘNG VŨ TRƯỜNG CỰC CHÁY)
     // ==========================================================================
     startPeriodicHypeTimer() {
       if (this.hypeIntervalTimer) clearInterval(this.hypeIntervalTimer);
 
-      // Check every 30 seconds if it's time for an MC hype shout
       this.hypeIntervalTimer = setInterval(() => {
         if (!this.enabled) return;
 
         const idleTime = Date.now() - this.lastSpeechTime;
-        // If idle for over 150 seconds (2.5 mins) and queue is empty, trigger a random hype phrase
-        if (idleTime >= 150000 && this.queue.length === 0 && !this.isPlaying) {
+        // If idle for over 130 seconds (over 2 mins) and queue is empty, fire a random hype shout
+        if (idleTime >= 130000 && this.queue.length === 0 && !this.isPlaying) {
           this.triggerRandomHype();
         }
-      }, 30000);
+      }, 25000);
     }
 
     triggerRandomHype() {
       const hypePhrases = [
-        "Chào mừng tất cả anh em đang có mặt tại phòng kính Sanoo Club! Cho DJ xin một lượt thả tim để tăng nhiệt độ nào!",
-        "Ai chưa có mặt trên sàn nhảy gõ 1 tham gia quẩy cùng hội mèo ngay nhé anh em ơi!",
-        "Nhạc đang lên cực căng, anh em nâng ly quẩy hết mình đêm nay nào!",
-        "Cảm ơn tất cả anh em đã ghé thăm Sanoo Club! Chúc cả nhà một buổi tối tràn đầy năng lượng và niềm vui!",
-        "Tay đâu tay đâu anh em ơi! Thả tim nhiệt tình cho các vũ công và chú mèo quẩy đêm nay nào!",
-        "Anh em nào muốn đổi style mèo gõ chấm than 1, chấm than 2 hoặc chấm than 3 nhé!",
-        "Bass đang đập rung sàn, anh em sẵn sàng quẩy bung nóc cùng DJ Sanoo chưa nào!",
-        "Anh em đi qua cho xin một lượt follow kênh để không bỏ lỡ những đêm nhạc bùng nổ tiếp theo nhé!",
-        "Quẩy nhiệt tình lên anh em ơi, đêm nay không say không về!",
-        "Âm thanh phòng kính nghe quá là ấm và phê luôn cả nhà ơi! Cùng nhún nhảy nào!"
+        "1 2 3... ối dồi ôi, tay đâu tay đâu hết rồi anh em ơi! Cho DJ xin một tràng pháo tim nổ tung màn hình nào!",
+        "Ai chưa có mặt trên sàn gõ phím 1 để nhập hội quẩy xuyên màn đêm cùng team mèo nào!",
+        "Nhạc đang lên cực căng, anh em nâng ly zô một cái thật to nào! Một hai ba... zô!",
+        "Quẩy sung lên anh em ơiii! Đêm nay không say không về, tới bến luôn nào!",
+        "Cảm ơn năm trăm anh em đang có mặt tại phòng kính Sanoo Club! Nhún nhảy hết mình theo điệu nhạc nào!",
+        "Ai muốn đổi style mèo quẩy chất hơn gõ chấm than 1, chấm than 2 hoặc chấm than 3 nhé anh em!",
+        "Bass đang đập rung sàn, anh em sẵn sàng xé toạc màn đêm cùng DJ Sanoo chưa nàooo!",
+        "Tay trái đâu là tay trái đâu? Tay phải đâu là tay phải đâu? Giơ cao hai tay nhún nhảy theo nhạc nào anh em!",
+        "Đoạn drop này chuẩn bị nổ tung vũ trường! Anh em sẵn sàng bung nóc chưa nào!",
+        "Nhạc hay âm thanh ấm, anh em thả tim nhiệt tình tiếp lửa cho các vũ công quẩy đêm nay nhé!"
       ];
 
       const randomPhrase = hypePhrases[Math.floor(Math.random() * hypePhrases.length)];
-      this.speak(randomPhrase, false);
+      this.speak(randomPhrase, false, true);
     }
 
-    // Set voice accent: 'north' | 'south'
-    setVoiceAccent(accent) {
-      if (accent === 'north' || accent === 'south') {
-        this.voiceAccent = accent;
+    // Set voice style: 'female_hype' | 'male_deep'
+    setStyle(style) {
+      if (style === 'female_hype' || style === 'male_deep') {
+        this.style = style;
+      }
+    }
+
+    // Set playback rate (speed: 1.1x - 1.35x)
+    setSpeed(speed) {
+      const val = parseFloat(speed);
+      if (!isNaN(val) && val >= 1.0 && val <= 1.45) {
+        this.playbackRate = val;
       }
     }
 

@@ -4554,7 +4554,9 @@
       case 'tts_config':
         if (window.TTSMCManager) {
           if (data.enabled !== undefined) TTSMCManager.setEnabled(data.enabled);
-          if (data.voiceAccent) TTSMCManager.setVoiceAccent(data.voiceAccent);
+          if (data.style) TTSMCManager.setStyle(data.style);
+          if (data.speed !== undefined) TTSMCManager.setSpeed(data.speed);
+          if (data.voiceAccent) TTSMCManager.setStyle(data.voiceAccent === 'south' ? 'female_hype' : 'male_deep');
           if (data.volume !== undefined) {
             TTSMCManager.volume = data.volume;
             if (TTSMCManager.masterVocalGain) {
