@@ -25,3 +25,8 @@ Thumbs.db
 scratch/
 public/assets/music/youtube/
 *.bak
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
