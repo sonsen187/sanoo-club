@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>DJ Club TikTok Live - 9:16 Stream Overlay</title>
-  <link rel="stylesheet" href="/css/overlay.css">
+  <link rel="stylesheet" href="/css/overlay.css?v=marquee_top10_v1">
 </head>
 <body>
   <div class="stream-container">
@@ -44,7 +44,7 @@
           </div>
         </div>
 
-        <!-- NOW PLAYING TRACK CARD -->
+        <!-- NOW PLAYING TRACK CARD (BOX BASS) -->
         <div class="now-playing-card">
           <div class="dj-disc-icon"></div>
           <div class="track-info">
@@ -61,40 +61,72 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- TOP-LEFT COMMANDS MENU (ĐỐI XỨNG TOP ĐẠI GIA) -->
-      <div class="commands-menu">
-        <div class="commands-header">⚡ LỆNH QUẨY</div>
-        <div class="commands-list">
-          <div class="cmd-item">
-            <span class="cmd-badge">1</span>
-            <span class="cmd-name">Vào sàn quẩy</span>
+        <!-- HUD DUAL MARQUEE TICKER (LỆNH QUẨY & TOP 10 ĐẠI GIA CHỮ CHẠY NGANG) -->
+        <div class="stream-ticker-container">
+          <!-- ROW 1: HƯỚNG DẪN LỆNH QUẨY CHỮ CHẠY NGANG -->
+          <div class="ticker-row ticker-commands">
+            <div class="ticker-badge badge-cmd">
+              <span class="badge-icon">⚡</span>
+              <span>LỆNH:</span>
+            </div>
+            <div class="ticker-scroll-mask">
+              <div id="commands-ticker-track" class="ticker-track">
+                <div class="ticker-content">
+                  <span class="ticker-item"><span class="cmd-pill">1</span> Vào sàn quẩy (Mèo Đen)</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill">2</span> Mèo Vàng Shuffle</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill">3</span> Mèo Xám Hands Up</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-gift">🎁</span> Tặng Quà Lên Bục VIP Vinh Danh</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-heart">❤️</span> Thả tim bắt nhịp Bass Sàn</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-chat">💬</span> Chat số 1, 2, 3 để đổi vũ đạo</span>
+                  <span class="ticker-sep">✦</span>
+                </div>
+                <div class="ticker-content" aria-hidden="true">
+                  <span class="ticker-item"><span class="cmd-pill">1</span> Vào sàn quẩy (Mèo Đen)</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill">2</span> Mèo Vàng Shuffle</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill">3</span> Mèo Xám Hands Up</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-gift">🎁</span> Tặng Quà Lên Bục VIP Vinh Danh</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-heart">❤️</span> Thả tim bắt nhịp Bass Sàn</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item"><span class="cmd-pill pill-chat">💬</span> Chat số 1, 2, 3 để đổi vũ đạo</span>
+                  <span class="ticker-sep">✦</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="cmd-item">
-            <span class="cmd-badge">2</span>
-            <span class="cmd-name">Mèo Vàng Shuffle</span>
-          </div>
-          <div class="cmd-item">
-            <span class="cmd-badge">3</span>
-            <span class="cmd-name">Mèo Xám Quẩy</span>
-          </div>
-          <div class="cmd-item cmd-gift">
-            <span class="cmd-badge">🎁</span>
-            <span class="cmd-name">Lên Bục VIP</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- TOP-RIGHT VIP LEADERBOARD -->
-      <div class="vip-leaderboard">
-        <div class="vip-header">👑 TOP ĐẠI GIA</div>
-        <div id="vip-list" class="vip-list">
-          <div class="vip-item rank-1"><span class="vip-rank">🥇</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
-          <div class="vip-item rank-2"><span class="vip-rank">🥈</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
-          <div class="vip-item rank-3"><span class="vip-rank">🥉</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
-          <div class="vip-item rank-4"><span class="vip-rank">4</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
-          <div class="vip-item rank-5"><span class="vip-rank">5</span><span class="vip-name">Chờ đại gia...</span><span class="vip-coins">-</span></div>
+          <!-- ROW 2: BẢNG XẾP HẠNG TOP 10 ĐẠI GIA CHỮ CHẠY NGANG -->
+          <div class="ticker-row ticker-vip">
+            <div class="ticker-badge badge-vip">
+              <span class="badge-icon">👑</span>
+              <span>TOP 10:</span>
+            </div>
+            <div class="ticker-scroll-mask">
+              <div id="vip-ticker-track" class="ticker-track">
+                <div id="vip-ticker-content" class="ticker-content">
+                  <span class="ticker-item vip-empty">Đang chờ đại gia tặng quà ghi danh TOP 10 Sàn Bay...</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item vip-hint">🎁 Tặng quà bất kỳ để vinh danh lên bục VIP ngay!</span>
+                  <span class="ticker-sep">✦</span>
+                </div>
+                <div id="vip-ticker-clone" class="ticker-content" aria-hidden="true">
+                  <span class="ticker-item vip-empty">Đang chờ đại gia tặng quà ghi danh TOP 10 Sàn Bay...</span>
+                  <span class="ticker-sep">✦</span>
+                  <span class="ticker-item vip-hint">🎁 Tặng quà bất kỳ để vinh danh lên bục VIP ngay!</span>
+                  <span class="ticker-sep">✦</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -104,7 +136,7 @@
   <script src="/js/sfx.js?v=vudao3_sunglasses_v3"></script>
   <script src="/js/audio_effects.js?v=glass_room_v1"></script>
   <script src="/js/profanity-filter.js"></script>
-  <script src="/js/tts-mc.js?v=mc_v1"></script>
-  <script src="/js/overlay.js?v=chibi_png_v1"></script>
+  <script src="/js/tts-mc.js?v=club_dsp_v2"></script>
+  <script src="/js/overlay.js?v=marquee_top10_v1"></script>
 </body>
 </html>

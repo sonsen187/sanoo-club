@@ -43,7 +43,7 @@ if __name__ == "__main__":
     pitch = sys.argv[4].strip() if len(sys.argv) > 4 else "+0Hz"
 
     try:
-        data = asyncio.run(asyncio.wait_for(generate_tts(text, voice, rate, pitch), timeout=5.0))
+        data = asyncio.run(asyncio.wait_for(generate_tts(text, voice, rate, pitch), timeout=12.0))
         sys.stdout.buffer.write(data)
         sys.stdout.buffer.flush()
         sys.exit(0)

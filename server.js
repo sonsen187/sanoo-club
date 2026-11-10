@@ -99,7 +99,7 @@ function broadcast(type, data) {
 }
 
 // Top Gifters List sorted descending
-function getTopGiftersList(limit = 5) {
+function getTopGiftersList(limit = 10) {
   return Object.values(state.topGifters)
     .sort((a, b) => b.coins - a.coins)
     .slice(0, limit);
@@ -413,11 +413,11 @@ function processGift(giftEvent) {
     repeatCount,
     diamondCount,
     fxType,
-    topGifters: getTopGiftersList(5)
+    topGifters: getTopGiftersList(10)
   };
 
   broadcast('gift', payload);
-  broadcast('top_gifters', getTopGiftersList(5));
+  broadcast('top_gifters', getTopGiftersList(10));
 }
 
 // Process chat command / message
@@ -568,7 +568,7 @@ app.get('/api/playlist', (req, res) => {
 app.get('/api/status', (req, res) => {
   res.json({
     ...state,
-    topGiftersList: getTopGiftersList(5),
+    topGiftersList: getTopGiftersList(10),
     currentTrack: playlist[state.currentTrackIndex] || null
   });
 });
@@ -619,6 +619,24 @@ function fetchGoogleTTS(text, cacheKey, res) {
   });
 }
 
+
+function getPythonExecutable() {
+  const localAppData = process.env.LOCALAPPDATA || '';
+  const candidates = [
+    path.join(localAppData, 'Programs', 'Python', 'Python312', 'python.exe'),
+    path.join(localAppData, 'Programs', 'Python', 'Launcher', 'py.exe'),
+    'C:\\Program Files\\Python312\\python.exe',
+    'python',
+    'py'
+  ];
+  for (const c of candidates) {
+    if (c.includes('\\')) {
+      if (fs.existsSync(c)) return c;
+    }
+  }
+  return 'python';
+}
+
 app.get('/api/tts', (req, res) => {
   const text = (req.query.text || '').trim();
   if (!text) return res.status(400).send('Text is required');
@@ -655,7 +673,8 @@ app.get('/api/tts', (req, res) => {
   // Attempt Microsoft Edge Neural TTS via dedicated scripts/tts_engine.py
   try {
     const scriptPath = path.join(__dirname, 'scripts', 'tts_engine.py');
-    const pyProc = spawn('python', [
+    const pythonExe = getPythonExecutable();
+    const pyProc = spawn(pythonExe, [
       scriptPath,
       text,
       edgeVoice,
@@ -672,7 +691,7 @@ app.get('/api/tts', (req, res) => {
 
     const timeoutTimer = setTimeout(() => {
       try { pyProc.kill(); } catch (_) {}
-    }, 5500);
+    }, 13000);
 
     pyProc.on('close', code => {
       clearTimeout(timeoutTimer);
@@ -937,7 +956,7 @@ wss.on('connection', ws => {
     data: {
       ...state,
       playlist,
-      topGiftersList: getTopGiftersList(5),
+      topGiftersList: getTopGiftersList(10),
       currentTrack: playlist[state.currentTrackIndex] || null
     }
   }));

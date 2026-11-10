@@ -14,6 +14,7 @@
 
   // Sound Effects engine
   const sfx = new DJSoundEffects();
+  window.sfx = sfx;
 
   // Web Audio Context & Analyser for real-time music reactive beat analysis
   let audioCtx = null;
@@ -4515,49 +4516,84 @@
     }
   }
 
-  // Update Top Gifters Leaderboard UI
+  // Update Top Gifters Leaderboard UI (TOP 10 CHỮ CHẠY NGANG)
   function updateTopGiftersUI(list) {
     topGifters = list || [];
-    const listEl = document.getElementById('vip-list');
-    if (!listEl) return;
 
-    listEl.innerHTML = '';
-    const medals = ['🥇', '🥈', '🥉', '4', '5'];
+    // 1. Update Top 10 Marquee Ticker Track
+    const contentEl = document.getElementById("vip-ticker-content");
+    const cloneEl = document.getElementById("vip-ticker-clone");
+    if (contentEl) {
+      const medals = ["🥇", "🥈", "🥉", "4.", "5.", "6.", "7.", "8.", "9.", "10."];
+      let html = "";
 
-    for (let i = 0; i < 5; i++) {
-      const g = topGifters[i];
-      const item = document.createElement('div');
-      item.className = `vip-item rank-${i + 1}`;
-
-      if (g) {
-        item.innerHTML = `
-          <span class="vip-rank">${medals[i]}</span>
-          <span class="vip-name">${g.nickname || g.username}</span>
-          <span class="vip-coins">${(g.coins || 0).toLocaleString()}</span>
-        `;
+      if (!topGifters || topGifters.length === 0) {
+        html = `<span class="ticker-item vip-empty">✨ Đang chờ các đại gia tặng quà ghi danh TOP 10 Sàn Bay...</span>` +
+               `<span class="ticker-sep">✦</span>` +
+               `<span class="ticker-item vip-hint">🎁 Tặng quà bất kỳ để vinh danh lên bục VIP ngay!</span>` +
+               `<span class="ticker-sep">✦</span>`;
       } else {
-        item.innerHTML = `
-          <span class="vip-rank">${medals[i]}</span>
-          <span class="vip-name" style="color: #666;">Chờ đại gia...</span>
-          <span class="vip-coins">-</span>
-        `;
+        const displayCount = Math.min(10, topGifters.length);
+        for (let i = 0; i < displayCount; i++) {
+          const g = topGifters[i];
+          const rankLabel = medals[i] || (i + 1) + ".";
+          const rankClass = i === 0 ? "top-gold" : (i === 1 ? "top-silver" : (i === 2 ? "top-bronze" : "top-normal"));
+          const coinsFormatted = (g.coins || 0).toLocaleString();
+          const name = g.nickname || g.username || "Đại Gia";
+
+          html += '<span class="ticker-item ' + rankClass + '">' +
+                  '<span class="vip-rank-pill">' + rankLabel + '</span>' +
+                  '<strong class="vip-user-name">' + name + '</strong>' +
+                  '<span class="vip-coins-pill">' + coinsFormatted + ' xu</span>' +
+                  '</span><span class="ticker-sep">✦</span>';
+        }
+        if (displayCount < 10) {
+          html += '<span class="ticker-item vip-hint">🎁 Tặng quà để lọt vào TOP 10 Sàn Bay!</span><span class="ticker-sep">✦</span>';
+        }
       }
-      listEl.appendChild(item);
+
+      contentEl.innerHTML = html;
+      if (cloneEl) cloneEl.innerHTML = html;
+    }
+
+    // 2. Legacy fallback for listEl if present
+    const listEl = document.getElementById("vip-list");
+    if (listEl) {
+      listEl.innerHTML = "";
+      const medals = ["🥇", "🥈", "🥉", "4", "5"];
+      for (let i = 0; i < 5; i++) {
+        const g = topGifters[i];
+        const item = document.createElement("div");
+        item.className = "vip-item rank-" + (i + 1);
+        if (g) {
+          item.innerHTML = `
+            <span class="vip-rank">` + medals[i] + `</span>
+            <span class="vip-name">` + (g.nickname || g.username) + `</span>
+            <span class="vip-coins">` + (g.coins || 0).toLocaleString() + `</span>
+          `;
+        } else {
+          item.innerHTML = `
+            <span class="vip-rank">` + medals[i] + `</span>
+            <span class="vip-name" style="color: #666;">Chờ đại gia...</span>
+            <span class="vip-coins">-</span>
+          `;
+        }
+        listEl.appendChild(item);
+      }
     }
 
     // Save to browser LocalStorage for persistent leaderboard
     try {
       if (topGifters && topGifters.length > 0) {
-        localStorage.setItem('sanoo_club_top_gifters', JSON.stringify(topGifters));
+        localStorage.setItem("sanoo_club_top_gifters", JSON.stringify(topGifters));
       } else {
-        localStorage.removeItem('sanoo_club_top_gifters');
+        localStorage.removeItem("sanoo_club_top_gifters");
       }
     } catch (e) {}
 
     // Update VIP flag and synchronize podium positions on dancers
     syncVIPRanksAndPodiums();
   }
-
   // Live Chat Feed UI
   function appendChatFeed(chat) {
     const feed = document.getElementById('chat-feed');

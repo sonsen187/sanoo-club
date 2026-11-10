@@ -803,7 +803,7 @@
     volume: 1.0,
     speed: 1.20,
     pitch: 0,
-    echo: 35,
+    echo: 45,
     style: 'female_hype',
     introSFX: 'click',
     duckingRatio: 0.40,
@@ -1021,11 +1021,11 @@
   if (btnVoiceMale) btnVoiceMale.addEventListener('click', () => selectVoiceStyle('male_deep'));
   if (btnVoiceGoogle) btnVoiceGoogle.addEventListener('click', () => selectVoiceStyle('google'));
 
-  // Live Audio Preview on Admin Page (Direct audio feedback)
+  // Live Audio Preview on Admin Page (Direct audio feedback with Club Effects)
   if (btnPreviewTTS) {
     btnPreviewTTS.addEventListener('click', async () => {
       if (currentPreviewAudio) {
-        currentPreviewAudio.pause();
+        try { currentPreviewAudio.pause(); } catch (_) {}
         currentPreviewAudio = null;
       }
 
@@ -1036,7 +1036,6 @@
       };
 
       const phrase = samplePhrases[ttsState.style] || samplePhrases.female_hype;
-      const url = `/api/tts?text=${encodeURIComponent(phrase)}&voice=${encodeURIComponent(ttsState.style || 'female_hype')}&speed=${ttsState.speed || 1.20}&pitch=${ttsState.pitch || 0}`;
 
       if (ttsPreviewBadge) {
         ttsPreviewBadge.textContent = '🟡 Đang tải audio...';
@@ -1045,53 +1044,37 @@
       btnPreviewTTS.disabled = true;
 
       try {
-        const audio = new Audio(url);
-        currentPreviewAudio = audio;
-        audio.volume = Math.min(1.0, ttsState.volume || 1.0);
-
-        audio.oncanplay = () => {
+        if (window.TTSMCManager) {
+          TTSMCManager.init();
+          TTSMCManager.setConfig(ttsState);
           if (ttsPreviewBadge) {
-            ttsPreviewBadge.textContent = '🟢 Đang phát thử...';
+            ttsPreviewBadge.textContent = '🟢 Đang phát (Hiệu ứng Club)... ';
             ttsPreviewBadge.style.color = 'var(--neon-green)';
           }
-        };
-
-        audio.onended = () => {
-          btnPreviewTTS.disabled = false;
-          currentPreviewAudio = null;
-          if (ttsPreviewBadge) {
-            ttsPreviewBadge.textContent = '⚪ Sẵn sàng';
-            ttsPreviewBadge.style.color = '#a0aec0';
-          }
-        };
-
-        audio.onerror = (e) => {
-          console.error('Audio preview error:', e);
-          btnPreviewTTS.disabled = false;
-          currentPreviewAudio = null;
-          if (ttsPreviewBadge) {
-            ttsPreviewBadge.textContent = '🔴 Lỗi phát';
-            ttsPreviewBadge.style.color = '#ff4d4d';
-          }
-          showToast('⚠️ Không thể phát âm thanh nghe thử. Kiểm tra kết nối mạng!');
-        };
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          await playPromise;
+          await TTSMCManager.speakDirectAsync(phrase);
+        } else {
+          const url = '/api/tts?text=' + encodeURIComponent(phrase) + '&voice=' + encodeURIComponent(ttsState.style || 'female_hype') + '&speed=' + (ttsState.speed || 1.20) + '&pitch=' + (ttsState.pitch || 0);
+          const audio = new Audio(url);
+          currentPreviewAudio = audio;
+          audio.volume = Math.min(1.0, ttsState.volume || 1.0);
+          await new Promise((res, rej) => {
+            audio.onended = res;
+            audio.onerror = rej;
+            audio.play();
+          });
         }
       } catch (err) {
         console.error('Preview error:', err);
+        showToast('⚠️ Lỗi phát: ' + (err.message || 'Không thể phát'));
+      } finally {
         btnPreviewTTS.disabled = false;
         if (ttsPreviewBadge) {
-          ttsPreviewBadge.textContent = '🔴 Lỗi phát';
-          ttsPreviewBadge.style.color = '#ff4d4d';
+          ttsPreviewBadge.textContent = '⚪ Sẵn sàng';
+          ttsPreviewBadge.style.color = '#a0aec0';
         }
-        showToast('⚠️ Lỗi: ' + err.message);
       }
     });
   }
-
   // 1. Volume Slider
   if (ttsVolumeSlider) {
     ttsVolumeSlider.addEventListener('input', () => {
@@ -1101,6 +1084,7 @@
         ttsVolVal.textContent = vol + '%';
         ttsVolVal.style.color = vol > 100 ? '#ff007f' : 'var(--neon-cyan)';
       }
+      if (window.TTSMCManager) TTSMCManager.setVolume(vol / 100);
       sendWS('tts_config', { volume: vol / 100 });
     });
   }
@@ -1118,6 +1102,7 @@
         else if (spdVal <= 95) tag = 'Chậm rãi';
         ttsSpeedVal.textContent = `${spdFloat}x (${tag})`;
       }
+      if (window.TTSMCManager) TTSMCManager.setSpeed(spdFloat);
       sendWS('tts_config', { speed: spdFloat });
     });
   }
@@ -1136,6 +1121,7 @@
         const sign = pitchHz > 0 ? `+${pitchHz}` : `${pitchHz}`;
         ttsPitchVal.textContent = `${sign}Hz (${pitchTag})`;
       }
+      if (window.TTSMCManager) TTSMCManager.setPitch(pitchHz);
       sendWS('tts_config', { pitch: pitchHz });
     });
   }
@@ -1152,6 +1138,7 @@
         else if (echoVal > 0) echoTag = 'Vang nhẹ';
         ttsEchoVal.textContent = `${echoVal}% (${echoTag})`;
       }
+      if (window.TTSMCManager) TTSMCManager.setEcho(echoVal);
       sendWS('tts_config', { echo: echoVal });
     });
   }
@@ -1163,7 +1150,7 @@
         volume: 1.0,
         speed: 1.20,
         pitch: 0,
-        echo: 35,
+        echo: 45,
         style: 'female_hype'
       };
       updateTTSAdminUI(defaultPreset);

@@ -27,7 +27,7 @@
       this.style = 'female_hype'; // 'female_hype' (Quẩy sung) | 'male_deep' (Nam trầm gằn) | 'google'
       this.playbackRate = 1.20; // 1.20x energetic club tempo
       this.pitch = 0; // -50Hz to +50Hz pitch adjust
-      this.echo = 35; // 0% to 100% echo/reverb wet mix
+      this.echo = 45; // 0% to 100% echo/reverb wet mix
       this.stingerEnabled = false;
       this.introSFX = 'click'; // 'none' | 'click' | 'airhorn' | 'scratch' | 'siren'
       this.enableGiftHype = true;
@@ -49,18 +49,37 @@
       // Smart Gift Aggregation: username -> { nickname, giftName, count, diamondCount, fxType, timer }
       this.giftBuffer = new Map();
 
-      // Audio DSP Nodes
+      // Audio DSP Nodes - Live Club Sound System Chain
       this.micHighpass = null;
+      this.micBody = null;
+      this.micMid = null;
       this.micPresence = null;
-      this.micLowpass = null;
+      this.micAir = null;
+      this.vocalSaturator = null;
       this.vocalCompressor = null;
       this.makeupGain = null;
-      this.delayNode = null;
-      this.delayFeedback = null;
-      this.wetGain = null;
+
+      // Stereo Spatial Haas Widener (Club PA Spread)
+      this.haasDelayR = null;
+      this.dryMerger = null;
       this.dryGain = null;
+
+      // Stereo Ping-Pong Club Delay
+      this.delayNodeL = null;
+      this.delayNodeR = null;
+      this.delayFilter = null;
+      this.delayFeedbackL = null;
+      this.delayFeedbackR = null;
+      this.delayMerger = null;
+      this.delayWetGain = null;
+      this.wetGain = null; // Alias for backward compatibility
+
+      // Club Room Acoustic Reverb (True Venue Impulse)
       this.reverbConvolver = null;
+      this.reverbFilter = null;
       this.reverbGain = null;
+
+      // Master Vocal Output
       this.masterVocalGain = null;
 
       // Periodic MC Hype timer (Every 4 - 5 minutes, only when idle)
@@ -82,110 +101,212 @@
       this._setupAudioDSP();
     }
 
+    _makeDistortionCurve(k = 1.6) {
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        // Hyperbolic tangent soft saturation curve
+        curve[i] = Math.tanh(x * k) / Math.tanh(k);
+      }
+      return curve;
+    }
+
     _setupAudioDSP() {
       if (!this.ctx) return;
       try {
-        // 1. Stage Vocal Equalizer (Microphone Modeling for Powerful Club Mix)
-        // Highpass at 160Hz cleans sub-rumble while retaining full vocal chest and body
+        // 1. Live Stage Vocal Equalizer (Microphone Modeling for Nightclub Sound)
+        // Highpass at 120Hz cleans unwanted sub-rumble while retaining full vocal chest and authority
         this.micHighpass = this.ctx.createBiquadFilter();
         this.micHighpass.type = 'highpass';
-        this.micHighpass.frequency.value = 160;
+        this.micHighpass.frequency.value = 120;
         this.micHighpass.Q.value = 0.7;
 
-        // Presence boost at 3000Hz (+6.0dB) delivers sharp, crisp intelligibility through thick EDM bass
+        // Proximity chest warmth (240Hz punch) - thickens the voice like an authentic live MC mic
+        this.micBody = this.ctx.createBiquadFilter();
+        this.micBody.type = 'peaking';
+        this.micBody.frequency.value = 240;
+        this.micBody.gain.value = 3.8;
+        this.micBody.Q.value = 1.1;
+
+        // Mid-range punch (1800Hz) - live mic cutting frequency
+        this.micMid = this.ctx.createBiquadFilter();
+        this.micMid.type = 'peaking';
+        this.micMid.frequency.value = 1800;
+        this.micMid.gain.value = 2.2;
+        this.micMid.Q.value = 1.4;
+
+        // Razor-sharp presence boost (4000Hz, +7.5dB) - cuts straight through thick Vinahouse bass & synths
         this.micPresence = this.ctx.createBiquadFilter();
         this.micPresence.type = 'peaking';
-        this.micPresence.frequency.value = 3000;
-        this.micPresence.gain.value = 6.0;
+        this.micPresence.frequency.value = 4000;
+        this.micPresence.gain.value = 7.5;
         this.micPresence.Q.value = 1.2;
 
-        // Lowpass at 9500Hz removes harsh sibilance while letting airy mic sheen breathe
-        this.micLowpass = this.ctx.createBiquadFilter();
-        this.micLowpass.type = 'lowpass';
-        this.micLowpass.frequency.value = 9500;
-        this.micLowpass.Q.value = 0.8;
+        // Stage mic air sheen (9000Hz high-shelf) - airy breath and live stage shine
+        this.micAir = this.ctx.createBiquadFilter();
+        this.micAir.type = 'highshelf';
+        this.micAir.frequency.value = 9000;
+        this.micAir.gain.value = 2.5;
 
-        // 2. Broadcast-Grade Studio Vocal Compressor (Evens out speech dynamics and fattens the voice)
+        // 2. Analog Mixer Preamp Tube Saturation / Soft Clipper
+        // Adds rich harmonic warmth, eliminating clinical robotic digital dryness
+        this.vocalSaturator = this.ctx.createWaveShaper();
+        this.vocalSaturator.curve = this._makeDistortionCurve(1.6);
+        this.vocalSaturator.oversample = '2x';
+
+        // 3. Live Broadcast Vocal Compressor (Evens out speech dynamics and fattens the voice)
         this.vocalCompressor = this.ctx.createDynamicsCompressor();
-        this.vocalCompressor.threshold.value = -22;
-        this.vocalCompressor.knee.value = 10;
-        this.vocalCompressor.ratio.value = 5.0;
+        this.vocalCompressor.threshold.value = -24;
+        this.vocalCompressor.knee.value = 8;
+        this.vocalCompressor.ratio.value = 4.5;
         this.vocalCompressor.attack.value = 0.003;
-        this.vocalCompressor.release.value = 0.12;
+        this.vocalCompressor.release.value = 0.14;
 
-        // Makeup Gain: +4.1dB boost bringing voice up to standard master EDM commercial loudness
+        // Makeup Gain: brings voice up to commercial club loudness
         this.makeupGain = this.ctx.createGain();
-        this.makeupGain.gain.value = 1.6;
+        this.makeupGain.gain.value = 1.85;
 
-        // 3. Tempo-synced Club Triplet Delay (234ms @ 128 BPM Vinahouse)
-        this.delayNode = this.ctx.createDelay(1.0);
-        this.delayNode.delayTime.value = 0.234;
+        // Connect Pre-EQ -> Saturation -> Compressor -> Makeup Gain
+        this.micHighpass.connect(this.micBody);
+        this.micBody.connect(this.micMid);
+        this.micMid.connect(this.micPresence);
+        this.micPresence.connect(this.micAir);
+        this.micAir.connect(this.vocalSaturator);
+        this.vocalSaturator.connect(this.vocalCompressor);
+        this.vocalCompressor.connect(this.makeupGain);
 
-        this.delayFeedback = this.ctx.createGain();
-        this.delayFeedback.gain.value = 0.28;
+        // 4. Stereo Spatial Haas Widener for Dry Voice (3D Venue Spread)
+        this.haasDelayR = this.ctx.createDelay(0.05);
+        this.haasDelayR.delayTime.value = 0.015; // 15ms stereo spread
 
-        this.wetGain = this.ctx.createGain();
-        this.wetGain.gain.value = 0.24; // Lush concert echo
+        this.dryMerger = this.ctx.createChannelMerger(2);
+        this.makeupGain.connect(this.dryMerger, 0, 0); // Left channel (Direct)
+        this.makeupGain.connect(this.haasDelayR);
+        this.haasDelayR.connect(this.dryMerger, 0, 1); // Right channel (15ms micro-delay)
 
         this.dryGain = this.ctx.createGain();
-        this.dryGain.gain.value = 1.0; // 100% direct voice
+        this.dryGain.gain.value = 0.88;
 
-        // 4. Large Club Hall Reverb
+        // 5. Stereo BPM-Synced Club Ping-Pong Delay
+        // Tempo-synced: Left 234ms (1/8 note @ 128 BPM Vinahouse), Right 351ms (dotted 1/8 note)
+        this.delayNodeL = this.ctx.createDelay(1.5);
+        this.delayNodeL.delayTime.value = 0.234;
+
+        this.delayNodeR = this.ctx.createDelay(1.5);
+        this.delayNodeR.delayTime.value = 0.351;
+
+        // Analog Delay Tone Filter (cuts harsh treble on repeats for warm analog tape/space echo)
+        this.delayFilter = this.ctx.createBiquadFilter();
+        this.delayFilter.type = 'lowpass';
+        this.delayFilter.frequency.value = 3400;
+        this.delayFilter.Q.value = 0.85;
+
+        // Cross-channel feedback for stereo ping-pong bouncing
+        this.delayFeedbackL = this.ctx.createGain();
+        this.delayFeedbackL.gain.value = 0.38;
+
+        this.delayFeedbackR = this.ctx.createGain();
+        this.delayFeedbackR.gain.value = 0.38;
+
+        // Connect Delay Network:
+        this.makeupGain.connect(this.delayNodeL);
+        this.makeupGain.connect(this.delayNodeR);
+
+        this.delayNodeL.connect(this.delayFilter);
+        this.delayFilter.connect(this.delayFeedbackL);
+        this.delayFeedbackL.connect(this.delayNodeR); // Cross to R
+
+        this.delayNodeR.connect(this.delayFeedbackR);
+        this.delayFeedbackR.connect(this.delayNodeL); // Cross to L
+
+        // Merge L & R delay outputs to stereo
+        this.delayMerger = this.ctx.createChannelMerger(2);
+        this.delayNodeL.connect(this.delayMerger, 0, 0);
+        this.delayNodeR.connect(this.delayMerger, 0, 1);
+
+        this.delayWetGain = this.ctx.createGain();
+        this.delayWetGain.gain.value = 0.42;
+        this.delayMerger.connect(this.delayWetGain);
+        this.wetGain = this.delayWetGain; // Alias
+
+        // 6. Grand Club Room / Hall Reverb (True Venue Impulse)
         this.reverbConvolver = this.ctx.createConvolver();
-        this.reverbConvolver.buffer = this._createClubHallImpulse(this.ctx, 1.2, 3.5);
+        this.reverbConvolver.buffer = this._createClubHallImpulse(this.ctx, 2.4, 2.2);
+
+        this.reverbFilter = this.ctx.createBiquadFilter();
+        this.reverbFilter.type = 'lowpass';
+        this.reverbFilter.frequency.value = 4500;
+        this.reverbFilter.Q.value = 0.8;
 
         this.reverbGain = this.ctx.createGain();
-        this.reverbGain.gain.value = 0.16;
+        this.reverbGain.gain.value = 0.38;
 
+        this.makeupGain.connect(this.reverbConvolver);
+        this.reverbConvolver.connect(this.reverbFilter);
+        this.reverbFilter.connect(this.reverbGain);
+
+        // 7. Master Vocal Output Node
         this.masterVocalGain = this.ctx.createGain();
         this.masterVocalGain.gain.value = this.volume;
 
-        // Routing Chain:
-        // Input -> micHighpass -> micPresence -> micLowpass -> vocalCompressor -> makeupGain
-        this.micHighpass.connect(this.micPresence);
-        this.micPresence.connect(this.micLowpass);
-        this.micLowpass.connect(this.vocalCompressor);
-        this.vocalCompressor.connect(this.makeupGain);
-
-        // Dry Voice Path: makeupGain -> dryGain -> masterVocalGain
-        this.makeupGain.connect(this.dryGain);
+        // Sum all components into master vocal gain:
+        this.dryMerger.connect(this.dryGain);
         this.dryGain.connect(this.masterVocalGain);
-
-        // Delay Send: makeupGain -> delayNode -> wetGain -> masterVocalGain
-        this.makeupGain.connect(this.delayNode);
-        this.delayNode.connect(this.delayFeedback);
-        this.delayFeedback.connect(this.delayNode);
-        this.delayNode.connect(this.wetGain);
-        this.wetGain.connect(this.masterVocalGain);
-
-        // Reverb Send: makeupGain -> reverbConvolver -> reverbGain -> masterVocalGain
-        this.makeupGain.connect(this.reverbConvolver);
-        this.reverbConvolver.connect(this.reverbGain);
+        this.delayWetGain.connect(this.masterVocalGain);
         this.reverbGain.connect(this.masterVocalGain);
 
+        // Output to destination
         this.masterVocalGain.connect(this.ctx.destination);
+
         this.setEcho(this.echo);
       } catch (err) {
         console.warn('Club TTS DSP Setup warning:', err);
       }
     }
 
-    _createClubHallImpulse(audioContext, duration = 1.5, decay = 3.5) {
+    _createClubHallImpulse(audioContext, duration = 2.4, decay = 2.2) {
       const sampleRate = audioContext.sampleRate;
       const length = Math.floor(sampleRate * duration);
       const impulse = audioContext.createBuffer(2, length, sampleRate);
       const left = impulse.getChannelData(0);
       const right = impulse.getChannelData(1);
 
+      // Stereo discrete early reflections simulating high club ceiling & concrete/glass walls
+      const earlyReflections = [
+        { time: 0.015, gainL: 0.70, gainR: 0.30 },
+        { time: 0.028, gainL: -0.42, gainR: 0.62 },
+        { time: 0.046, gainL: 0.50, gainR: -0.45 },
+        { time: 0.070, gainL: -0.35, gainR: 0.38 },
+        { time: 0.098, gainL: 0.28, gainR: -0.28 }
+      ];
+
       for (let i = 0; i < length; i++) {
         const t = i / sampleRate;
         const env = Math.exp(-t * decay);
-        left[i] = (Math.random() * 2 - 1) * env * 0.45;
-        right[i] = (Math.random() * 2 - 1) * env * 0.45;
+        
+        let earlyL = 0;
+        let earlyR = 0;
+        for (let j = 0; j < earlyReflections.length; j++) {
+          const er = earlyReflections[j];
+          if (i === Math.floor(sampleRate * er.time)) {
+            earlyL += er.gainL;
+            earlyR += er.gainR;
+          }
+        }
+
+        // Stereo decorrelated diffusion
+        const noiseL = Math.random() * 2 - 1;
+        const noiseR = Math.random() * 2 - 1;
+
+        // High frequency absorption over distance in air and club crowd
+        const airAbsorption = Math.exp(-t * 3.6);
+
+        left[i] = (noiseL * env * airAbsorption * 0.75 + earlyL) * 0.48;
+        right[i] = (noiseR * env * airAbsorption * 0.75 + earlyR) * 0.48;
       }
       return impulse;
     }
-
     playIntroSFX(isOn = true) {
       if (!isOn) {
         if (this.introSFX === 'click') this.playMicClick(false);
@@ -718,11 +839,11 @@
       const p = parseInt(val, 10);
       if (!isNaN(p) && p >= -60 && p <= 60) {
         this.pitch = p;
-        if (this.micPresence && this.micHighpass && this.ctx) {
+        if (this.ctx) {
           try {
             const now = this.ctx.currentTime;
-            this.micPresence.frequency.setValueAtTime(3000 + p * 15, now);
-            this.micHighpass.frequency.setValueAtTime(Math.max(80, 160 + p * 2), now);
+            if (this.micPresence) this.micPresence.frequency.setValueAtTime(4000 + p * 20, now);
+            if (this.micBody) this.micBody.frequency.setValueAtTime(Math.max(140, 240 + p * 3), now);
           } catch (_) {}
         }
       }
@@ -732,23 +853,26 @@
       const echoPct = Math.max(0, Math.min(100, parseFloat(val) || 0));
       this.echo = echoPct;
       const factor = echoPct / 100;
-      if (this.wetGain && this.ctx) {
-        const targetWet = factor * 0.45;
-        const targetFeedback = Math.min(0.55, 0.15 + factor * 0.35);
-        const targetReverb = factor * 0.35;
+      if (this.ctx) {
+        // Full club echo & hall reverb curve
+        const targetDelayWet = factor * 0.55;
+        const targetFeedback = Math.min(0.65, 0.15 + factor * 0.45);
+        const targetReverbWet = factor * 0.50;
+
         try {
           const now = this.ctx.currentTime;
-          this.wetGain.gain.setValueAtTime(targetWet, now);
-          this.delayFeedback.gain.setValueAtTime(targetFeedback, now);
-          this.reverbGain.gain.setValueAtTime(targetReverb, now);
+          if (this.delayWetGain) this.delayWetGain.gain.setValueAtTime(targetDelayWet, now);
+          if (this.delayFeedbackL) this.delayFeedbackL.gain.setValueAtTime(targetFeedback, now);
+          if (this.delayFeedbackR) this.delayFeedbackR.gain.setValueAtTime(targetFeedback, now);
+          if (this.reverbGain) this.reverbGain.gain.setValueAtTime(targetReverbWet, now);
         } catch (_) {
-          this.wetGain.gain.value = targetWet;
-          this.delayFeedback.gain.value = targetFeedback;
-          this.reverbGain.gain.value = targetReverb;
+          if (this.delayWetGain) this.delayWetGain.gain.value = targetDelayWet;
+          if (this.delayFeedbackL) this.delayFeedbackL.gain.value = targetFeedback;
+          if (this.delayFeedbackR) this.delayFeedbackR.gain.value = targetFeedback;
+          if (this.reverbGain) this.reverbGain.gain.value = targetReverbWet;
         }
       }
     }
-
     setEnabled(val) {
       this.enabled = !!val;
       if (!this.enabled) {
